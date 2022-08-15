@@ -37,14 +37,40 @@ func handler(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	resp := play(v)
+	resp := Play(v)
 	fmt.Fprint(w, resp)
 }
 
-func play(input ArenaUpdate) (response string) {
-	log.Printf("IN: %#v", input)
+func Play(input ArenaUpdate) (response string) {
+	player := input.GetSelf()
+	game := NewGame(input)
 
-	commands := []string{"F", "R", "L", "T"}
-	rand := rand2.Intn(4)
-	return commands[rand]
+	// escape // benerin cara escape kalau ada yg nembak. cari jalan yg benar
+	// kalau ditembak jangan kabur dulu
+	// kalau ditembak dari samping F
+	// kalau ditembak dari depan R/L
+	// kalau ditembak dari belakang R/L
+	// mesti tau siapa yang nembak
+	// tapi yang paling penting cari jalan yg kosong
+	if player.WasHit {
+		commands := []string{"F", "R"}
+		rand := rand2.Intn(2)
+		return commands[rand]
+	}
+	//benerin cara nyari lawan soalnya suka muter2 ketika gak ada orang
+	// check user di kiri
+	playersInFront := player.GetPlayersInDirection(game, player.GetDirection())
+	playersInLeft := player.GetPlayersInDirection(game, player.GetDirection().Left())
+	playersInRight := player.GetPlayersInDirection(game, player.GetDirection().Right())
+	if playersInFront > 0 {
+		return "T"
+	} else if playersInLeft > 0 {
+		return "L"
+	} else if playersInRight > 0 {
+		return "R"
+	} else {
+		commands := []string{"F", "R", "L"}
+		rand := rand2.Intn(3)
+		return commands[rand]
+	}
 }
