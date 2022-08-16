@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	rand2 "math/rand"
 	"net/http"
 	"os"
 )
@@ -46,31 +45,24 @@ func Play(input ArenaUpdate) (response string) {
 	game := NewGame(input)
 
 	// escape // benerin cara escape kalau ada yg nembak. cari jalan yg benar
-	// kalau ditembak jangan kabur dulu
-	// kalau ditembak dari samping F
-	// kalau ditembak dari depan R/L
-	// kalau ditembak dari belakang R/L
-	// mesti tau siapa yang nembak
+	// kalau dipinggir jalannya masih salah. gak bisa nyari jalan
+	// kalau ada obstacle
 	// tapi yang paling penting cari jalan yg kosong
 	if player.WasHit {
-		commands := []string{"F", "R"}
-		rand := rand2.Intn(2)
-		return commands[rand]
+		return string(player.Escape(game))
 	}
-	//benerin cara nyari lawan soalnya suka muter2 ketika gak ada orang
+	// benerin cara nyari lawan soalnya suka muter2 ketika gak ada orang
 	// check user di kiri
-	playersInFront := player.GetPlayersInDirection(game, player.GetDirection())
-	playersInLeft := player.GetPlayersInDirection(game, player.GetDirection().Left())
-	playersInRight := player.GetPlayersInDirection(game, player.GetDirection().Right())
-	if playersInFront > 0 {
+	playersInFront := player.GetPlayersInRange(game, player.GetDirection(), 3)
+	playersInLeft := player.GetPlayersInRange(game, player.GetDirection().Left(), 3)
+	playersInRight := player.GetPlayersInRange(game, player.GetDirection().Right(), 3)
+	if len(playersInFront) > 0 {
 		return "T"
-	} else if playersInLeft > 0 {
+	} else if len(playersInLeft) > 0 {
 		return "L"
-	} else if playersInRight > 0 {
+	} else if len(playersInRight) > 0 {
 		return "R"
 	} else {
-		commands := []string{"F", "R", "L"}
-		rand := rand2.Intn(3)
-		return commands[rand]
+		return string(player.MoveForward(game))
 	}
 }

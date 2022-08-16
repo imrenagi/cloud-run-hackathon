@@ -20,6 +20,11 @@ func (d Direction) Right() Direction {
 	return DirectionMap[degree]
 }
 
+func (d Direction) Opposite() Direction {
+	degree := d.Degree + 180
+	return DirectionMap[degree]
+}
+
 var (
 	North = Direction{"N", 180} //
 	West  = Direction{"W", 270}
@@ -30,9 +35,11 @@ var (
 		-90: West,
 		0:   South,
 		90:  East,
-		270: West,
 		180: North,
+		270: West,
 		360: South,
+		450: East,
+		540: North,
 	}
 )
 
@@ -101,6 +108,36 @@ func (p PlayerState) Position() Point {
 func (p PlayerState) SearchOpponent() {
 
 }
+//
+// func (p PlayerState) TurnRight(g Game) Decision {
+// 	destination := NewPointAfterMove(p.Position(), p.GetDirection(), 1)
+// 	if destination.X < 0 || destination.X > g.Dimension[0] - 1 || destination.Y < 0 || destination.Y > g.Dimension[1] - 1 {
+// 		return TurnRight
+// 	}
+//
+// 	//check other player
+// 	players := p.GetPlayersInRange(g, p.GetDirection(), 1)
+// 	if len(players) > 0 {
+// 		return TurnRight
+// 	}
+//
+// 	return TurnRight
+// }
+
+func (p PlayerState) MoveForward(g Game) Decision {
+	destination := NewPointAfterMove(p.Position(), p.GetDirection(), 1)
+	if destination.X < 0 || destination.X > g.Dimension[0] - 1 || destination.Y < 0 || destination.Y > g.Dimension[1] - 1 {
+		return TurnRight
+	}
+
+	//check other player
+	players := p.GetPlayersInRange(g, p.GetDirection(), 1)
+	if len(players) > 0 {
+		return TurnRight
+	}
+
+	return MoveForward
+}
 
 type Point struct {
 	X, Y int
@@ -110,12 +147,72 @@ func (p Point) String() string {
 	return fmt.Sprintf("%d,%d", int(p.X), int(p.Y))
 }
 
+func (p Point) Equal(anotherPoint Point) bool {
+	return p.X == anotherPoint.X && p.Y == anotherPoint.Y
+}
+
 const attackRange = 3
 
-func (p PlayerState) GetPlayersInDirection(g Game, direction Direction) int {
-	var enemyInAttackRange []Point
+func (p PlayerState) FindShooterFromDirection(g Game, direction Direction) []PlayerState {
+	var filtered []PlayerState
+	opponents := p.GetPlayersInRange(g, direction, attackRange)
+	for _, opponent := range opponents {
+		if p.LookingAtMe(g, opponent) {
+			filtered = append(filtered, opponent)
+		}
+	}
+	return filtered
+}
+
+func (p PlayerState) Escape(g Game) Decision {
+	front := p.FindShooterFromDirection(g, p.GetDirection())
+	if len(front) > 0 {
+		return TurnRight
+	}
+	back := p.FindShooterFromDirection(g, p.GetDirection().Opposite())
+	if len(back) > 0 {
+		return TurnRight
+	}
+
+	// TODO bug ditembak dari south tapi cuma right terus
+	// TODO fix cara cari lawan
+
+	left := p.FindShooterFromDirection(g, p.GetDirection().Left())
+	if len(left) > 0 {
+		return p.MoveForward(g)
+	}
+	right := p.FindShooterFromDirection(g, p.GetDirection().Right())
+	if len(right) > 0 {
+		return p.MoveForward(g)
+	}
+	return p.MoveForward(g)
+
+}
+
+func (p PlayerState) IsMe(op PlayerState) bool {
+	// TODO Compare with url instead
+	return op.Position().Equal(p.Position())
+}
+
+func (p PlayerState) LookingAtMe(g Game, op PlayerState) bool {
+	players := op.GetPlayersInRange(g, op.GetDirection(), attackRange)
+	for i, player := range players {
+		probablyIsAttackingMe := p.IsMe(player) && i == 0
+		if probablyIsAttackingMe {
+			return true
+		}
+	}
+	return false
+}
+
+// Test Cases:
+// * persis disebelah
+// * ada user ditengah, mestinya ini gak lookingatme
+
+func (p PlayerState) GetPlayersInRange(g Game, direction Direction, distance int) []PlayerState {
+	var playersInRange []PlayerState
 	var ptA = p.Position()
-	var ptB = NewPointAfterMove(p.Position(), direction, attackRange)
+	var ptB = NewPointAfterMove(p.Position(), direction, distance)
 
 	if ptB.X > g.Dimension[0]-1 {
 		ptB.X = g.Dimension[0] - 1
@@ -130,7 +227,7 @@ func (p PlayerState) GetPlayersInDirection(g Game, direction Direction) int {
 		ptB.Y = 0
 	}
 
-	for i := 1; i < 4; i++ {
+	for i := 1; i < (distance + 1); i++ {
 		npt := NewPointAfterMove(ptA, direction, i)
 		if npt.X > g.Dimension[0]-1 || npt.X < 0 {
 			break
@@ -140,52 +237,10 @@ func (p PlayerState) GetPlayersInDirection(g Game, direction Direction) int {
 		}
 
 		if player, ok := g.PlayersByPosition[npt.String()]; ok {
-			enemyInAttackRange = append(enemyInAttackRange, Point{
-				X: player.X,
-				Y: player.Y,
-			})
+			playersInRange = append(playersInRange, player)
 		}
 	}
-
-	// if ptA.X == ptB.X {
-	// 	// iterate over y
-	// 	minY := ptA.Y
-	// 	maxY := ptB.Y
-	// 	if ptA.X > ptB.X {
-	// 		maxY = ptA.Y
-	// 		minY = ptB.Y
-	// 	}
-	//
-	// 	for y := minY + 1; y <= maxY; y++ {
-	// 		pt := Point{X: ptA.X, Y: y}
-	// 		if player, ok := g.PlayersByPosition[pt.String()]; ok {
-	// 			enemyInAttackRange = append(enemyInAttackRange, Point{
-	// 				X: player.X,
-	// 				Y: player.Y,
-	// 			})
-	// 		}
-	// 	}
-	// } else if ptA.Y == ptB.Y {
-	// 	// iterate over X
-	// 	minX := ptA.X
-	// 	maxX := ptB.X
-	// 	if ptA.X > ptB.X {
-	// 		maxX = ptA.X
-	// 		minX = ptB.X
-	// 	}
-	//
-	// 	for x := minX + 1; x <= maxX; x++ {
-	// 		pt := Point{X: x, Y: ptA.Y}
-	// 		if player, ok := g.PlayersByPosition[pt.String()]; ok {
-	// 			enemyInAttackRange = append(enemyInAttackRange, Point{
-	// 				X: player.X,
-	// 				Y: player.Y,
-	// 			})
-	// 		}
-	// 	}
-	// }
-
-	return len(enemyInAttackRange)
+	return playersInRange
 }
 
 // attack mode
@@ -218,5 +273,4 @@ func NewPointAfterMove(p Point, direction Direction, distance int) Point {
 		X: p.X + distance*int(math.Round(math.Sin(dir))),
 		Y: p.Y + distance*int(math.Round(math.Cos(dir))),
 	}
-
 }
