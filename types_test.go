@@ -357,6 +357,110 @@ func TestPlayerState_Escape(t *testing.T) {
 			},
 			want:   "F",
 		},
+		// ---- diserang beberapa sekaligus
+		{
+			name:   "opponent is attacking from the bottom left and back, player heading west, should move forward",
+			fields: fields{
+				X:         5,
+				Y:         3,
+				Direction: "W",
+			},
+			args:   args{
+				g: Game{
+					Dimension:         []int{7,5},
+					PlayersByPosition: map[string]PlayerState{
+						"5,3": {
+							X:         5,
+							Y:         3,
+							Direction: "W",
+						},
+						"5,4": {
+							X:         5,
+							Y:         4,
+							Direction: "N",
+						},
+						"6,3": {
+							X:         6,
+							Y:         3,
+							Direction: "W",
+						},
+					},
+				},
+			},
+			want:   "F",
+		},
+		{
+			name:   "opponent is attacking from the bottom left right and back, player heading north, should move forward",
+			fields: fields{
+				X:         5,
+				Y:         3,
+				Direction: "N",
+			},
+			args:   args{
+				g: Game{
+					Dimension:         []int{7,5},
+					PlayersByPosition: map[string]PlayerState{
+						"3,3": {
+							X:         3,
+							Y:         3,
+							Direction: "E",
+						},
+						"5,3": {
+							X:         5,
+							Y:         3,
+							Direction: "N",
+						},
+						"5,4": {
+							X:         5,
+							Y:         4,
+							Direction: "N",
+						},
+						"6,3": {
+							X:         6,
+							Y:         3,
+							Direction: "W",
+						},
+					},
+				},
+			},
+			want:   "F",
+		},
+		{
+			name:   "opponent is attacking from the bottom left right and back, player heading west, should turn right",
+			fields: fields{
+				X:         5,
+				Y:         3,
+				Direction: "W",
+			},
+			args:   args{
+				g: Game{
+					Dimension:         []int{7,5},
+					PlayersByPosition: map[string]PlayerState{
+						"3,3": {
+							X:         3,
+							Y:         3,
+							Direction: "E",
+						},
+						"5,3": {
+							X:         5,
+							Y:         3,
+							Direction: "W",
+						},
+						"5,4": {
+							X:         5,
+							Y:         4,
+							Direction: "N",
+						},
+						"6,3": {
+							X:         6,
+							Y:         3,
+							Direction: "W",
+						},
+					},
+				},
+			},
+			want:   "F",
+		},
 
 		// -----
 		{

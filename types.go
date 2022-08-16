@@ -108,6 +108,7 @@ func (p PlayerState) Position() Point {
 func (p PlayerState) SearchOpponent() {
 
 }
+
 //
 // func (p PlayerState) TurnRight(g Game) Decision {
 // 	destination := NewPointAfterMove(p.Position(), p.GetDirection(), 1)
@@ -126,11 +127,11 @@ func (p PlayerState) SearchOpponent() {
 
 func (p PlayerState) MoveForward(g Game) Decision {
 	destination := NewPointAfterMove(p.Position(), p.GetDirection(), 1)
-	if destination.X < 0 || destination.X > g.Dimension[0] - 1 || destination.Y < 0 || destination.Y > g.Dimension[1] - 1 {
+	if destination.X < 0 || destination.X > g.Dimension[0]-1 || destination.Y < 0 || destination.Y > g.Dimension[1]-1 {
 		return TurnRight
 	}
 
-	//check other player
+	// check other player
 	players := p.GetPlayersInRange(g, p.GetDirection(), 1)
 	if len(players) > 0 {
 		return TurnRight
@@ -165,28 +166,21 @@ func (p PlayerState) FindShooterFromDirection(g Game, direction Direction) []Pla
 }
 
 func (p PlayerState) Escape(g Game) Decision {
-	front := p.FindShooterFromDirection(g, p.GetDirection())
-	if len(front) > 0 {
-		return TurnRight
-	}
-	back := p.FindShooterFromDirection(g, p.GetDirection().Opposite())
-	if len(back) > 0 {
-		return TurnRight
-	}
+	front := len(p.FindShooterFromDirection(g, p.GetDirection()))
+	back := len(p.FindShooterFromDirection(g, p.GetDirection().Opposite()))
+	left := len(p.FindShooterFromDirection(g, p.GetDirection().Left()))
+	right := len(p.FindShooterFromDirection(g, p.GetDirection().Right()))
 
-	// TODO bug ditembak dari south tapi cuma right terus
-	// TODO fix cara cari lawan
-
-	left := p.FindShooterFromDirection(g, p.GetDirection().Left())
-	if len(left) > 0 {
+	if (front > 0 && back == 0 && right == 0 && left == 0) ||
+	  (front == 0 && back > 0 && right == 0 && left == 0) {
+		return TurnRight
+		// } else if (front == 0 && back == 0 && right > 0 && left == 0) ||
+		//   (front == 0 && back == 0 && right > 0 && left == 0) {
+		// 	return p.MoveForward(g)
+		// }
+	} else {
 		return p.MoveForward(g)
 	}
-	right := p.FindShooterFromDirection(g, p.GetDirection().Right())
-	if len(right) > 0 {
-		return p.MoveForward(g)
-	}
-	return p.MoveForward(g)
-
 }
 
 func (p PlayerState) IsMe(op PlayerState) bool {
