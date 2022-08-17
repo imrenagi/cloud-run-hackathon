@@ -171,7 +171,7 @@ func TestPlay(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			gotResponse := Play(tt.args.input);
-			assert.Contains(t, tt.wantResponse, gotResponse)
+			assert.Contains(t, tt.wantResponse, string(gotResponse))
 		})
 	}
 }
