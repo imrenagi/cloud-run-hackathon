@@ -171,6 +171,9 @@ func (p PlayerState) Escape(g Game) Decision {
 	left := len(p.FindShooterFromDirection(g, p.GetDirection().Left()))
 	right := len(p.FindShooterFromDirection(g, p.GetDirection().Right()))
 
+	// TODO kalau dibelakang ada. jaraknya lebih deket (2 puteran), puter aja.
+	// TODO kalau dipinggir, cari jarak terpendek buat kabur. bisa lgsg ke kiri daripada muter ke kanan 3 kali
+
 	if (front > 0 && back == 0 && right == 0 && left == 0) ||
 	  (front == 0 && back > 0 && right == 0 && left == 0) {
 		return TurnRight
