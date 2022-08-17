@@ -1,36 +1,33 @@
 package main
 
 import (
-	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
-func TestPlayerState_MoveForward(t *testing.T) {
+func TestPlayerState_Walk(t *testing.T) {
 	type fields struct {
 		X         int
 		Y         int
 		Direction string
 		WasHit    bool
 		Score     int
+		Game      Game
 	}
-	type args struct {
-		g Game
-	}
+
 	tests := []struct {
 		name   string
 		fields fields
-		args   args
 		want   Decision
 	}{
 		{
-			name:   "move forward",
+			name: "move forward",
 			fields: fields{
 				X:         1,
 				Y:         1,
 				Direction: "W",
-			},
-			args:   args{
-				g: Game{
+				Game: Game{
 					Arena: Arena{
 						Width:  4,
 						Height: 3,
@@ -44,17 +41,15 @@ func TestPlayerState_MoveForward(t *testing.T) {
 					},
 				},
 			},
-			want:   "F",
+			want: "F",
 		},
 		{
-			name:   "found edge, turn right",
+			name: "found edge, turn right",
 			fields: fields{
 				X:         0,
 				Y:         0,
 				Direction: "W",
-			},
-			args:   args{
-				g: Game{
+				Game: Game{
 					Arena: Arena{
 						Width:  4,
 						Height: 3,
@@ -68,17 +63,15 @@ func TestPlayerState_MoveForward(t *testing.T) {
 					},
 				},
 			},
-			want:   "R",
+			want: "R",
 		},
 		{
-			name:   "found enemy in front, turn right",
+			name: "found enemy in front, turn right",
 			fields: fields{
 				X:         1,
 				Y:         1,
 				Direction: "W",
-			},
-			args:   args{
-				g: Game{
+				Game: Game{
 					Arena: Arena{
 						Width:  4,
 						Height: 3,
@@ -97,7 +90,7 @@ func TestPlayerState_MoveForward(t *testing.T) {
 					},
 				},
 			},
-			want:   "R",
+			want: "R",
 		},
 	}
 	for _, tt := range tests {
@@ -108,8 +101,9 @@ func TestPlayerState_MoveForward(t *testing.T) {
 				Direction: tt.fields.Direction,
 				WasHit:    tt.fields.WasHit,
 				Score:     tt.fields.Score,
+				Game:      tt.fields.Game,
 			}
-			if got := p.Walk(tt.args.g); got != tt.want {
+			if got := p.Walk(); got != tt.want {
 				t.Errorf("Walk() = %v, want %v", got, tt.want)
 			}
 		})
@@ -123,9 +117,9 @@ func TestPlayerState_GetPlayersInFront(t *testing.T) {
 		Direction string
 		WasHit    bool
 		Score     int
+		Game      Game
 	}
 	type args struct {
-		g         Game
 		direction Direction
 	}
 	tests := []struct {
@@ -142,10 +136,7 @@ func TestPlayerState_GetPlayersInFront(t *testing.T) {
 				Direction: "E",
 				WasHit:    false,
 				Score:     0,
-			},
-			args: args{
-				direction: East,
-				g: Game{
+				Game: Game{
 					Arena: Arena{
 						Width:  4,
 						Height: 4,
@@ -169,6 +160,9 @@ func TestPlayerState_GetPlayersInFront(t *testing.T) {
 						},
 					},
 				},
+			},
+			args: args{
+				direction: East,
 			},
 			want: 3,
 		},
@@ -180,10 +174,7 @@ func TestPlayerState_GetPlayersInFront(t *testing.T) {
 				Direction: "E",
 				WasHit:    false,
 				Score:     0,
-			},
-			args: args{
-				direction: East,
-				g: Game{
+				Game: Game{
 					Arena: Arena{
 						Width:  4,
 						Height: 4,
@@ -207,6 +198,9 @@ func TestPlayerState_GetPlayersInFront(t *testing.T) {
 						},
 					},
 				},
+			},
+			args: args{
+				direction: East,
 			},
 			want: 1,
 		},
@@ -219,8 +213,9 @@ func TestPlayerState_GetPlayersInFront(t *testing.T) {
 				Direction: tt.fields.Direction,
 				WasHit:    tt.fields.WasHit,
 				Score:     tt.fields.Score,
+				Game:      tt.fields.Game,
 			}
-			if got := p.GetPlayersInRange(tt.args.g, tt.args.direction, 3); len(got) != tt.want {
+			if got := p.GetPlayersInRange(tt.args.direction, 3); len(got) != tt.want {
 				t.Errorf("GetPlayersInRange() = %v, want %v", got, tt.want)
 			}
 		})
@@ -234,9 +229,9 @@ func TestPlayerState_FindShooterFromDirection(t *testing.T) {
 		Direction string
 		WasHit    bool
 		Score     int
+		Game      Game
 	}
 	type args struct {
-		g         Game
 		direction Direction
 	}
 	tests := []struct {
@@ -251,9 +246,7 @@ func TestPlayerState_FindShooterFromDirection(t *testing.T) {
 				X:         1,
 				Y:         1,
 				Direction: "W",
-			},
-			args: args{
-				g: Game{
+				Game: Game{
 					Arena: Arena{
 						Width:  4,
 						Height: 3,
@@ -271,6 +264,8 @@ func TestPlayerState_FindShooterFromDirection(t *testing.T) {
 						},
 					},
 				},
+			},
+			args: args{
 				direction: North,
 			},
 			want: []PlayerState{
@@ -287,9 +282,7 @@ func TestPlayerState_FindShooterFromDirection(t *testing.T) {
 				X:         1,
 				Y:         1,
 				Direction: "W",
-			},
-			args: args{
-				g: Game{
+				Game: Game{
 					Arena: Arena{
 						Width:  4,
 						Height: 3,
@@ -307,6 +300,8 @@ func TestPlayerState_FindShooterFromDirection(t *testing.T) {
 						},
 					},
 				},
+			},
+			args: args{
 				direction: East,
 			},
 			want: []PlayerState{
@@ -323,9 +318,7 @@ func TestPlayerState_FindShooterFromDirection(t *testing.T) {
 				X:         1,
 				Y:         1,
 				Direction: "W",
-			},
-			args: args{
-				g: Game{
+				Game: Game{
 					Arena: Arena{
 						Width:  4,
 						Height: 4,
@@ -343,6 +336,8 @@ func TestPlayerState_FindShooterFromDirection(t *testing.T) {
 						},
 					},
 				},
+			},
+			args: args{
 				direction: South,
 			},
 			want: []PlayerState{
@@ -359,9 +354,7 @@ func TestPlayerState_FindShooterFromDirection(t *testing.T) {
 				X:         1,
 				Y:         1,
 				Direction: "W",
-			},
-			args: args{
-				g: Game{
+				Game: Game{
 					Arena: Arena{
 						Width:  4,
 						Height: 3,
@@ -379,6 +372,9 @@ func TestPlayerState_FindShooterFromDirection(t *testing.T) {
 						},
 					},
 				},
+			},
+			args: args{
+
 				direction: West,
 			},
 			want: []PlayerState{
@@ -398,9 +394,13 @@ func TestPlayerState_FindShooterFromDirection(t *testing.T) {
 				Direction: tt.fields.Direction,
 				WasHit:    tt.fields.WasHit,
 				Score:     tt.fields.Score,
+				Game:      tt.fields.Game,
 			}
-			if got := p.FindShooterOnDirection(tt.args.g, tt.args.direction); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("FindShooterOnDirection() = %v, want %v", got, tt.want)
+			got := p.FindShooterOnDirection(tt.args.direction)
+			assert.Equal(t, len(tt.want), len(got))
+			for i, p := range tt.want {
+				assert.Equal(t, p.X, tt.want[i].X)
+				assert.Equal(t, p.Y, tt.want[i].Y)
 			}
 		})
 	}

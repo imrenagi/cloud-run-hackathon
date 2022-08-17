@@ -1,20 +1,20 @@
 package main
 
-
 type PlayerState struct {
 	X         int    `json:"x"`
 	Y         int    `json:"y"`
 	Direction string `json:"direction"`
 	WasHit    bool   `json:"wasHit"`
 	Score     int    `json:"score"`
+	Game      Game   `json:"-"`
 }
 
-func (p PlayerState) Play(g Game) Decision {
+func (p PlayerState) Play() Decision {
 	var state State = Attack{Player: p}
 	if p.WasHit {
 		state = Escape{Player: p}
 	}
-	return state.Play(g)
+	return state.Play()
 }
 
 func (p PlayerState) GetDirection() Direction {
@@ -37,13 +37,13 @@ func (p PlayerState) GetPosition() Point {
 	}
 }
 
-func (p PlayerState) Walk(g Game) Decision {
+func (p PlayerState) Walk() Decision {
 	destination := p.GetPosition().MoveWithDirection(1, p.GetDirection())
-	if destination.X < 0 || destination.X > g.Arena.Width-1 || destination.Y < 0 || destination.Y > g.Arena.Height-1 {
+	if destination.X < 0 || destination.X > p.Game.Arena.Width-1 || destination.Y < 0 || destination.Y > p.Game.Arena.Height-1 {
 		return TurnRight
 	}
 	// check other player
-	players := p.GetPlayersInRange(g, p.GetDirection(), 1)
+	players := p.GetPlayersInRange(p.GetDirection(), 1)
 	if len(players) > 0 {
 		return TurnRight
 	}
@@ -53,12 +53,12 @@ func (p PlayerState) Walk(g Game) Decision {
 const attackRange = 3
 
 // FindShooterOnDirection return other players which are in attach range and heading toward the player
-func (p PlayerState) FindShooterOnDirection(g Game, direction Direction) []PlayerState {
+func (p PlayerState) FindShooterOnDirection(direction Direction) []PlayerState {
 	var filtered []PlayerState
-	opponents := p.GetPlayersInRange(g, direction, attackRange)
+	opponents := p.GetPlayersInRange(direction, attackRange)
 	for _, opponent := range opponents {
 		// exclude if they are not heading toward the player
-		if p.isHeadingTowardMe(g, opponent) {
+		if p.isHeadingTowardMe(opponent) {
 			filtered = append(filtered, opponent)
 		}
 	}
@@ -70,8 +70,8 @@ func (p PlayerState) isMe(p2 PlayerState) bool {
 	return p2.GetPosition().Equal(p.GetPosition())
 }
 
-func (p PlayerState) isHeadingTowardMe(g Game, p2 PlayerState) bool {
-	players := p2.GetPlayersInRange(g, p2.GetDirection(), attackRange)
+func (p PlayerState) isHeadingTowardMe(p2 PlayerState) bool {
+	players := p2.GetPlayersInRange(p2.GetDirection(), attackRange)
 	for i, player := range players {
 		probablyIsAttackingMe := p.isMe(player) && i == 0
 		if probablyIsAttackingMe {
@@ -81,20 +81,16 @@ func (p PlayerState) isHeadingTowardMe(g Game, p2 PlayerState) bool {
 	return false
 }
 
-// Test Cases:
-// * persis disebelah
-// * ada user ditengah, mestinya ini gak lookingatme
-
-func (p PlayerState) GetPlayersInRange(g Game, direction Direction, distance int) []PlayerState {
+func (p PlayerState) GetPlayersInRange(direction Direction, distance int) []PlayerState {
 	var playersInRange []PlayerState
 	var ptA = p.GetPosition()
 	var ptB = p.GetPosition().MoveWithDirection(distance, direction)
 
-	if ptB.X > g.Arena.Width-1 {
-		ptB.X = g.Arena.Width - 1
+	if ptB.X > p.Game.Arena.Width-1 {
+		ptB.X = p.Game.Arena.Width - 1
 	}
-	if ptB.Y > g.Arena.Height-1 {
-		ptB.Y = g.Arena.Height - 1
+	if ptB.Y > p.Game.Arena.Height-1 {
+		ptB.Y = p.Game.Arena.Height - 1
 	}
 	if ptB.X < 0 {
 		ptB.X = 0
@@ -105,17 +101,16 @@ func (p PlayerState) GetPlayersInRange(g Game, direction Direction, distance int
 
 	for i := 1; i < (distance + 1); i++ {
 		npt := ptA.MoveWithDirection(i, direction)
-		if npt.X > g.Arena.Width-1 || npt.X < 0 {
+		if npt.X > p.Game.Arena.Width-1 || npt.X < 0 {
 			break
 		}
-		if npt.Y > g.Arena.Height-1 || npt.Y < 0 {
+		if npt.Y > p.Game.Arena.Height-1 || npt.Y < 0 {
 			break
 		}
 
-		if player, ok := g.PlayersByPosition[npt.String()]; ok {
+		if player, ok := p.Game.GetPlayerByPosition(npt); ok {
 			playersInRange = append(playersInRange, player)
 		}
 	}
 	return playersInRange
 }
-

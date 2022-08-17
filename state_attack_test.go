@@ -8,13 +8,9 @@ func TestAttack_Play(t *testing.T) {
 	type fields struct {
 		Player PlayerState
 	}
-	type args struct {
-		g Game
-	}
 	tests := []struct {
 		name   string
 		fields fields
-		args   args
 		want   Decision
 	}{
 		{
@@ -26,28 +22,26 @@ func TestAttack_Play(t *testing.T) {
 					Direction: "W",
 					WasHit:    false,
 					Score:     0,
-				},
-			},
-			args:   args{
-				g: Game{
-					Arena: Arena{
-						Width:  4,
-						Height: 3,
-					},
-					PlayersByPosition: map[string]PlayerState{
-						"1,1": {
-							X:         1,
-							Y:         1,
-							Direction: "W",
-							WasHit:    false,
-							Score:     0,
+					Game: Game{
+						Arena: Arena{
+							Width:  4,
+							Height: 3,
 						},
-						"0,1": {
-							X:         0,
-							Y:         1,
-							Direction: "S",
-							WasHit:    false,
-							Score:     0,
+						PlayersByPosition: map[string]PlayerState{
+							"1,1": {
+								X:         1,
+								Y:         1,
+								Direction: "W",
+								WasHit:    false,
+								Score:     0,
+							},
+							"0,1": {
+								X:         0,
+								Y:         1,
+								Direction: "S",
+								WasHit:    false,
+								Score:     0,
+							},
 						},
 					},
 				},
@@ -63,28 +57,26 @@ func TestAttack_Play(t *testing.T) {
 					Direction: "N",
 					WasHit:    false,
 					Score:     0,
-				},
-			},
-			args:   args{
-				g: Game{
-					Arena: Arena{
-						Width:  4,
-						Height: 3,
-					},
-					PlayersByPosition: map[string]PlayerState{
-						"1,1": {
-							X:         1,
-							Y:         1,
-							Direction: "N",
-							WasHit:    false,
-							Score:     0,
+					Game: Game{
+						Arena: Arena{
+							Width:  4,
+							Height: 3,
 						},
-						"0,1": {
-							X:         0,
-							Y:         1,
-							Direction: "E",
-							WasHit:    false,
-							Score:     0,
+						PlayersByPosition: map[string]PlayerState{
+							"1,1": {
+								X:         1,
+								Y:         1,
+								Direction: "N",
+								WasHit:    false,
+								Score:     0,
+							},
+							"0,1": {
+								X:         0,
+								Y:         1,
+								Direction: "E",
+								WasHit:    false,
+								Score:     0,
+							},
 						},
 					},
 				},
@@ -100,28 +92,26 @@ func TestAttack_Play(t *testing.T) {
 					Direction: "N",
 					WasHit:    false,
 					Score:     0,
-				},
-			},
-			args:   args{
-				g: Game{
-					Arena: Arena{
-						Width:  4,
-						Height: 3,
-					},
-					PlayersByPosition: map[string]PlayerState{
-						"1,1": {
-							X:         1,
-							Y:         1,
-							Direction: "N",
-							WasHit:    false,
-							Score:     0,
+					Game: Game{
+						Arena: Arena{
+							Width:  4,
+							Height: 3,
 						},
-						"2,1": {
-							X:         2,
-							Y:         1,
-							Direction: "E",
-							WasHit:    false,
-							Score:     0,
+						PlayersByPosition: map[string]PlayerState{
+							"1,1": {
+								X:         1,
+								Y:         1,
+								Direction: "N",
+								WasHit:    false,
+								Score:     0,
+							},
+							"2,1": {
+								X:         2,
+								Y:         1,
+								Direction: "E",
+								WasHit:    false,
+								Score:     0,
+							},
 						},
 					},
 				},
@@ -137,21 +127,19 @@ func TestAttack_Play(t *testing.T) {
 					Direction: "N",
 					WasHit:    false,
 					Score:     0,
-				},
-			},
-			args:   args{
-				g: Game{
-					Arena: Arena{
-						Width:  4,
-						Height: 3,
-					},
-					PlayersByPosition: map[string]PlayerState{
-						"1,1": {
-							X:         1,
-							Y:         1,
-							Direction: "N",
-							WasHit:    false,
-							Score:     0,
+					Game: Game{
+						Arena: Arena{
+							Width:  4,
+							Height: 3,
+						},
+						PlayersByPosition: map[string]PlayerState{
+							"1,1": {
+								X:         1,
+								Y:         1,
+								Direction: "N",
+								WasHit:    false,
+								Score:     0,
+							},
 						},
 					},
 				},
@@ -164,7 +152,7 @@ func TestAttack_Play(t *testing.T) {
 			a := Attack{
 				Player: tt.fields.Player,
 			}
-			if got := a.Play(tt.args.g); got != tt.want {
+			if got := a.Play(); got != tt.want {
 				t.Errorf("Play() = %v, want %v", got, tt.want)
 			}
 		})

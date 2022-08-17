@@ -6,13 +6,9 @@ func TestEscape_Play(t *testing.T) {
 	type fields struct {
 		Player PlayerState
 	}
-	type args struct {
-		g Game
-	}
 	tests := []struct {
 		name   string
 		fields fields
-		args   args
 		want   Decision
 	}{
 		{
@@ -24,24 +20,22 @@ func TestEscape_Play(t *testing.T) {
 					Direction: "W",
 					WasHit:    true,
 					Score:     0,
-				},
-			},
-			args: args{
-				g: Game{
-					Arena: Arena{
-						Width:  4,
-						Height: 3,
-					},
-					PlayersByPosition: map[string]PlayerState{
-						"1,0": {
-							X:         1,
-							Y:         0,
-							Direction: "S",
+					Game: Game{
+						Arena: Arena{
+							Width:  4,
+							Height: 3,
 						},
-						"1,2": {
-							X:         1,
-							Y:         2,
-							Direction: "N",
+						PlayersByPosition: map[string]PlayerState{
+							"1,0": {
+								X:         1,
+								Y:         0,
+								Direction: "S",
+							},
+							"1,2": {
+								X:         1,
+								Y:         2,
+								Direction: "N",
+							},
 						},
 					},
 				},
@@ -57,24 +51,22 @@ func TestEscape_Play(t *testing.T) {
 					Direction: "S",
 					WasHit:    true,
 					Score:     0,
-				},
-			},
-			args: args{
-				g: Game{
-					Arena: Arena{
-						Width:  4,
-						Height: 3,
-					},
-					PlayersByPosition: map[string]PlayerState{
-						"1,0": {
-							X:         1,
-							Y:         0,
-							Direction: "S",
+					Game: Game{
+						Arena: Arena{
+							Width:  4,
+							Height: 3,
 						},
-						"1,2": {
-							X:         1,
-							Y:         2,
-							Direction: "N",
+						PlayersByPosition: map[string]PlayerState{
+							"1,0": {
+								X:         1,
+								Y:         0,
+								Direction: "S",
+							},
+							"1,2": {
+								X:         1,
+								Y:         2,
+								Direction: "N",
+							},
 						},
 					},
 				},
@@ -90,21 +82,19 @@ func TestEscape_Play(t *testing.T) {
 					Direction: "N",
 					WasHit:    true,
 					Score:     0,
-				},
-			},
-			args: args{
-				g: Game{
-					Arena: Arena{Width: 4, Height: 3},
-					PlayersByPosition: map[string]PlayerState{
-						"1,0": {
-							X:         1,
-							Y:         0,
-							Direction: "S",
-						},
-						"1,2": {
-							X:         1,
-							Y:         2,
-							Direction: "N",
+					Game: Game{
+						Arena: Arena{Width: 4, Height: 3},
+						PlayersByPosition: map[string]PlayerState{
+							"1,0": {
+								X:         1,
+								Y:         0,
+								Direction: "S",
+							},
+							"1,2": {
+								X:         1,
+								Y:         2,
+								Direction: "N",
+							},
 						},
 					},
 				},
@@ -120,21 +110,19 @@ func TestEscape_Play(t *testing.T) {
 					Direction: "E",
 					WasHit:    true,
 					Score:     0,
-				},
-			},
-			args: args{
-				g: Game{
-					Arena: Arena{Width: 4, Height: 3},
-					PlayersByPosition: map[string]PlayerState{
-						"1,0": {
-							X:         1,
-							Y:         0,
-							Direction: "S",
-						},
-						"1,2": {
-							X:         1,
-							Y:         2,
-							Direction: "N",
+					Game: Game{
+						Arena: Arena{Width: 4, Height: 3},
+						PlayersByPosition: map[string]PlayerState{
+							"1,0": {
+								X:         1,
+								Y:         0,
+								Direction: "S",
+							},
+							"1,2": {
+								X:         1,
+								Y:         2,
+								Direction: "N",
+							},
 						},
 					},
 				},
@@ -150,21 +138,19 @@ func TestEscape_Play(t *testing.T) {
 					Direction: "E",
 					WasHit:    true,
 					Score:     0,
-				},
-			},
-			args: args{
-				g: Game{
-					Arena: Arena{Width: 4, Height: 3},
-					PlayersByPosition: map[string]PlayerState{
-						"1,1": {
-							X:         1,
-							Y:         1,
-							Direction: "E",
-						},
-						"1,2": {
-							X:         1,
-							Y:         2,
-							Direction: "N",
+					Game: Game{
+						Arena: Arena{Width: 4, Height: 3},
+						PlayersByPosition: map[string]PlayerState{
+							"1,1": {
+								X:         1,
+								Y:         1,
+								Direction: "E",
+							},
+							"1,2": {
+								X:         1,
+								Y:         2,
+								Direction: "N",
+							},
 						},
 					},
 				},
@@ -180,24 +166,22 @@ func TestEscape_Play(t *testing.T) {
 					Direction: "W",
 					WasHit:    true,
 					Score:     0,
-				},
-			},
-			args: args{
-				g: Game{
-					Arena: Arena{
-						Width:  7,
-						Height: 5,
-					},
-					PlayersByPosition: map[string]PlayerState{
-						"6,2": {
-							X:         6,
-							Y:         2,
-							Direction: "W",
+					Game: Game{
+						Arena: Arena{
+							Width:  7,
+							Height: 5,
 						},
-						"6,4": {
-							X:         6,
-							Y:         4,
-							Direction: "N",
+						PlayersByPosition: map[string]PlayerState{
+							"6,2": {
+								X:         6,
+								Y:         2,
+								Direction: "W",
+							},
+							"6,4": {
+								X:         6,
+								Y:         4,
+								Direction: "N",
+							},
 						},
 					},
 				},
@@ -212,29 +196,27 @@ func TestEscape_Play(t *testing.T) {
 					X:         5,
 					Y:         3,
 					Direction: "W",
-				},
-			},
-			args: args{
-				g: Game{
-					Arena: Arena{
-						Width:  7,
-						Height: 5,
-					},
-					PlayersByPosition: map[string]PlayerState{
-						"5,3": {
-							X:         5,
-							Y:         3,
-							Direction: "W",
+					Game: Game{
+						Arena: Arena{
+							Width:  7,
+							Height: 5,
 						},
-						"5,4": {
-							X:         5,
-							Y:         4,
-							Direction: "N",
-						},
-						"6,3": {
-							X:         6,
-							Y:         3,
-							Direction: "W",
+						PlayersByPosition: map[string]PlayerState{
+							"5,3": {
+								X:         5,
+								Y:         3,
+								Direction: "W",
+							},
+							"5,4": {
+								X:         5,
+								Y:         4,
+								Direction: "N",
+							},
+							"6,3": {
+								X:         6,
+								Y:         3,
+								Direction: "W",
+							},
 						},
 					},
 				},
@@ -248,34 +230,32 @@ func TestEscape_Play(t *testing.T) {
 					X:         5,
 					Y:         3,
 					Direction: "N",
-				},
-			},
-			args: args{
-				g: Game{
-					Arena: Arena{
-						Width:  7,
-						Height: 5,
-					},
-					PlayersByPosition: map[string]PlayerState{
-						"3,3": {
-							X:         3,
-							Y:         3,
-							Direction: "E",
+					Game: Game{
+						Arena: Arena{
+							Width:  7,
+							Height: 5,
 						},
-						"5,3": {
-							X:         5,
-							Y:         3,
-							Direction: "N",
-						},
-						"5,4": {
-							X:         5,
-							Y:         4,
-							Direction: "N",
-						},
-						"6,3": {
-							X:         6,
-							Y:         3,
-							Direction: "W",
+						PlayersByPosition: map[string]PlayerState{
+							"3,3": {
+								X:         3,
+								Y:         3,
+								Direction: "E",
+							},
+							"5,3": {
+								X:         5,
+								Y:         3,
+								Direction: "N",
+							},
+							"5,4": {
+								X:         5,
+								Y:         4,
+								Direction: "N",
+							},
+							"6,3": {
+								X:         6,
+								Y:         3,
+								Direction: "W",
+							},
 						},
 					},
 				},
@@ -289,34 +269,32 @@ func TestEscape_Play(t *testing.T) {
 					X:         5,
 					Y:         3,
 					Direction: "W",
-				},
-			},
-			args: args{
-				g: Game{
-					Arena: Arena{
-						Width:  7,
-						Height: 5,
-					},
-					PlayersByPosition: map[string]PlayerState{
-						"3,3": {
-							X:         3,
-							Y:         3,
-							Direction: "E",
+					Game: Game{
+						Arena: Arena{
+							Width:  7,
+							Height: 5,
 						},
-						"5,3": {
-							X:         5,
-							Y:         3,
-							Direction: "W",
-						},
-						"5,4": {
-							X:         5,
-							Y:         4,
-							Direction: "N",
-						},
-						"6,3": {
-							X:         6,
-							Y:         3,
-							Direction: "W",
+						PlayersByPosition: map[string]PlayerState{
+							"3,3": {
+								X:         3,
+								Y:         3,
+								Direction: "E",
+							},
+							"5,3": {
+								X:         5,
+								Y:         3,
+								Direction: "W",
+							},
+							"5,4": {
+								X:         5,
+								Y:         4,
+								Direction: "N",
+							},
+							"6,3": {
+								X:         6,
+								Y:         3,
+								Direction: "W",
+							},
 						},
 					},
 				},
@@ -333,21 +311,19 @@ func TestEscape_Play(t *testing.T) {
 					Direction: "E",
 					WasHit:    true,
 					Score:     0,
-				},
-			},
-			args: args{
-				g: Game{
-					Arena: Arena{Width: 4, Height: 3},
-					PlayersByPosition: map[string]PlayerState{
-						"1,1": {
-							X:         1,
-							Y:         1,
-							Direction: "E",
-						},
-						"2,1": {
-							X:         2,
-							Y:         1,
-							Direction: "W",
+					Game: Game{
+						Arena: Arena{Width: 4, Height: 3},
+						PlayersByPosition: map[string]PlayerState{
+							"1,1": {
+								X:         1,
+								Y:         1,
+								Direction: "E",
+							},
+							"2,1": {
+								X:         2,
+								Y:         1,
+								Direction: "W",
+							},
 						},
 					},
 				},
@@ -363,21 +339,19 @@ func TestEscape_Play(t *testing.T) {
 					Direction: "E",
 					WasHit:    true,
 					Score:     0,
-				},
-			},
-			args: args{
-				g: Game{
-					Arena: Arena{Width: 4, Height: 3},
-					PlayersByPosition: map[string]PlayerState{
-						"1,1": {
-							X:         1,
-							Y:         1,
-							Direction: "E",
-						},
-						"1,0": {
-							X:         1,
-							Y:         0,
-							Direction: "S",
+					Game: Game{
+						Arena: Arena{Width: 4, Height: 3},
+						PlayersByPosition: map[string]PlayerState{
+							"1,1": {
+								X:         1,
+								Y:         1,
+								Direction: "E",
+							},
+							"1,0": {
+								X:         1,
+								Y:         0,
+								Direction: "S",
+							},
 						},
 					},
 				},
@@ -393,21 +367,19 @@ func TestEscape_Play(t *testing.T) {
 					Direction: "E",
 					WasHit:    true,
 					Score:     0,
-				},
-			},
-			args: args{
-				g: Game{
-					Arena: Arena{Width: 4, Height: 3},
-					PlayersByPosition: map[string]PlayerState{
-						"1,1": {
-							X:         1,
-							Y:         1,
-							Direction: "E",
-						},
-						"0,1": {
-							X:         0,
-							Y:         1,
-							Direction: "E",
+					Game: Game{
+						Arena: Arena{Width: 4, Height: 3},
+						PlayersByPosition: map[string]PlayerState{
+							"1,1": {
+								X:         1,
+								Y:         1,
+								Direction: "E",
+							},
+							"0,1": {
+								X:         0,
+								Y:         1,
+								Direction: "E",
+							},
 						},
 					},
 				},
@@ -423,16 +395,14 @@ func TestEscape_Play(t *testing.T) {
 					Direction: "W",
 					WasHit:    true,
 					Score:     0,
-				},
-			},
-			args: args{
-				g: Game{
-					Arena: Arena{Width: 4, Height: 3},
-					PlayersByPosition: map[string]PlayerState{
-						"1,1": {
-							X:         1,
-							Y:         1,
-							Direction: "W",
+					Game: Game{
+						Arena: Arena{Width: 4, Height: 3},
+						PlayersByPosition: map[string]PlayerState{
+							"1,1": {
+								X:         1,
+								Y:         1,
+								Direction: "W",
+							},
 						},
 					},
 				},
@@ -448,16 +418,14 @@ func TestEscape_Play(t *testing.T) {
 					Direction: "W",
 					WasHit:    true,
 					Score:     0,
-				},
-			},
-			args: args{
-				g: Game{
-					Arena: Arena{Width: 4, Height: 3},
-					PlayersByPosition: map[string]PlayerState{
-						"3,2": {
-							X:         1,
-							Y:         1,
-							Direction: "W",
+					Game: Game{
+						Arena: Arena{Width: 4, Height: 3},
+						PlayersByPosition: map[string]PlayerState{
+							"3,2": {
+								X:         1,
+								Y:         1,
+								Direction: "W",
+							},
 						},
 					},
 				},
@@ -473,26 +441,24 @@ func TestEscape_Play(t *testing.T) {
 					Direction: "W",
 					WasHit:    true,
 					Score:     0,
-				},
-			},
-			args: args{
-				g: Game{
-					Arena: Arena{Width: 4, Height: 3},
-					PlayersByPosition: map[string]PlayerState{
-						"0,1": {
-							X:         0,
-							Y:         1,
-							Direction: "W",
-						},
-						"1,1": {
-							X:         1,
-							Y:         1,
-							Direction: "W",
-						},
-						"2,1": {
-							X:         2,
-							Y:         1,
-							Direction: "W",
+					Game: Game{
+						Arena: Arena{Width: 4, Height: 3},
+						PlayersByPosition: map[string]PlayerState{
+							"0,1": {
+								X:         0,
+								Y:         1,
+								Direction: "W",
+							},
+							"1,1": {
+								X:         1,
+								Y:         1,
+								Direction: "W",
+							},
+							"2,1": {
+								X:         2,
+								Y:         1,
+								Direction: "W",
+							},
 						},
 					},
 				},
@@ -508,26 +474,24 @@ func TestEscape_Play(t *testing.T) {
 					Direction: "E",
 					WasHit:    true,
 					Score:     0,
-				},
-			},
-			args: args{
-				g: Game{
-					Arena: Arena{Width: 4, Height: 3},
-					PlayersByPosition: map[string]PlayerState{
-						"1,1": {
-							X:         1,
-							Y:         1,
-							Direction: "E",
-						},
-						"2,1": {
-							X:         2,
-							Y:         1,
-							Direction: "E",
-						},
-						"3,1": {
-							X:         3,
-							Y:         1,
-							Direction: "W",
+					Game: Game{
+						Arena: Arena{Width: 4, Height: 3},
+						PlayersByPosition: map[string]PlayerState{
+							"1,1": {
+								X:         1,
+								Y:         1,
+								Direction: "E",
+							},
+							"2,1": {
+								X:         2,
+								Y:         1,
+								Direction: "E",
+							},
+							"3,1": {
+								X:         3,
+								Y:         1,
+								Direction: "W",
+							},
 						},
 					},
 				},
@@ -543,16 +507,14 @@ func TestEscape_Play(t *testing.T) {
 					Direction: "E",
 					WasHit:    true,
 					Score:     0,
-				},
-			},
-			args: args{
-				g: Game{
-					Arena: Arena{Width: 4, Height: 3},
-					PlayersByPosition: map[string]PlayerState{
-						"1,1": {
-							X:         1,
-							Y:         1,
-							Direction: "E",
+					Game: Game{
+						Arena: Arena{Width: 4, Height: 3},
+						PlayersByPosition: map[string]PlayerState{
+							"1,1": {
+								X:         1,
+								Y:         1,
+								Direction: "E",
+							},
 						},
 					},
 				},
@@ -565,7 +527,7 @@ func TestEscape_Play(t *testing.T) {
 			e := Escape{
 				Player: tt.fields.Player,
 			}
-			if got := e.Play(tt.args.g); got != tt.want {
+			if got := e.Play(); got != tt.want {
 				t.Errorf("Play() = %v, want %v", got, tt.want)
 			}
 		})

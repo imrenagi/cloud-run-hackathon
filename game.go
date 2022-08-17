@@ -1,16 +1,5 @@
 package main
 
-type Arena struct {
-	Width  int // x start from top left to the right
-	Height int // y start from top left to the bottom
-}
-
-type Game struct {
-	Arena Arena
-	// Dimension         []int
-	PlayersByPosition map[string]PlayerState
-}
-
 type ArenaUpdate struct {
 	Links struct {
 		Self struct {
@@ -21,6 +10,26 @@ type ArenaUpdate struct {
 		Dimensions []int                  `json:"dims"`
 		State      map[string]PlayerState `json:"state"`
 	} `json:"arena"`
+}
+
+type Arena struct {
+	Width  int // x start from top left to the right
+	Height int // y start from top left to the bottom
+}
+
+const (
+	defaultAttackRange int = 3
+)
+
+type GameConfig struct {
+	AttackRange int
+}
+
+type Game struct {
+	Arena             Arena
+	PlayersByPosition map[string]PlayerState
+	PlayersByURL      map[string]PlayerState
+	Config            GameConfig
 }
 
 func NewGame(a ArenaUpdate) Game {
@@ -35,9 +44,24 @@ func NewGame(a ArenaUpdate) Game {
 			Height: a.Arena.Dimensions[1],
 		},
 		PlayersByPosition: playersByPosition,
+		PlayersByURL:      a.Arena.State,
+		Config:            GameConfig{
+			AttackRange: defaultAttackRange,
+		},
 	}
 }
 
-func (a ArenaUpdate) GetSelf() PlayerState {
-	return a.Arena.State[a.Links.Self.Href]
+func (g Game) Player(url string) PlayerState {
+	player := g.PlayersByURL[url]
+	player.Game = g
+	return player
+}
+
+func (g Game) GetPlayerByPosition(p Point) (PlayerState, bool) {
+	player, ok := g.PlayersByPosition[p.String()]
+	if !ok {
+		return PlayerState{}, false
+	}
+	player.Game = g
+	return player, true
 }

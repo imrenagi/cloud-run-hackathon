@@ -41,7 +41,7 @@ func handler(w http.ResponseWriter, req *http.Request) {
 }
 
 func Play(input ArenaUpdate) Decision {
-	player := input.GetSelf()
 	game := NewGame(input)
-	return player.Play(game)
+	player := game.Player(input.Links.Self.Href)
+	return player.Play()
 }
