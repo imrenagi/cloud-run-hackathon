@@ -1,11 +1,13 @@
 package main
 
 type Arena struct {
-
+	Width  int // x start from top left to the right
+	Height int // y start from top left to the bottom
 }
 
 type Game struct {
-	Dimension         []int
+	Arena Arena
+	// Dimension         []int
 	PlayersByPosition map[string]PlayerState
 }
 
@@ -28,7 +30,10 @@ func NewGame(a ArenaUpdate) Game {
 	}
 
 	return Game{
-		Dimension:         a.Arena.Dimensions,
+		Arena: Arena{
+			Width:  a.Arena.Dimensions[0],
+			Height: a.Arena.Dimensions[1],
+		},
 		PlayersByPosition: playersByPosition,
 	}
 }

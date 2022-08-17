@@ -30,7 +30,10 @@ func TestAttack_Play(t *testing.T) {
 			},
 			args:   args{
 				g: Game{
-					Dimension: []int{4,3},
+					Arena: Arena{
+						Width:  4,
+						Height: 3,
+					},
 					PlayersByPosition: map[string]PlayerState{
 						"1,1": {
 							X:         1,
@@ -64,7 +67,10 @@ func TestAttack_Play(t *testing.T) {
 			},
 			args:   args{
 				g: Game{
-					Dimension: []int{4,3},
+					Arena: Arena{
+						Width:  4,
+						Height: 3,
+					},
 					PlayersByPosition: map[string]PlayerState{
 						"1,1": {
 							X:         1,
@@ -98,7 +104,10 @@ func TestAttack_Play(t *testing.T) {
 			},
 			args:   args{
 				g: Game{
-					Dimension: []int{4,3},
+					Arena: Arena{
+						Width:  4,
+						Height: 3,
+					},
 					PlayersByPosition: map[string]PlayerState{
 						"1,1": {
 							X:         1,
@@ -132,7 +141,10 @@ func TestAttack_Play(t *testing.T) {
 			},
 			args:   args{
 				g: Game{
-					Dimension: []int{4,3},
+					Arena: Arena{
+						Width:  4,
+						Height: 3,
+					},
 					PlayersByPosition: map[string]PlayerState{
 						"1,1": {
 							X:         1,

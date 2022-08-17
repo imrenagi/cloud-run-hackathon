@@ -28,7 +28,10 @@ func TestEscape_Play(t *testing.T) {
 			},
 			args: args{
 				g: Game{
-					Dimension: []int{4, 3},
+					Arena: Arena{
+						Width:  4,
+						Height: 3,
+					},
 					PlayersByPosition: map[string]PlayerState{
 						"1,0": {
 							X:         1,
@@ -58,7 +61,10 @@ func TestEscape_Play(t *testing.T) {
 			},
 			args: args{
 				g: Game{
-					Dimension: []int{4, 3},
+					Arena: Arena{
+						Width:  4,
+						Height: 3,
+					},
 					PlayersByPosition: map[string]PlayerState{
 						"1,0": {
 							X:         1,
@@ -88,7 +94,7 @@ func TestEscape_Play(t *testing.T) {
 			},
 			args: args{
 				g: Game{
-					Dimension: []int{4, 3},
+					Arena: Arena{Width: 4, Height: 3},
 					PlayersByPosition: map[string]PlayerState{
 						"1,0": {
 							X:         1,
@@ -118,7 +124,7 @@ func TestEscape_Play(t *testing.T) {
 			},
 			args: args{
 				g: Game{
-					Dimension: []int{4, 3},
+					Arena: Arena{Width: 4, Height: 3},
 					PlayersByPosition: map[string]PlayerState{
 						"1,0": {
 							X:         1,
@@ -148,7 +154,7 @@ func TestEscape_Play(t *testing.T) {
 			},
 			args: args{
 				g: Game{
-					Dimension: []int{4, 3},
+					Arena: Arena{Width: 4, Height: 3},
 					PlayersByPosition: map[string]PlayerState{
 						"1,1": {
 							X:         1,
@@ -178,7 +184,10 @@ func TestEscape_Play(t *testing.T) {
 			},
 			args: args{
 				g: Game{
-					Dimension: []int{7, 5},
+					Arena: Arena{
+						Width:  7,
+						Height: 5,
+					},
 					PlayersByPosition: map[string]PlayerState{
 						"6,2": {
 							X:         6,
@@ -207,7 +216,10 @@ func TestEscape_Play(t *testing.T) {
 			},
 			args: args{
 				g: Game{
-					Dimension: []int{7, 5},
+					Arena: Arena{
+						Width:  7,
+						Height: 5,
+					},
 					PlayersByPosition: map[string]PlayerState{
 						"5,3": {
 							X:         5,
@@ -240,7 +252,10 @@ func TestEscape_Play(t *testing.T) {
 			},
 			args: args{
 				g: Game{
-					Dimension: []int{7, 5},
+					Arena: Arena{
+						Width:  7,
+						Height: 5,
+					},
 					PlayersByPosition: map[string]PlayerState{
 						"3,3": {
 							X:         3,
@@ -278,7 +293,10 @@ func TestEscape_Play(t *testing.T) {
 			},
 			args: args{
 				g: Game{
-					Dimension: []int{7, 5},
+					Arena: Arena{
+						Width:  7,
+						Height: 5,
+					},
 					PlayersByPosition: map[string]PlayerState{
 						"3,3": {
 							X:         3,
@@ -319,7 +337,7 @@ func TestEscape_Play(t *testing.T) {
 			},
 			args: args{
 				g: Game{
-					Dimension: []int{4, 3},
+					Arena: Arena{Width: 4, Height: 3},
 					PlayersByPosition: map[string]PlayerState{
 						"1,1": {
 							X:         1,
@@ -349,7 +367,7 @@ func TestEscape_Play(t *testing.T) {
 			},
 			args: args{
 				g: Game{
-					Dimension: []int{4, 3},
+					Arena: Arena{Width: 4, Height: 3},
 					PlayersByPosition: map[string]PlayerState{
 						"1,1": {
 							X:         1,
@@ -379,7 +397,7 @@ func TestEscape_Play(t *testing.T) {
 			},
 			args: args{
 				g: Game{
-					Dimension: []int{4, 3},
+					Arena: Arena{Width: 4, Height: 3},
 					PlayersByPosition: map[string]PlayerState{
 						"1,1": {
 							X:         1,
@@ -409,7 +427,7 @@ func TestEscape_Play(t *testing.T) {
 			},
 			args: args{
 				g: Game{
-					Dimension: []int{4, 3},
+					Arena: Arena{Width: 4, Height: 3},
 					PlayersByPosition: map[string]PlayerState{
 						"1,1": {
 							X:         1,
@@ -434,7 +452,7 @@ func TestEscape_Play(t *testing.T) {
 			},
 			args: args{
 				g: Game{
-					Dimension: []int{4, 3},
+					Arena: Arena{Width: 4, Height: 3},
 					PlayersByPosition: map[string]PlayerState{
 						"3,2": {
 							X:         1,
@@ -459,7 +477,7 @@ func TestEscape_Play(t *testing.T) {
 			},
 			args: args{
 				g: Game{
-					Dimension: []int{4, 3},
+					Arena: Arena{Width: 4, Height: 3},
 					PlayersByPosition: map[string]PlayerState{
 						"0,1": {
 							X:         0,
@@ -494,7 +512,7 @@ func TestEscape_Play(t *testing.T) {
 			},
 			args: args{
 				g: Game{
-					Dimension: []int{4, 3},
+					Arena: Arena{Width: 4, Height: 3},
 					PlayersByPosition: map[string]PlayerState{
 						"1,1": {
 							X:         1,
@@ -529,7 +547,7 @@ func TestEscape_Play(t *testing.T) {
 			},
 			args: args{
 				g: Game{
-					Dimension: []int{4, 3},
+					Arena: Arena{Width: 4, Height: 3},
 					PlayersByPosition: map[string]PlayerState{
 						"1,1": {
 							X:         1,

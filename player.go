@@ -39,7 +39,7 @@ func (p PlayerState) GetPosition() Point {
 
 func (p PlayerState) Walk(g Game) Decision {
 	destination := p.GetPosition().MoveWithDirection(1, p.GetDirection())
-	if destination.X < 0 || destination.X > g.Dimension[0]-1 || destination.Y < 0 || destination.Y > g.Dimension[1]-1 {
+	if destination.X < 0 || destination.X > g.Arena.Width-1 || destination.Y < 0 || destination.Y > g.Arena.Height-1 {
 		return TurnRight
 	}
 	// check other player
@@ -90,11 +90,11 @@ func (p PlayerState) GetPlayersInRange(g Game, direction Direction, distance int
 	var ptA = p.GetPosition()
 	var ptB = p.GetPosition().MoveWithDirection(distance, direction)
 
-	if ptB.X > g.Dimension[0]-1 {
-		ptB.X = g.Dimension[0] - 1
+	if ptB.X > g.Arena.Width-1 {
+		ptB.X = g.Arena.Width - 1
 	}
-	if ptB.Y > g.Dimension[1]-1 {
-		ptB.Y = g.Dimension[1] - 1
+	if ptB.Y > g.Arena.Height-1 {
+		ptB.Y = g.Arena.Height - 1
 	}
 	if ptB.X < 0 {
 		ptB.X = 0
@@ -105,10 +105,10 @@ func (p PlayerState) GetPlayersInRange(g Game, direction Direction, distance int
 
 	for i := 1; i < (distance + 1); i++ {
 		npt := ptA.MoveWithDirection(i, direction)
-		if npt.X > g.Dimension[0]-1 || npt.X < 0 {
+		if npt.X > g.Arena.Width-1 || npt.X < 0 {
 			break
 		}
-		if npt.Y > g.Dimension[1]-1 || npt.Y < 0 {
+		if npt.Y > g.Arena.Height-1 || npt.Y < 0 {
 			break
 		}
 

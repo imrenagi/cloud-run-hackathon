@@ -31,7 +31,10 @@ func TestPlayerState_MoveForward(t *testing.T) {
 			},
 			args:   args{
 				g: Game{
-					Dimension:         []int{4,3},
+					Arena: Arena{
+						Width:  4,
+						Height: 3,
+					},
 					PlayersByPosition: map[string]PlayerState{
 						"1,1": {
 							X:         1,
@@ -52,7 +55,10 @@ func TestPlayerState_MoveForward(t *testing.T) {
 			},
 			args:   args{
 				g: Game{
-					Dimension:         []int{4,3},
+					Arena: Arena{
+						Width:  4,
+						Height: 3,
+					},
 					PlayersByPosition: map[string]PlayerState{
 						"0,0": {
 							X:         0,
@@ -73,7 +79,10 @@ func TestPlayerState_MoveForward(t *testing.T) {
 			},
 			args:   args{
 				g: Game{
-					Dimension:         []int{4,3},
+					Arena: Arena{
+						Width:  4,
+						Height: 3,
+					},
 					PlayersByPosition: map[string]PlayerState{
 						"1,1": {
 							X:         1,
@@ -137,7 +146,10 @@ func TestPlayerState_GetPlayersInFront(t *testing.T) {
 			args: args{
 				direction: East,
 				g: Game{
-					Dimension: []int{4, 4},
+					Arena: Arena{
+						Width:  4,
+						Height: 4,
+					},
 					PlayersByPosition: map[string]PlayerState{
 						"0,0": {
 							X: 0,
@@ -172,7 +184,10 @@ func TestPlayerState_GetPlayersInFront(t *testing.T) {
 			args: args{
 				direction: East,
 				g: Game{
-					Dimension: []int{4, 4},
+					Arena: Arena{
+						Width:  4,
+						Height: 4,
+					},
 					PlayersByPosition: map[string]PlayerState{
 						"0,0": {
 							X: 0,
@@ -239,7 +254,10 @@ func TestPlayerState_FindShooterFromDirection(t *testing.T) {
 			},
 			args: args{
 				g: Game{
-					Dimension: []int{4, 3},
+					Arena: Arena{
+						Width:  4,
+						Height: 3,
+					},
 					PlayersByPosition: map[string]PlayerState{
 						"1,1": {
 							X:         1,
@@ -272,7 +290,10 @@ func TestPlayerState_FindShooterFromDirection(t *testing.T) {
 			},
 			args: args{
 				g: Game{
-					Dimension: []int{4, 3},
+					Arena: Arena{
+						Width:  4,
+						Height: 3,
+					},
 					PlayersByPosition: map[string]PlayerState{
 						"1,1": {
 							X:         1,
@@ -305,7 +326,10 @@ func TestPlayerState_FindShooterFromDirection(t *testing.T) {
 			},
 			args: args{
 				g: Game{
-					Dimension: []int{4, 4},
+					Arena: Arena{
+						Width:  4,
+						Height: 4,
+					},
 					PlayersByPosition: map[string]PlayerState{
 						"1,1": {
 							X:         1,
@@ -338,7 +362,10 @@ func TestPlayerState_FindShooterFromDirection(t *testing.T) {
 			},
 			args: args{
 				g: Game{
-					Dimension: []int{4, 3},
+					Arena: Arena{
+						Width:  4,
+						Height: 3,
+					},
 					PlayersByPosition: map[string]PlayerState{
 						"1,1": {
 							X:         1,
