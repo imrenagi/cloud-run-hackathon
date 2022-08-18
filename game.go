@@ -1,7 +1,5 @@
 package main
 
-import "fmt"
-
 type ArenaUpdate struct {
 	Links struct {
 		Self struct {
@@ -45,13 +43,11 @@ func (a Arena) Traverse(start Point) []Point {
 	visited[start.Y*a.Width+start.X] = true
 	queue = append(queue, start)
 
-	fmt.Println(queue)
 	for {
 		if len(queue) == 0 {
 			break
 		}
 		pt := queue[0]
-		fmt.Println(pt)
 		traversedNode = append(traversedNode, pt)
 		queue = queue[1:]
 		adjancentNodes := a.GetAdjacent(pt)
@@ -83,9 +79,9 @@ func (a Arena) GetAdjacent(p Point) []Point {
 }
 
 type Cell struct {
-	Loc      Point
-	Player   *PlayerState
-	Adjacent []Cell
+	Loc     Point
+	Player  *PlayerState
+	f, g, h float64
 }
 
 const (
