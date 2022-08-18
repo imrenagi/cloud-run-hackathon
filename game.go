@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 type ArenaUpdate struct {
 	Links struct {
 		Self struct {
@@ -12,9 +14,78 @@ type ArenaUpdate struct {
 	} `json:"arena"`
 }
 
+func NewArena(w, h int) Arena {
+	grid := make([][]Point, h)
+	for y := range grid {
+		grid[y] = make([]Point, w)
+		for x := range grid[y] {
+			grid[y][x] = Point{x, y}
+		}
+	}
+
+	return Arena{
+		Width:  w,
+		Height: h,
+		Grid:   grid,
+	}
+}
+
 type Arena struct {
 	Width  int // x start from top left to the right
 	Height int // y start from top left to the bottom
+	Grid   [][]Point
+}
+
+// Traverse with BFS
+func (a Arena) Traverse(start Point) []Point {
+	var traversedNode []Point
+
+	visited := make([]bool, a.Width*a.Height)
+	queue := make([]Point, 0)
+	visited[start.Y*a.Width+start.X] = true
+	queue = append(queue, start)
+
+	fmt.Println(queue)
+	for {
+		if len(queue) == 0 {
+			break
+		}
+		pt := queue[0]
+		fmt.Println(pt)
+		traversedNode = append(traversedNode, pt)
+		queue = queue[1:]
+		adjancentNodes := a.GetAdjacent(pt)
+		for _, n := range adjancentNodes {
+			if !visited[n.Y*a.Width+n.X] {
+				visited[n.Y*a.Width+n.X] = true
+				queue = append(queue, n)
+			}
+		}
+	}
+
+	return traversedNode
+}
+
+func (a Arena) GetAdjacent(p Point) []Point {
+	var adj []Point
+	iterator := [3]int{-1, 0, 1}
+	for _, i := range iterator {
+		for _, j := range iterator {
+			if i != 0 || j != 0 {
+				p := Point{X: p.X + i, Y: p.Y + j}
+				if p.IsInArena(a) {
+					adj = append(adj, p)
+				}
+			}
+		}
+	}
+	return adj
+}
+
+type Cell struct {
+	Loc      Point
+	Player   *PlayerState
+	Adjacent []Cell
 }
 
 const (
@@ -45,7 +116,7 @@ func NewGame(a ArenaUpdate) Game {
 		},
 		PlayersByPosition: playersByPosition,
 		PlayersByURL:      a.Arena.State,
-		Config:            GameConfig{
+		Config: GameConfig{
 			AttackRange: defaultAttackRange,
 		},
 	}

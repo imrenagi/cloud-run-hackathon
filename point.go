@@ -24,3 +24,13 @@ func (p Point) MoveWithDirection(distance int, direction Direction) Point {
 		Y: p.Y + distance*int(math.Round(math.Cos(dir))),
 	}
 }
+
+func (p Point) IsInArena(a Arena) bool {
+	if p.X > a.Width-1 || p.X < 0 {
+		return false
+	}
+	if p.Y > a.Height-1 || p.Y < 0 {
+		return false
+	}
+	return true
+}
