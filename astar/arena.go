@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"sort"
+	"strings"
 
 	"github.com/rs/zerolog/log"
 )
@@ -14,6 +15,10 @@ type Point struct {
 
 func (p Point) Equal(p2 Point) bool {
 	return p.X == p2.X && p.Y == p2.Y
+}
+
+func (p Point) String() string {
+	return fmt.Sprintf("%d,%d", p.X, p.Y)
 }
 
 type Grid [][]Cell
@@ -53,31 +58,77 @@ func (a Arena) IsDestination(p, dest Point) bool {
 	return p.Equal(dest)
 }
 
-func NewAStart() AStar {
-	return AStar{distanceCalculator: &ManhattanDistance{}}
+type Option func(options *Options)
+
+type Options struct {
+	DistanceCalculator DistanceCalculator
+}
+
+func NewAStar(a Arena, opts ...Option) AStar {
+
+	options := &Options{
+		DistanceCalculator: &ManhattanDistance{},
+	}
+	for _, o := range opts {
+		o(options)
+	}
+
+	closedList := make([][]bool, a.Height)
+	for y := range closedList {
+		closedList[y] = make([]bool, a.Width)
+	}
+
+	cellDetails := make([][]Cell, a.Height)
+	for y := range cellDetails {
+		cellDetails[y] = make([]Cell, a.Width)
+	}
+
+	return AStar{
+		arena:              a,
+		distanceCalculator: options.DistanceCalculator,
+		closedList:         closedList,
+		cellDetails:        cellDetails,
+	}
 }
 
 type AStar struct {
 	distanceCalculator DistanceCalculator
+	arena              Arena
+	// Create a closed list and initialise it to false which
+	// means that no cell has been included yet This closed
+	// list is implemented as a boolean 2D array
+	closedList [][]bool
+	// Declare a 2D array of structure to hold the details
+	// of that cell
+	cellDetails [][]Cell
+	/*
+	   Create an open list having information as-
+	   <f, <i, j>>
+	   where f = g + h,
+	   and i, j are the row and column index of that cell
+	   Note that 0 <= i <= ROW-1 & 0 <= j <= COL-1
+	   This open list is implemented as a set of pair of
+	   pair.*/
+	openList []ppair
 }
 
-func (as AStar) SearchPath(a Arena, src, dest Point) ([]Point, error) {
+func (as *AStar) SearchPath(src, dest Point) ([]Point, error) {
 
 	// If the source is out of range
-	if !a.IsValid(src) {
+	if !as.arena.IsValid(src) {
 		log.Error().Msg("source is invalid")
 		return nil, fmt.Errorf("source is invalid")
 	}
 
 	// If the destination is out of range
-	if !a.IsValid(dest) {
+	if !as.arena.IsValid(dest) {
 		log.Error().Msg("destination is invalid")
 		return nil, fmt.Errorf("destination is invalid")
 	}
 
 	// Either the source or the destination is blocked
 	// TODO need to update this logic since the destination will be blocked because the player is the target
-	if !a.Grid.IsUnblock(src) || !a.Grid.IsUnblock(dest) {
+	if !as.arena.Grid.IsUnblock(src) || !as.arena.Grid.IsUnblock(dest) {
 		log.Warn().Msg("Source or the destination is blocked")
 		return nil, fmt.Errorf("source or destination is blocked")
 	}
@@ -88,68 +139,39 @@ func (as AStar) SearchPath(a Arena, src, dest Point) ([]Point, error) {
 		return nil, nil
 	}
 
-	// Create a closed list and initialise it to false which
-	// means that no cell has been included yet This closed
-	// list is implemented as a boolean 2D array
-	closedList := make([][]bool, a.Height)
-	for y := range closedList {
-		closedList[y] = make([]bool, a.Width)
-	}
-
-	// Declare a 2D array of structure to hold the details
-	// of that cell
-	cellDetails := make([][]Cell, a.Height)
-	for y := range cellDetails {
-		cellDetails[y] = make([]Cell, a.Width)
-	}
-
-	var i, j int
-
-	for i := 0; i < a.Height; i++ {
-		for j := 0; j < a.Width; j++ {
-			cellDetails[i][j].F = math.MaxFloat64
-			cellDetails[i][j].G = math.MaxFloat64
-			cellDetails[i][j].H = math.MaxFloat64
-			cellDetails[i][j].ParentY = -1
-			cellDetails[i][j].ParentX = -1
+	for i := 0; i < as.arena.Height; i++ {
+		for j := 0; j < as.arena.Width; j++ {
+			as.cellDetails[i][j].F = math.MaxFloat64
+			as.cellDetails[i][j].G = math.MaxFloat64
+			as.cellDetails[i][j].H = math.MaxFloat64
+			as.cellDetails[i][j].ParentY = -1
+			as.cellDetails[i][j].ParentX = -1
 		}
 	}
 
 	// Initialising the parameters of the starting node
-	i = src.Y
-	j = src.X
-	cellDetails[i][j].F = 0.0
-	cellDetails[i][j].G = 0.0
-	cellDetails[i][j].H = 0.0
-	cellDetails[i][j].ParentY = i
-	cellDetails[i][j].ParentX = j
+	as.cellDetails[src.Y][src.X].F = 0.0
+	as.cellDetails[src.Y][src.X].G = 0.0
+	as.cellDetails[src.Y][src.X].H = 0.0
+	as.cellDetails[src.Y][src.X].ParentY = src.Y
+	as.cellDetails[src.Y][src.X].ParentX = src.X
 
-	/*
-	   Create an open list having information as-
-	   <f, <i, j>>
-	   where f = g + h,
-	   and i, j are the row and column index of that cell
-	   Note that 0 <= i <= ROW-1 & 0 <= j <= COL-1
-	   This open list is implemented as a set of pair of
-	   pair.*/
-	var openList []ppair
-	openList = append(openList, ppair{F: 0, X: src.X, Y: src.Y})
+	as.openList = append(as.openList, ppair{F: 0, X: src.X, Y: src.Y})
 
 	var foundDest bool
 
 	for {
-		if len(openList) == 0 {
+		if len(as.openList) == 0 {
 			break
 		}
 
-		sort.Sort(byF(openList))
-		p := openList[0]
-		openList = openList[1:]
+		sort.Sort(byF(as.openList))
+		currNode := as.openList[0]
+		as.openList = as.openList[1:]
 
-
-		i := p.Y
-		j := p.X
-		closedList[i][j] = true
+		// i := currNode.Y
+		// j := currNode.X
+		as.closedList[currNode.Y][currNode.X] = true
 
 		/*
 		   Generating all the 8 successor of this cell
@@ -176,23 +198,23 @@ func (as AStar) SearchPath(a Arena, src, dest Point) ([]Point, error) {
 		var gNew, hNew, fNew float64
 
 		// Only process this cell if this is a valid one
-		north := Point{X: j, Y: i - 1}
-		if a.IsValid(north) {
+		north := Point{X: currNode.X, Y: currNode.Y - 1}
+		if as.arena.IsValid(north) {
 			// If the destination cell is the same as the
 			// current successor
-			if a.IsDestination(north, dest) {
-				cellDetails[north.Y][north.X].ParentY = i
-				cellDetails[north.Y][north.X].ParentX = j
+			if as.arena.IsDestination(north, dest) {
+				as.cellDetails[north.Y][north.X].ParentY = currNode.Y
+				as.cellDetails[north.Y][north.X].ParentX = currNode.X
 				log.Info().Msg("The destination cell is found")
 				// tracePath(cellDetails, dest)
 				foundDest = true
 				break
-			} else if !closedList[north.Y][north.X] && a.Grid.IsUnblock(north) {
+			} else if !as.closedList[north.Y][north.X] && as.arena.Grid.IsUnblock(north) {
 				// If the successor is already on the closed
 				// list or if it is blocked, then ignore it.
 				// Else do the following
 				// TODO calculate turn needed
-				gNew = cellDetails[i][j].G + 1.0
+				gNew = as.cellDetails[currNode.Y][currNode.X].G + 1.0
 				hNew = as.distanceCalculator.Distance(north, dest)
 				fNew = gNew + hNew
 
@@ -204,52 +226,51 @@ func (as AStar) SearchPath(a Arena, src, dest Point) ([]Point, error) {
 				// If it is on the open list already, check
 				// to see if this path to that square is
 				// better, using 'f' cost as the measure.
-
-				if cellDetails[north.Y][north.X].F == math.MaxFloat64 ||
-				  cellDetails[north.Y][north.X].F > fNew {
-					openList = append(openList, ppair{
+				if as.cellDetails[north.Y][north.X].F == math.MaxFloat64 ||
+				  as.cellDetails[north.Y][north.X].F > fNew {
+					as.openList = append(as.openList, ppair{
 						F: fNew,
 						X: north.X,
 						Y: north.Y,
 					})
 
-					cellDetails[north.Y][north.X].F = fNew
-					cellDetails[north.Y][north.X].G = gNew
-					cellDetails[north.Y][north.X].H = hNew
-					cellDetails[north.Y][north.X].ParentY = i
-					cellDetails[north.Y][north.X].ParentX = j
+					as.cellDetails[north.Y][north.X].F = fNew
+					as.cellDetails[north.Y][north.X].G = gNew
+					as.cellDetails[north.Y][north.X].H = hNew
+					as.cellDetails[north.Y][north.X].ParentY = currNode.Y
+					as.cellDetails[north.Y][north.X].ParentX = currNode.X
 				}
 			}
 		}
 
 		// Only process this cell if this is a valid one
-		east := Point{X: j+1, Y: i}
-		if a.IsValid(east) {
-			if a.IsDestination(east, dest) {
-				cellDetails[east.Y][east.X].ParentY = i
-				cellDetails[east.Y][east.X].ParentX = j
+		east := Point{X: currNode.X + 1, Y: currNode.Y}
+		if as.arena.IsValid(east) {
+			if as.arena.IsDestination(east, dest) {
+				as.cellDetails[east.Y][east.X].ParentY = currNode.Y
+				as.cellDetails[east.Y][east.X].ParentX = currNode.X
 				log.Info().Msg("The destination cell is found")
 				// tracePath(cellDetails, dest)
 				foundDest = true
 				break
-			} else if !closedList[east.Y][east.X] && a.Grid.IsUnblock(east) {
+			} else if !as.closedList[east.Y][east.X] && as.arena.Grid.IsUnblock(east) {
 				// TODO calculate turn needed
-				gNew = cellDetails[i][j].G + 1.0
+				gNew = as.cellDetails[currNode.Y][currNode.X].G + 1.0
 				hNew = as.distanceCalculator.Distance(east, dest)
 				fNew = gNew + hNew
 
-				if cellDetails[east.Y][east.X].F == math.MaxFloat64 ||
-				  cellDetails[east.Y][east.X].F > fNew {
-					openList = append(openList, ppair{
+				if as.cellDetails[east.Y][east.X].F == math.MaxFloat64 ||
+				  as.cellDetails[east.Y][east.X].F > fNew {
+					as.openList = append(as.openList, ppair{
 						F: fNew,
 						X: east.X,
 						Y: east.Y,
 					})
-					cellDetails[east.Y][east.X].F = fNew
-					cellDetails[east.Y][east.X].G = gNew
-					cellDetails[east.Y][east.X].H = hNew
-					cellDetails[east.Y][east.X].ParentY = i
-					cellDetails[east.Y][east.X].ParentX = j
+					as.cellDetails[east.Y][east.X].F = fNew
+					as.cellDetails[east.Y][east.X].G = gNew
+					as.cellDetails[east.Y][east.X].H = hNew
+					as.cellDetails[east.Y][east.X].ParentY = currNode.Y
+					as.cellDetails[east.Y][east.X].ParentX = currNode.X
 				}
 			}
 		}
@@ -259,14 +280,60 @@ func (as AStar) SearchPath(a Arena, src, dest Point) ([]Point, error) {
 		return nil, fmt.Errorf("path not found")
 	}
 
-	return as.tracePath(cellDetails, dest), nil
+	return as.tracePath(as.cellDetails, dest), nil
+	// return nil, nil
+}
+//
+// func (as AStar) checkSuccessor(currNode Point, successor Point, dest Point) {
+//
+// 	var gNew, hNew, fNew float64
+// 	// Only process this cell if this is a valid one
+// 	if as.arena.IsValid(successor) {
+// 		if as.arena.IsDestination(successor, dest) {
+// 			as.cellDetails[successor.Y][successor.X].ParentY = currNode.Y
+// 			as.cellDetails[successor.Y][successor.X].ParentX = currNode.X
+// 			log.Info().Msg("The destination cell is found")
+// 			// tracePath(cellDetails, dest)
+// 			foundDest = true
+// 			break
+// 		} else if !as.closedList[successor.Y][successor.X] && as.arena.Grid.IsUnblock(successor) {
+// 			// TODO calculate turn needed
+// 			gNew = as.cellDetails[currNode.Y][currNode.X].G + 1.0
+// 			hNew = as.distanceCalculator.Distance(successor, dest)
+// 			fNew = gNew + hNew
+//
+// 			if as.cellDetails[successor.Y][successor.X].F == math.MaxFloat64 ||
+// 			  as.cellDetails[successor.Y][successor.X].F > fNew {
+// 				as.openList = append(as.openList, ppair{
+// 					F: fNew,
+// 					X: successor.X,
+// 					Y: successor.Y,
+// 				})
+// 				as.cellDetails[successor.Y][successor.X].F = fNew
+// 				as.cellDetails[successor.Y][successor.X].G = gNew
+// 				as.cellDetails[successor.Y][successor.X].H = hNew
+// 				as.cellDetails[successor.Y][successor.X].ParentY = currNode.Y
+// 				as.cellDetails[successor.Y][successor.X].ParentX = currNode.X
+// 			}
+// 		}
+// 	}
+// }
+
+type Path []Point
+
+func (p Path) String() string {
+	var ps []string
+	for _, pt := range p {
+		ps = append(ps, pt.String())
+	}
+	return strings.Join(ps, "->")
 }
 
-func (as AStar) tracePath(cellDetails [][]Cell, dest Point) []Point{
-	var finalPath []Point
+func (as AStar) tracePath(cellDetails [][]Cell, dest Point) []Point {
+	var finalPath Path
 	row := dest.Y
 	col := dest.X
-	var path []Point //stack
+	var path []Point // stack
 	for {
 		if !(!(cellDetails[row][col].ParentY == row && cellDetails[row][col].ParentX == col)) {
 			break
@@ -291,9 +358,10 @@ func (as AStar) tracePath(cellDetails [][]Cell, dest Point) []Point{
 		}
 		p := path[len(path)-1]
 		path = path[:len(path)-1]
-		fmt.Printf("-> (%d, %d)", p.X, p.Y)
 		finalPath = append(finalPath, p)
 	}
+
+	log.Info().Stringer("path", finalPath).Msg("path found")
 	return finalPath
 }
 
