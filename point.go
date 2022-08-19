@@ -17,12 +17,12 @@ func (p Point) Equal(p2 Point) bool {
 	return p.X == p2.X && p.Y == p2.Y
 }
 
-// TranslateAngle move point by using defined distance and direction
-func (p Point) TranslateAngle(distance int, direction Direction) Point {
+// TranslateToDirection move point by using defined distance and direction
+func (p Point) TranslateToDirection(distance int, direction Direction) Point {
 	dir := float64(direction.Degree) * math.Pi / 180
 	return Point{
-		X: p.X + distance*int(math.Round(math.Sin(dir))),
-		Y: p.Y + distance*int(math.Round(math.Cos(dir))),
+		X: p.X + distance*int(math.Round(math.Cos(dir))),
+		Y: p.Y + distance*int(math.Round(math.Sin(dir))),
 	}
 }
 

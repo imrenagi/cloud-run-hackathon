@@ -38,7 +38,7 @@ func (p PlayerState) GetPosition() Point {
 }
 
 func (p PlayerState) Walk() Decision {
-	destination := p.GetPosition().TranslateAngle(1, p.GetDirection())
+	destination := p.GetPosition().TranslateToDirection(1, p.GetDirection())
 	if !p.Game.Arena.IsValid(destination) {
 		return TurnRight
 	}
@@ -84,7 +84,7 @@ func (p PlayerState) canBeAttackedBy(p2 PlayerState) bool {
 func (p PlayerState) GetPlayersInRange(direction Direction, distance int) []PlayerState {
 	var playersInRange []PlayerState
 	var ptA = p.GetPosition()
-	var ptB = p.GetPosition().TranslateAngle(distance, direction)
+	var ptB = p.GetPosition().TranslateToDirection(distance, direction)
 
 	if ptB.X > p.Game.Arena.Width-1 {
 		ptB.X = p.Game.Arena.Width - 1
@@ -100,7 +100,7 @@ func (p PlayerState) GetPlayersInRange(direction Direction, distance int) []Play
 	}
 
 	for i := 1; i < (distance + 1); i++ {
-		npt := ptA.TranslateAngle(i, direction)
+		npt := ptA.TranslateToDirection(i, direction)
 		if !p.Game.Arena.IsValid(npt) {
 			break
 		}

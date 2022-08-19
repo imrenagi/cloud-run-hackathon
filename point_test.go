@@ -65,10 +65,10 @@ func TestPoint_MoveWithDirection(t *testing.T) {
 				X: tt.fields.X,
 				Y: tt.fields.Y,
 			}
-			got := p.TranslateAngle(tt.args.distance, tt.args.direction)
+			got := p.TranslateToDirection(tt.args.distance, tt.args.direction)
 			// assert.Equal(t, tt.want, got)
-			assert.InDelta(t, tt.want.X, got.X, 0.01)
-			assert.InDelta(t, tt.want.Y, got.Y, 0.01)
+			assert.InDelta(t, tt.want.X, got.X, 0.01, "got %v want %v", got.X, tt.want.X)
+			assert.InDelta(t, tt.want.Y, got.Y, 0.01, "got %v want %v", got.Y, tt.want.Y)
 		})
 	}
 }
