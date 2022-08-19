@@ -78,10 +78,10 @@ func (a Arena) GetAdjacent(p Point) []Point {
 	return adj
 }
 
-type Cell struct {
-	Loc     Point
-	Player  *PlayerState
-	f, g, h float64
+// A Utility Function to check whether given cell (row, col)
+// is a valid cell or not.
+func (a Arena) IsValid(p Point) bool {
+	return p.Y >= 0 && p.Y < a.Height && p.X >= 0 && p.X < a.Width
 }
 
 const (

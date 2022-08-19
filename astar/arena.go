@@ -43,7 +43,8 @@ type Cell struct {
 	Player  *Player
 	ParentX int
 	ParentY int
-	F, G, H float64
+	F float64
+	G, H float64
 }
 
 // A Utility Function to check whether given cell (row, col)

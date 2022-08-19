@@ -83,6 +83,26 @@ func TestAStar_Search(t *testing.T) {
 			want: []Point{{1,2}, {1, 1}, {1, 0}, {2, 0}},
 		},
 		{
+			name: "test search 2 step to north and 1 step to east, but there is obstacle",
+			fields: fields{
+				distanceCalculator: &ManhattanDistance{},
+			},
+			args: args{
+				a: Arena{
+					Width:  3,
+					Height: 3,
+					Grid: [][]Cell{
+						{{Player: nil}, {Player: nil}, {Player: nil}},
+						{{Player: nil}, {Player: &Player{}}, {Player: nil}},
+						{{Player: nil}, {Player: nil}, {Player: nil}},
+					},
+				},
+				src:  Point{1, 2},
+				dest: Point{2, 0},
+			},
+			want: []Point{{1,2}, {2, 2}, {2, 1}, {2, 0}},
+		},
+		{
 			name: "test search 1 step to east",
 			fields: fields{
 				distanceCalculator: &ManhattanDistance{},

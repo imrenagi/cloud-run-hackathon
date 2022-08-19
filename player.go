@@ -39,7 +39,7 @@ func (p PlayerState) GetPosition() Point {
 
 func (p PlayerState) Walk() Decision {
 	destination := p.GetPosition().MoveWithDirection(1, p.GetDirection())
-	if destination.X < 0 || destination.X > p.Game.Arena.Width-1 || destination.Y < 0 || destination.Y > p.Game.Arena.Height-1 {
+	if !p.Game.Arena.IsValid(destination) {
 		return TurnRight
 	}
 	// check other player
@@ -101,10 +101,7 @@ func (p PlayerState) GetPlayersInRange(direction Direction, distance int) []Play
 
 	for i := 1; i < (distance + 1); i++ {
 		npt := ptA.MoveWithDirection(i, direction)
-		if npt.X > p.Game.Arena.Width-1 || npt.X < 0 {
-			break
-		}
-		if npt.Y > p.Game.Arena.Height-1 || npt.Y < 0 {
+		if !p.Game.Arena.IsValid(npt) {
 			break
 		}
 
