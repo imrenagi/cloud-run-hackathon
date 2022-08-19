@@ -12,78 +12,6 @@ type ArenaUpdate struct {
 	} `json:"arena"`
 }
 
-func NewArena(w, h int) Arena {
-	grid := make([][]Point, h)
-	for y := range grid {
-		grid[y] = make([]Point, w)
-		for x := range grid[y] {
-			grid[y][x] = Point{x, y}
-		}
-	}
-
-	return Arena{
-		Width:  w,
-		Height: h,
-		Grid:   grid,
-	}
-}
-
-type Arena struct {
-	Width  int // x start from top left to the right
-	Height int // y start from top left to the bottom
-	Grid   [][]Point
-}
-
-// Traverse with BFS
-func (a Arena) Traverse(start Point) []Point {
-	var traversedNode []Point
-
-	visited := make([]bool, a.Width*a.Height)
-	queue := make([]Point, 0)
-	visited[start.Y*a.Width+start.X] = true
-	queue = append(queue, start)
-
-	for {
-		if len(queue) == 0 {
-			break
-		}
-		pt := queue[0]
-		traversedNode = append(traversedNode, pt)
-		queue = queue[1:]
-		adjancentNodes := a.GetAdjacent(pt)
-		for _, n := range adjancentNodes {
-			if !visited[n.Y*a.Width+n.X] {
-				visited[n.Y*a.Width+n.X] = true
-				queue = append(queue, n)
-			}
-		}
-	}
-
-	return traversedNode
-}
-
-func (a Arena) GetAdjacent(p Point) []Point {
-	var adj []Point
-	iterator := [3]int{-1, 0, 1}
-	for _, i := range iterator {
-		for _, j := range iterator {
-			if i != 0 || j != 0 {
-				p := Point{X: p.X + i, Y: p.Y + j}
-				if p.IsInArena(a) {
-					adj = append(adj, p)
-				}
-			}
-		}
-	}
-	return adj
-}
-
-// A Utility Function to check whether given cell (row, col)
-// is a valid cell or not.
-func (a Arena) IsValid(p Point) bool {
-	return p.Y >= 0 && p.Y < a.Height && p.X >= 0 && p.X < a.Width
-}
-
 const (
 	defaultAttackRange int = 3
 )
@@ -100,16 +28,19 @@ type Game struct {
 }
 
 func NewGame(a ArenaUpdate) Game {
+
+	width := a.Arena.Dimensions[0]
+	height := a.Arena.Dimensions[1]
+	arena := NewArena(width, height)
+
 	playersByPosition := make(map[string]PlayerState)
 	for _, v := range a.Arena.State {
 		playersByPosition[v.GetPosition().String()] = v
+		arena.PutPlayer(v)
 	}
 
 	return Game{
-		Arena: Arena{
-			Width:  a.Arena.Dimensions[0],
-			Height: a.Arena.Dimensions[1],
-		},
+		Arena: arena,
 		PlayersByPosition: playersByPosition,
 		PlayersByURL:      a.Arena.State,
 		Config: GameConfig{

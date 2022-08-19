@@ -1,68 +1,24 @@
-package astar
+package main
 
 import (
 	"fmt"
 	"math"
 	"sort"
-	"strings"
 
 	"github.com/rs/zerolog/log"
 )
-
-type Point struct {
-	X, Y int
-}
-
-func (p Point) Equal(p2 Point) bool {
-	return p.X == p2.X && p.Y == p2.Y
-}
-
-func (p Point) String() string {
-	return fmt.Sprintf("%d,%d", p.X, p.Y)
-}
-
-type Grid [][]Cell
-
-// A Utility Function to check whether the given cell is
-// blocked or not
-func (g Grid) IsUnblock(p Point) bool {
-	return g[p.Y][p.X].Player == nil
-}
-
-type Arena struct {
-	Width  int // x start from top left to the right
-	Height int // y start from top left to the bottom
-	Grid   Grid
-}
-
-type Player struct {
-	Name string
-}
-
-type Cell struct {
-	Player  *Player
-	ParentX int
-	ParentY int
-	F float64
-	G, H float64
-}
-
-// A Utility Function to check whether given cell (row, col)
-// is a valid cell or not.
-func (a Arena) IsValid(p Point) bool {
-	return p.Y >= 0 && p.Y < a.Height && p.X >= 0 && p.X < a.Width
-}
-
-// A Utility Function to check whether destination cell has
-// been reached or not
-func (a Arena) IsDestination(p, dest Point) bool {
-	return p.Equal(dest)
-}
 
 type Option func(options *Options)
 
 type Options struct {
 	DistanceCalculator DistanceCalculator
+}
+
+type cellDetail struct {
+	ParentX int
+	ParentY int
+	F float64
+	G, H float64
 }
 
 func NewAStar(a Arena, opts ...Option) AStar {
@@ -79,9 +35,9 @@ func NewAStar(a Arena, opts ...Option) AStar {
 		closedList[y] = make([]bool, a.Width)
 	}
 
-	cellDetails := make([][]Cell, a.Height)
+	cellDetails := make([][]cellDetail, a.Height)
 	for y := range cellDetails {
-		cellDetails[y] = make([]Cell, a.Width)
+		cellDetails[y] = make([]cellDetail, a.Width)
 	}
 
 	return AStar{
@@ -101,7 +57,7 @@ type AStar struct {
 	closedList [][]bool
 	// Declare a 2D array of structure to hold the details
 	// of that cell
-	cellDetails [][]Cell
+	cellDetails [][]cellDetail
 	/*
 	   Create an open list having information as-
 	   <f, <i, j>>
@@ -284,17 +240,9 @@ func (as *AStar) checkSuccessor(currNode ppair, successor Point, dest Point) boo
 	return false
 }
 
-type Path []Point
 
-func (p Path) String() string {
-	var ps []string
-	for _, pt := range p {
-		ps = append(ps, pt.String())
-	}
-	return strings.Join(ps, "->")
-}
 
-func (as AStar) tracePath(cellDetails [][]Cell, dest Point) []Point {
+func (as AStar) tracePath(cellDetails [][]cellDetail, dest Point) []Point {
 	var finalPath Path
 	row := dest.Y
 	col := dest.X

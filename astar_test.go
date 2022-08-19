@@ -1,4 +1,4 @@
-package astar
+package main
 
 import (
 	"testing"
@@ -93,7 +93,7 @@ func TestAStar_Search(t *testing.T) {
 					Height: 3,
 					Grid: [][]Cell{
 						{{Player: nil}, {Player: nil}, {Player: nil}},
-						{{Player: nil}, {Player: &Player{}}, {Player: nil}},
+						{{Player: nil}, {Player: &PlayerState{}}, {Player: nil}},
 						{{Player: nil}, {Player: nil}, {Player: nil}},
 					},
 				},

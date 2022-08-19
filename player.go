@@ -38,7 +38,7 @@ func (p PlayerState) GetPosition() Point {
 }
 
 func (p PlayerState) Walk() Decision {
-	destination := p.GetPosition().MoveWithDirection(1, p.GetDirection())
+	destination := p.GetPosition().TranslateAngle(1, p.GetDirection())
 	if !p.Game.Arena.IsValid(destination) {
 		return TurnRight
 	}
@@ -58,7 +58,7 @@ func (p PlayerState) FindShooterOnDirection(direction Direction) []PlayerState {
 	opponents := p.GetPlayersInRange(direction, attackRange)
 	for _, opponent := range opponents {
 		// exclude if they are not heading toward the player
-		if p.isHeadingTowardMe(opponent) {
+		if p.canBeAttackedBy(opponent) {
 			filtered = append(filtered, opponent)
 		}
 	}
@@ -70,7 +70,7 @@ func (p PlayerState) isMe(p2 PlayerState) bool {
 	return p2.GetPosition().Equal(p.GetPosition())
 }
 
-func (p PlayerState) isHeadingTowardMe(p2 PlayerState) bool {
+func (p PlayerState) canBeAttackedBy(p2 PlayerState) bool {
 	players := p2.GetPlayersInRange(p2.GetDirection(), attackRange)
 	for i, player := range players {
 		probablyIsAttackingMe := p.isMe(player) && i == 0
@@ -84,7 +84,7 @@ func (p PlayerState) isHeadingTowardMe(p2 PlayerState) bool {
 func (p PlayerState) GetPlayersInRange(direction Direction, distance int) []PlayerState {
 	var playersInRange []PlayerState
 	var ptA = p.GetPosition()
-	var ptB = p.GetPosition().MoveWithDirection(distance, direction)
+	var ptB = p.GetPosition().TranslateAngle(distance, direction)
 
 	if ptB.X > p.Game.Arena.Width-1 {
 		ptB.X = p.Game.Arena.Width - 1
@@ -100,7 +100,7 @@ func (p PlayerState) GetPlayersInRange(direction Direction, distance int) []Play
 	}
 
 	for i := 1; i < (distance + 1); i++ {
-		npt := ptA.MoveWithDirection(i, direction)
+		npt := ptA.TranslateAngle(i, direction)
 		if !p.Game.Arena.IsValid(npt) {
 			break
 		}
@@ -110,4 +110,12 @@ func (p PlayerState) GetPlayersInRange(direction Direction, distance int) []Play
 		}
 	}
 	return playersInRange
+}
+
+// GoTo returns action need to reach to adjacent point
+func (p PlayerState) GoTo(pt Point, direction Direction) []Decision {
+	// Rotate clockwise and counter clockwise
+	// every 90 degree, check wheter the next location is equal with the target
+	// return the smallest step
+	return nil
 }

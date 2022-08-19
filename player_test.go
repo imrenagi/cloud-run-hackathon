@@ -1,6 +1,7 @@
 package main
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -401,6 +402,48 @@ func TestPlayerState_FindShooterFromDirection(t *testing.T) {
 			for i, p := range tt.want {
 				assert.Equal(t, p.X, tt.want[i].X)
 				assert.Equal(t, p.Y, tt.want[i].Y)
+			}
+		})
+	}
+}
+
+func TestPlayerState_GoTo(t *testing.T) {
+
+	t.Fail()
+	t.Log("not implemented")
+
+	type fields struct {
+		X         int
+		Y         int
+		Direction string
+		WasHit    bool
+		Score     int
+		Game      Game
+	}
+	type args struct {
+		pt        Point
+		direction Direction
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   []Decision
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			p := PlayerState{
+				X:         tt.fields.X,
+				Y:         tt.fields.Y,
+				Direction: tt.fields.Direction,
+				WasHit:    tt.fields.WasHit,
+				Score:     tt.fields.Score,
+				Game:      tt.fields.Game,
+			}
+			if got := p.GoTo(tt.args.pt, tt.args.direction); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("GoTo() = %v, want %v", got, tt.want)
 			}
 		})
 	}
