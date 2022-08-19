@@ -164,15 +164,10 @@ func (as *AStar) SearchPath(src, dest Point) ([]Point, error) {
 		if len(as.openList) == 0 {
 			break
 		}
-
 		sort.Sort(byF(as.openList))
 		currNode := as.openList[0]
 		as.openList = as.openList[1:]
-
-		// i := currNode.Y
-		// j := currNode.X
 		as.closedList[currNode.Y][currNode.X] = true
-
 		/*
 		   Generating all the 8 successor of this cell
 
@@ -194,86 +189,57 @@ func (as *AStar) SearchPath(src, dest Point) ([]Point, error) {
 		   S.E--> South-East  (i+1, j+1)
 		   S.W--> South-West  (i+1, j-1)*/
 
-		// To store the 'g', 'h' and 'f' of the 8 successors
-		var gNew, hNew, fNew float64
-
 		// Only process this cell if this is a valid one
 		north := Point{X: currNode.X, Y: currNode.Y - 1}
-		if as.arena.IsValid(north) {
-			// If the destination cell is the same as the
-			// current successor
-			if as.arena.IsDestination(north, dest) {
-				as.cellDetails[north.Y][north.X].ParentY = currNode.Y
-				as.cellDetails[north.Y][north.X].ParentX = currNode.X
-				log.Info().Msg("The destination cell is found")
-				// tracePath(cellDetails, dest)
-				foundDest = true
-				break
-			} else if !as.closedList[north.Y][north.X] && as.arena.Grid.IsUnblock(north) {
-				// If the successor is already on the closed
-				// list or if it is blocked, then ignore it.
-				// Else do the following
-				// TODO calculate turn needed
-				gNew = as.cellDetails[currNode.Y][currNode.X].G + 1.0
-				hNew = as.distanceCalculator.Distance(north, dest)
-				fNew = gNew + hNew
-
-				// If it isn’t on the open list, add it to
-				// the open list. Make the current square
-				// the parent of this square. Record the
-				// f, g, and h costs of the square cell
-				//                OR
-				// If it is on the open list already, check
-				// to see if this path to that square is
-				// better, using 'f' cost as the measure.
-				if as.cellDetails[north.Y][north.X].F == math.MaxFloat64 ||
-				  as.cellDetails[north.Y][north.X].F > fNew {
-					as.openList = append(as.openList, ppair{
-						F: fNew,
-						X: north.X,
-						Y: north.Y,
-					})
-
-					as.cellDetails[north.Y][north.X].F = fNew
-					as.cellDetails[north.Y][north.X].G = gNew
-					as.cellDetails[north.Y][north.X].H = hNew
-					as.cellDetails[north.Y][north.X].ParentY = currNode.Y
-					as.cellDetails[north.Y][north.X].ParentX = currNode.X
-				}
-			}
+		foundDest = as.checkSuccessor(currNode, north, dest)
+		if foundDest {
+			break
 		}
 
-		// Only process this cell if this is a valid one
+		south := Point{X: currNode.X, Y: currNode.Y + 1}
+		foundDest = as.checkSuccessor(currNode, south, dest)
+		if foundDest {
+			break
+		}
+
 		east := Point{X: currNode.X + 1, Y: currNode.Y}
-		if as.arena.IsValid(east) {
-			if as.arena.IsDestination(east, dest) {
-				as.cellDetails[east.Y][east.X].ParentY = currNode.Y
-				as.cellDetails[east.Y][east.X].ParentX = currNode.X
-				log.Info().Msg("The destination cell is found")
-				// tracePath(cellDetails, dest)
-				foundDest = true
-				break
-			} else if !as.closedList[east.Y][east.X] && as.arena.Grid.IsUnblock(east) {
-				// TODO calculate turn needed
-				gNew = as.cellDetails[currNode.Y][currNode.X].G + 1.0
-				hNew = as.distanceCalculator.Distance(east, dest)
-				fNew = gNew + hNew
-
-				if as.cellDetails[east.Y][east.X].F == math.MaxFloat64 ||
-				  as.cellDetails[east.Y][east.X].F > fNew {
-					as.openList = append(as.openList, ppair{
-						F: fNew,
-						X: east.X,
-						Y: east.Y,
-					})
-					as.cellDetails[east.Y][east.X].F = fNew
-					as.cellDetails[east.Y][east.X].G = gNew
-					as.cellDetails[east.Y][east.X].H = hNew
-					as.cellDetails[east.Y][east.X].ParentY = currNode.Y
-					as.cellDetails[east.Y][east.X].ParentX = currNode.X
-				}
-			}
+		foundDest = as.checkSuccessor(currNode, east, dest)
+		if foundDest {
+			break
 		}
+
+		west := Point{X: currNode.X - 1, Y: currNode.Y}
+		foundDest = as.checkSuccessor(currNode, west, dest)
+		if foundDest {
+			break
+		}
+
+		// because we only move to horizontal and vertical, we disabled this
+		// TODO create function to get allowed direction. moving backward
+
+		// northEast := Point{X: currNode.X + 1, Y: currNode.Y - 1}
+		// foundDest = as.checkSuccessor(currNode, northEast, dest)
+		// if foundDest {
+		// 	break
+		// }
+		//
+		// northWest := Point{X: currNode.X - 1, Y: currNode.Y - 1}
+		// foundDest = as.checkSuccessor(currNode, northWest, dest)
+		// if foundDest {
+		// 	break
+		// }
+		//
+		// southEast := Point{X: currNode.X + 1, Y: currNode.Y + 1}
+		// foundDest = as.checkSuccessor(currNode, southEast, dest)
+		// if foundDest {
+		// 	break
+		// }
+		//
+		// southWest := Point{X: currNode.X - 1, Y: currNode.Y + 1}
+		// foundDest = as.checkSuccessor(currNode, southWest, dest)
+		// if foundDest {
+		// 	break
+		// }
 	}
 
 	if !foundDest {
@@ -281,43 +247,41 @@ func (as *AStar) SearchPath(src, dest Point) ([]Point, error) {
 	}
 
 	return as.tracePath(as.cellDetails, dest), nil
-	// return nil, nil
 }
-//
-// func (as AStar) checkSuccessor(currNode Point, successor Point, dest Point) {
-//
-// 	var gNew, hNew, fNew float64
-// 	// Only process this cell if this is a valid one
-// 	if as.arena.IsValid(successor) {
-// 		if as.arena.IsDestination(successor, dest) {
-// 			as.cellDetails[successor.Y][successor.X].ParentY = currNode.Y
-// 			as.cellDetails[successor.Y][successor.X].ParentX = currNode.X
-// 			log.Info().Msg("The destination cell is found")
-// 			// tracePath(cellDetails, dest)
-// 			foundDest = true
-// 			break
-// 		} else if !as.closedList[successor.Y][successor.X] && as.arena.Grid.IsUnblock(successor) {
-// 			// TODO calculate turn needed
-// 			gNew = as.cellDetails[currNode.Y][currNode.X].G + 1.0
-// 			hNew = as.distanceCalculator.Distance(successor, dest)
-// 			fNew = gNew + hNew
-//
-// 			if as.cellDetails[successor.Y][successor.X].F == math.MaxFloat64 ||
-// 			  as.cellDetails[successor.Y][successor.X].F > fNew {
-// 				as.openList = append(as.openList, ppair{
-// 					F: fNew,
-// 					X: successor.X,
-// 					Y: successor.Y,
-// 				})
-// 				as.cellDetails[successor.Y][successor.X].F = fNew
-// 				as.cellDetails[successor.Y][successor.X].G = gNew
-// 				as.cellDetails[successor.Y][successor.X].H = hNew
-// 				as.cellDetails[successor.Y][successor.X].ParentY = currNode.Y
-// 				as.cellDetails[successor.Y][successor.X].ParentX = currNode.X
-// 			}
-// 		}
-// 	}
-// }
+
+func (as *AStar) checkSuccessor(currNode ppair, successor Point, dest Point) bool {
+
+	var gNew, hNew, fNew float64
+	// Only process this cell if this is a valid one
+	if as.arena.IsValid(successor) {
+		if as.arena.IsDestination(successor, dest) {
+			as.cellDetails[successor.Y][successor.X].ParentY = currNode.Y
+			as.cellDetails[successor.Y][successor.X].ParentX = currNode.X
+			log.Info().Msg("The destination cell is found")
+			return true
+		} else if !as.closedList[successor.Y][successor.X] && as.arena.Grid.IsUnblock(successor) {
+			// TODO calculate turn needed
+			gNew = as.cellDetails[currNode.Y][currNode.X].G + 1.0
+			hNew = as.distanceCalculator.Distance(successor, dest)
+			fNew = gNew + hNew
+
+			if as.cellDetails[successor.Y][successor.X].F == math.MaxFloat64 ||
+			  as.cellDetails[successor.Y][successor.X].F > fNew {
+				as.openList = append(as.openList, ppair{
+					F: fNew,
+					X: successor.X,
+					Y: successor.Y,
+				})
+				as.cellDetails[successor.Y][successor.X].F = fNew
+				as.cellDetails[successor.Y][successor.X].G = gNew
+				as.cellDetails[successor.Y][successor.X].H = hNew
+				as.cellDetails[successor.Y][successor.X].ParentY = currNode.Y
+				as.cellDetails[successor.Y][successor.X].ParentX = currNode.X
+			}
+		}
+	}
+	return false
+}
 
 type Path []Point
 
@@ -335,7 +299,7 @@ func (as AStar) tracePath(cellDetails [][]Cell, dest Point) []Point {
 	col := dest.X
 	var path []Point // stack
 	for {
-		if !(!(cellDetails[row][col].ParentY == row && cellDetails[row][col].ParentX == col)) {
+		if cellDetails[row][col].ParentY == row && cellDetails[row][col].ParentX == col {
 			break
 		}
 		path = append(path, Point{
@@ -387,7 +351,7 @@ type ManhattanDistance struct {
 }
 
 func (m ManhattanDistance) Distance(p1, p2 Point) float64 {
-	return math.Abs(float64(p1.X-p2.X) + math.Abs(float64(p1.Y-p2.Y)))
+	return math.Abs(float64(p1.X-p2.X)) + math.Abs(float64(p1.Y-p2.Y))
 }
 
 type EuclideanDistance struct {
