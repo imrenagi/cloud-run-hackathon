@@ -1,7 +1,6 @@
 package main
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -407,11 +406,8 @@ func TestPlayerState_FindShooterFromDirection(t *testing.T) {
 	}
 }
 
-func TestPlayerState_GoTo(t *testing.T) {
 
-	t.Fail()
-	t.Log("not implemented")
-
+func TestPlayerState_RequiredStepsToAdjacent(t *testing.T) {
 	type fields struct {
 		X         int
 		Y         int
@@ -421,16 +417,63 @@ func TestPlayerState_GoTo(t *testing.T) {
 		Game      Game
 	}
 	type args struct {
-		pt        Point
-		direction Direction
+		pt Point
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   []Decision
+		name    string
+		fields  fields
+		args    args
+		want    int
+		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{
+			name:    "heading west, target is in south",
+			fields:  fields{
+				X:         0,
+				Y:         1,
+				Direction: "W",
+				Game:      Game{
+					Arena: NewArena(3, 3),
+				},
+			},
+			args:    args{
+				pt: Point{0, 2},
+			},
+			want:    2,
+			wantErr: false,
+		},
+		{
+			name:    "heading west, target is in east",
+			fields:  fields{
+				X:         0,
+				Y:         1,
+				Direction: "W",
+				Game:      Game{
+					Arena: NewArena(3, 3),
+				},
+			},
+			args:    args{
+				pt: Point{1, 1},
+			},
+			want:    3,
+			wantErr: false,
+		},
+		{
+			name:    "heading west, target is in north",
+			fields:  fields{
+				X:         0,
+				Y:         1,
+				Direction: "W",
+				Game:      Game{
+					Arena: NewArena(3, 3),
+				},
+			},
+			args:    args{
+				pt: Point{0, 0},
+			},
+			want:    2,
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -442,8 +485,13 @@ func TestPlayerState_GoTo(t *testing.T) {
 				Score:     tt.fields.Score,
 				Game:      tt.fields.Game,
 			}
-			if got := p.GoTo(tt.args.pt, tt.args.direction); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("GoTo() = %v, want %v", got, tt.want)
+			got, err := p.RequiredStepsToAdjacent(tt.args.pt)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("RequiredStepsToAdjacent() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("RequiredStepsToAdjacent() got = %v, want %v", got, tt.want)
 			}
 		})
 	}

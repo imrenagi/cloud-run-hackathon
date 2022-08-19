@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 type PlayerState struct {
 	X         int    `json:"x"`
 	Y         int    `json:"y"`
@@ -48,6 +50,18 @@ func (p PlayerState) Walk() Decision {
 		return TurnRight
 	}
 	return MoveForward
+}
+
+func (p *PlayerState) RotateLeft() {
+	p.Direction = p.GetDirection().Left().Name
+}
+
+func (p *PlayerState) RotateRight() {
+	p.Direction = p.GetDirection().Right().Name
+}
+
+func (p *PlayerState) setDirection(d Direction) {
+	p.Direction = d.Name
 }
 
 const attackRange = 3
@@ -112,10 +126,47 @@ func (p PlayerState) GetPlayersInRange(direction Direction, distance int) []Play
 	return playersInRange
 }
 
+var ErrNotInAdjacent = fmt.Errorf("not found in adjacent node")
+
 // GoTo returns action need to reach to adjacent point
-func (p PlayerState) GoTo(pt Point, direction Direction) []Decision {
-	// Rotate clockwise and counter clockwise
-	// every 90 degree, check wheter the next location is equal with the target
-	// return the smallest step
-	return nil
+func (p PlayerState) RequiredStepsToAdjacent(pt Point) (int, error) {
+	var found bool
+	for _, apt := range p.Game.Arena.GetAdjacent(p.GetPosition()) {
+		if apt.Equal(pt) {
+			found = true
+		}
+	}
+
+	if !found {
+		return 0, ErrNotInAdjacent
+	}
+
+	step := 1 // initial step one assuming it will always move forward after rotation is complete
+	const distance = 1
+	var cCount, ccCount int // clockwise and counter clockwise counter
+	initialDirection := p.GetDirection()
+	for i := 0; i<4; i++ {
+		front := p.GetPosition().TranslateToDirection(distance, p.GetDirection())
+		if front.Equal(pt) {
+			break
+		}
+		p.RotateLeft()
+		cCount++
+	}
+	p.setDirection(initialDirection)
+	for i := 0; i<4; i++ {
+		front := p.GetPosition().TranslateToDirection(distance, p.GetDirection())
+		if front.Equal(pt) {
+			break
+		}
+		p.RotateRight()
+		ccCount++
+	}
+	p.setDirection(initialDirection)
+
+	minRotationCount := cCount
+	if minRotationCount > ccCount {
+		minRotationCount = ccCount
+	}
+	return step + minRotationCount, nil
 }

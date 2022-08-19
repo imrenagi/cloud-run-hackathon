@@ -66,11 +66,32 @@ func (a Arena) Traverse(start Point) []Point {
 	return traversedNode
 }
 
-func (a Arena) GetAdjacent(p Point) []Point {
+type AdjacentOption func (*AdjacentOptions)
+
+type AdjacentOptions struct {
+	IncludeDiagonal bool
+}
+
+func WithDiagonalAdjacents() AdjacentOption {
+	return func(options *AdjacentOptions) {
+		options.IncludeDiagonal = true
+	}
+}
+
+func (a Arena) GetAdjacent(p Point, opts ...AdjacentOption) []Point {
+	options := &AdjacentOptions{}
+	for _, o := range opts {
+		o(options)
+	}
 	var adj []Point
 	iterator := [3]int{-1, 0, 1}
 	for _, i := range iterator {
 		for _, j := range iterator {
+			if !options.IncludeDiagonal {
+				if i * j == -1 || i*j == 1 {
+					continue
+				}
+			}
 			if i != 0 || j != 0 {
 				p := Point{X: p.X + i, Y: p.Y + j}
 				if p.IsInArena(a) {

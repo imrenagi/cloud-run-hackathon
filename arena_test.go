@@ -46,52 +46,95 @@ func TestNewArena(t *testing.T) {
 func TestArena_GetAdjacent(t *testing.T) {
 
 	type args struct {
-		p Point
+		p       Point
+		options []AdjacentOption
 	}
 	tests := []struct {
 		name  string
 		arena Arena
-		args args
+		args  args
 		want  []Point
 	}{
 		{
-			name: "surround by 8 points",
-			arena: NewArena(5,3),
-			args: args{p: Point{1, 1}},
+			name:  "surround by 8 points",
+			arena: NewArena(5, 3),
+			args: args{
+				p: Point{1, 1},
+				options: []AdjacentOption{WithDiagonalAdjacents()},
+			},
 			want: []Point{
-				{0,0}, {0, 1}, {0, 2},
-				{1, 0}, {1,2},
-				{2, 0}, {2,1 }, {2,2},
+				{0, 0}, {0, 1}, {0, 2},
+				{1, 0}, {1, 2},
+				{2, 0}, {2, 1}, {2, 2},
 			},
 		},
 		{
-			name: "on the top left corner, surround by 3 points",
-			arena: NewArena(5,3),
-			args: args{p: Point{0, 0}},
+			name:  "on the top left corner, surround by 3 points",
+			arena: NewArena(5, 3),
+			args:  args{
+				p: Point{0, 0},
+				options: []AdjacentOption{WithDiagonalAdjacents()},
+			},
 			want: []Point{
 				{0, 1}, {1, 0}, {1, 1},
 			},
 		},
 		{
-			name: "on the middle top edge",
-			arena: NewArena(5,3 ),
-			args: args{p: Point{1, 0}},
+			name:  "on the middle top edge",
+			arena: NewArena(5, 3),
+			args:  args{
+				p: Point{1, 0},
+				options: []AdjacentOption{WithDiagonalAdjacents()},
+			},
 			want: []Point{
-				{0,0}, {0, 1},
+				{0, 0}, {0, 1},
 				{1, 1},
-				{2, 0}, {2,1 },
+				{2, 0}, {2, 1},
+			},
+		},
+		{
+			name:  "surround by 4 points, without diagonal",
+			arena: NewArena(5, 3),
+			args: args{
+				p: Point{1, 1},
+			},
+			want: []Point{
+				{0, 1},
+				{1, 0}, {1, 2},
+				{2, 1},
+			},
+		},
+		{
+			name:  "on the top left corner, surround by 2 points",
+			arena: NewArena(5, 3),
+			args:  args{
+				p: Point{0, 0},
+			},
+			want: []Point{
+				{0, 1}, {1, 0},
+			},
+		},
+		{
+			name:  "on the middle top edge, return no diagonal",
+			arena: NewArena(5, 3),
+			args:  args{
+				p: Point{1, 0},
+			},
+			want: []Point{
+				{0, 0},
+				{1, 1},
+				{2, 0},
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			got := tt.arena.GetAdjacent(tt.args.p)
+			got := tt.arena.GetAdjacent(tt.args.p, tt.args.options...)
 			assert.Len(t, got, len(tt.want))
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("GetAdjacent() = %v, want %v", got, tt.want)
 			}
-
 
 		})
 	}
@@ -104,18 +147,18 @@ func TestArena_Traverse(t *testing.T) {
 	tests := []struct {
 		name  string
 		arena Arena
-		args args
-		want []Point
+		args  args
+		want  []Point
 	}{
 		{
-			name: "get correct bfs",
-			arena: NewArena(4,3 ),
-			args: args{start: Point{1, 1}},
+			name:  "get correct bfs",
+			arena: NewArena(4, 3),
+			args:  args{start: Point{1, 1}},
 			want: []Point{
-				{1,1}, {0,0}, {0, 1}, {0, 2},
-				{1, 0}, {1,2},
-				{2, 0}, {2,1 }, {2,2},
-				{3, 0}, {3,1 }, {3,2},
+				{1, 1}, {0, 0}, {0, 1}, {0, 2},
+				{1, 0}, {1, 2},
+				{2, 0}, {2, 1}, {2, 2},
+				{3, 0}, {3, 1}, {3, 2},
 			},
 		},
 	}
