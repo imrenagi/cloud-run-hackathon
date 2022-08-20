@@ -17,8 +17,8 @@ type Options struct {
 type cellDetail struct {
 	ParentX int
 	ParentY int
-	F float64
-	G, H float64
+	F       float64
+	G, H    float64
 }
 
 func NewAStar(a Arena, opts ...Option) AStar {
@@ -85,10 +85,10 @@ func (as *AStar) SearchPath(src, dest Point) ([]Point, error) {
 
 	// Either the source or the destination is blocked
 	// TODO need to update this logic since the destination will be blocked because the player is the target
-	if !as.arena.Grid.IsUnblock(src) || !as.arena.Grid.IsUnblock(dest) {
-		log.Warn().Msg("Source or the destination is blocked")
-		return nil, fmt.Errorf("source or destination is blocked")
-	}
+	// if !as.arena.Grid.IsUnblock(src) || !as.arena.Grid.IsUnblock(dest) {
+	// 	log.Warn().Msg("Source or the destination is blocked")
+	// 	return nil, fmt.Errorf("source or destination is blocked")
+	// }
 
 	// If the destination cell is the same as source cell
 	if src.Equal(dest) {
@@ -113,7 +113,9 @@ func (as *AStar) SearchPath(src, dest Point) ([]Point, error) {
 	as.cellDetails[src.Y][src.X].ParentY = src.Y
 	as.cellDetails[src.Y][src.X].ParentX = src.X
 
-	as.openList = append(as.openList, ppair{F: 0, X: src.X, Y: src.Y})
+	player := as.arena.GetPlayer(src)
+
+	as.openList = append(as.openList, ppair{F: 0, X: src.X, Y: src.Y, Direction: player.GetDirection()})
 
 	var foundDest bool
 
@@ -170,33 +172,6 @@ func (as *AStar) SearchPath(src, dest Point) ([]Point, error) {
 		if foundDest {
 			break
 		}
-
-		// because we only move to horizontal and vertical, we disabled this
-		// TODO create function to get allowed direction. moving backward
-
-		// northEast := Point{X: currNode.X + 1, Y: currNode.Y - 1}
-		// foundDest = as.checkSuccessor(currNode, northEast, dest)
-		// if foundDest {
-		// 	break
-		// }
-		//
-		// northWest := Point{X: currNode.X - 1, Y: currNode.Y - 1}
-		// foundDest = as.checkSuccessor(currNode, northWest, dest)
-		// if foundDest {
-		// 	break
-		// }
-		//
-		// southEast := Point{X: currNode.X + 1, Y: currNode.Y + 1}
-		// foundDest = as.checkSuccessor(currNode, southEast, dest)
-		// if foundDest {
-		// 	break
-		// }
-		//
-		// southWest := Point{X: currNode.X - 1, Y: currNode.Y + 1}
-		// foundDest = as.checkSuccessor(currNode, southWest, dest)
-		// if foundDest {
-		// 	break
-		// }
 	}
 
 	if !foundDest {
@@ -217,8 +192,9 @@ func (as *AStar) checkSuccessor(currNode ppair, successor Point, dest Point) boo
 			log.Info().Msg("The destination cell is found")
 			return true
 		} else if !as.closedList[successor.Y][successor.X] && as.arena.Grid.IsUnblock(successor) {
-			// TODO calculate turn needed
-			gNew = as.cellDetails[currNode.Y][currNode.X].G + 1.0
+			step := currNode.RequiredRotation(successor)
+
+			gNew = as.cellDetails[currNode.Y][currNode.X].G + 1.0 + float64(step)
 			hNew = as.distanceCalculator.Distance(successor, dest)
 			fNew = gNew + hNew
 
@@ -228,6 +204,7 @@ func (as *AStar) checkSuccessor(currNode ppair, successor Point, dest Point) boo
 					F: fNew,
 					X: successor.X,
 					Y: successor.Y,
+					Direction: currNode.Direction,
 				})
 				as.cellDetails[successor.Y][successor.X].F = fNew
 				as.cellDetails[successor.Y][successor.X].G = gNew
@@ -279,8 +256,60 @@ func (as AStar) tracePath(cellDetails [][]cellDetail, dest Point) []Point {
 }
 
 type ppair struct {
-	F    float64
-	X, Y int
+	F         float64
+	X, Y      int
+	Direction Direction
+}
+
+func (p *ppair) RotateCounterClockwise() {
+	p.Direction = p.Direction.Left()
+}
+
+func (p *ppair) RotateClockwise() {
+	p.Direction = p.Direction.Right()
+}
+
+func (p *ppair) setDirection(d Direction) {
+	p.Direction = d
+}
+
+// RequiredRotation returns the number of rotation need to be performed to head toward the pt
+func (p *ppair) RequiredRotation(pt Point) int {
+	myPt := Point{X: p.X, Y: p.Y}
+	const distance = 1
+	var cCount, ccCount int // clockwise and counter clockwise counter
+	initialDirection := p.Direction
+	for i := 0; i<4; i++ {
+		ptInFront := myPt.TranslateToDirection(distance, p.Direction)
+		if ptInFront.Equal(pt) {
+			break
+		}
+		p.RotateCounterClockwise()
+		ccCount++
+	}
+	p.setDirection(initialDirection)
+	for i := 0; i<4; i++ {
+		ptInFront := myPt.TranslateToDirection(distance, p.Direction)
+		if ptInFront.Equal(pt) {
+			break
+		}
+		p.RotateClockwise()
+		cCount++
+	}
+	p.setDirection(initialDirection)
+
+	minRotationCount := ccCount
+	for i := 0; i<ccCount; i++ {
+		p.RotateCounterClockwise()
+	}
+	if minRotationCount > cCount {
+		minRotationCount = cCount
+		p.setDirection(initialDirection)
+		for i := 0; i<cCount; i++ {
+			p.RotateClockwise()
+		}
+	}
+	return minRotationCount
 }
 
 // ByAge implements sort.Interface based on the Age field.

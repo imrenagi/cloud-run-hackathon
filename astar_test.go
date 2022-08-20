@@ -16,10 +16,10 @@ func TestAStar_Search(t *testing.T) {
 		dest Point
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   []Point
+		name    string
+		fields  fields
+		args    args
+		want    []Point
 		wantErr error
 	}{
 		{
@@ -33,14 +33,14 @@ func TestAStar_Search(t *testing.T) {
 					Height: 3,
 					Grid: [][]Cell{
 						{{Player: nil}, {Player: nil}, {Player: nil}},
-						{{Player: nil}, {Player: nil}, {Player: nil}},
+						{{Player: nil}, {Player: &PlayerState{X: 1, Y: 1, Direction: "N"}}, {Player: nil}},
 						{{Player: nil}, {Player: nil}, {Player: nil}},
 					},
 				},
 				src:  Point{1, 1},
 				dest: Point{1, 0},
 			},
-			want: []Point{{1,1}, {1, 0}},
+			want: []Point{{1, 1}, {1, 0}},
 		},
 		{
 			name: "test search 2 step to north",
@@ -54,13 +54,13 @@ func TestAStar_Search(t *testing.T) {
 					Grid: [][]Cell{
 						{{Player: nil}, {Player: nil}, {Player: nil}},
 						{{Player: nil}, {Player: nil}, {Player: nil}},
-						{{Player: nil}, {Player: nil}, {Player: nil}},
+						{{Player: nil}, {Player: &PlayerState{X: 1, Y: 2, Direction: "N"}}, {Player: nil}},
 					},
 				},
 				src:  Point{1, 2},
 				dest: Point{1, 0},
 			},
-			want: []Point{{1,2}, {1, 1}, {1, 0}},
+			want: []Point{{1, 2}, {1, 1}, {1, 0}},
 		},
 		{
 			name: "test search 2 step to north and 1 step to east",
@@ -74,13 +74,13 @@ func TestAStar_Search(t *testing.T) {
 					Grid: [][]Cell{
 						{{Player: nil}, {Player: nil}, {Player: nil}},
 						{{Player: nil}, {Player: nil}, {Player: nil}},
-						{{Player: nil}, {Player: nil}, {Player: nil}},
+						{{Player: nil}, {Player: &PlayerState{X: 1, Y: 2, Direction: "N"}}, {Player: nil}},
 					},
 				},
 				src:  Point{1, 2},
 				dest: Point{2, 0},
 			},
-			want: []Point{{1,2}, {1, 1}, {1, 0}, {2, 0}},
+			want: []Point{{1, 2}, {1, 1}, {1, 0}, {2, 0}},
 		},
 		{
 			name: "test search 2 step to north and 1 step to east, but there is obstacle",
@@ -94,13 +94,13 @@ func TestAStar_Search(t *testing.T) {
 					Grid: [][]Cell{
 						{{Player: nil}, {Player: nil}, {Player: nil}},
 						{{Player: nil}, {Player: &PlayerState{}}, {Player: nil}},
-						{{Player: nil}, {Player: nil}, {Player: nil}},
+						{{Player: nil}, {Player: &PlayerState{X: 1, Y: 2, Direction: "N"}}, {Player: nil}},
 					},
 				},
 				src:  Point{1, 2},
 				dest: Point{2, 0},
 			},
-			want: []Point{{1,2}, {2, 2}, {2, 1}, {2, 0}},
+			want: []Point{{1, 2}, {2, 2}, {2, 1}, {2, 0}},
 		},
 		{
 			name: "test search 1 step to east",
@@ -113,14 +113,14 @@ func TestAStar_Search(t *testing.T) {
 					Height: 3,
 					Grid: [][]Cell{
 						{{Player: nil}, {Player: nil}, {Player: nil}},
-						{{Player: nil}, {Player: nil}, {Player: nil}},
+						{{Player: nil}, {Player: &PlayerState{X: 1, Y: 1, Direction: "N"}}, {Player: nil}},
 						{{Player: nil}, {Player: nil}, {Player: nil}},
 					},
 				},
 				src:  Point{1, 1},
 				dest: Point{2, 1},
 			},
-			want: []Point{{1,1}, {2, 1}},
+			want: []Point{{1, 1}, {2, 1}},
 		},
 		{
 			name: "test search 2 step to north and 1 step to west",
@@ -134,15 +134,94 @@ func TestAStar_Search(t *testing.T) {
 					Grid: [][]Cell{
 						{{Player: nil}, {Player: nil}, {Player: nil}},
 						{{Player: nil}, {Player: nil}, {Player: nil}},
-						{{Player: nil}, {Player: nil}, {Player: nil}},
+						{{Player: nil}, {Player: nil}, {Player: &PlayerState{X: 2, Y: 2, Direction: "N"}}},
 					},
 				},
 				src:  Point{2, 2},
 				dest: Point{0, 0},
 			},
-			want: []Point{{2,2}, {2, 1}, {2, 0}, {1, 0}, {0, 0}},
+			want: []Point{{2, 2}, {2, 1}, {2, 0}, {1, 0}, {0, 0}},
 		},
-
+		{
+			name: "test search heading to west and choose the shortest path",
+			fields: fields{
+				distanceCalculator: &ManhattanDistance{},
+			},
+			args: args{
+				a: Arena{
+					Width:  3,
+					Height: 3,
+					Grid: [][]Cell{
+						{{Player: nil}, {Player: nil}, {Player: nil}},
+						{{Player: nil}, {Player: &PlayerState{X: 1, Y: 1, Direction: "W"}}, {Player: nil}},
+						{{Player: nil}, {Player: nil}, {Player: nil}},
+					},
+				},
+				src:  Point{1, 1},
+				dest: Point{0, 0},
+			},
+			want: []Point{{1, 1}, {0, 1}, {0, 0}},
+		},
+		{
+			name: "test search heading to north and choose the shortest path",
+			fields: fields{
+				distanceCalculator: &ManhattanDistance{},
+			},
+			args: args{
+				a: Arena{
+					Width:  3,
+					Height: 3,
+					Grid: [][]Cell{
+						{{Player: nil}, {Player: nil}, {Player: nil}},
+						{{Player: nil}, {Player: &PlayerState{X: 1, Y: 1, Direction: "N"}}, {Player: nil}},
+						{{Player: nil}, {Player: nil}, {Player: nil}},
+					},
+				},
+				src:  Point{1, 1},
+				dest: Point{0, 0},
+			},
+			want: []Point{{1, 1}, {1, 0}, {0, 0}},
+		},
+		{
+			name: "test search heading to east and choose the shortest path",
+			fields: fields{
+				distanceCalculator: &ManhattanDistance{},
+			},
+			args: args{
+				a: Arena{
+					Width:  3,
+					Height: 3,
+					Grid: [][]Cell{
+						{{Player: nil}, {Player: nil}, {Player: nil}},
+						{{Player: nil}, {Player: &PlayerState{X: 1, Y: 1, Direction: "E"}}, {Player: nil}},
+						{{Player: nil}, {Player: nil}, {Player: nil}},
+					},
+				},
+				src:  Point{1, 1},
+				dest: Point{0, 0},
+			},
+			want: []Point{{1, 1}, {1, 0}, {0, 0}},
+		},
+		{
+			name: "test search heading to south and choose the shortest path",
+			fields: fields{
+				distanceCalculator: &ManhattanDistance{},
+			},
+			args: args{
+				a: Arena{
+					Width:  3,
+					Height: 3,
+					Grid: [][]Cell{
+						{{Player: nil}, {Player: nil}, {Player: nil}},
+						{{Player: nil}, {Player: &PlayerState{X: 1, Y: 1, Direction: "S"}}, {Player: nil}},
+						{{Player: nil}, {Player: nil}, {Player: nil}},
+					},
+				},
+				src:  Point{1, 1},
+				dest: Point{0, 0},
+			},
+			want: []Point{{1, 1}, {0, 1}, {0, 0}},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -186,6 +265,74 @@ func TestManhattanDistance_Distance(t *testing.T) {
 			m := ManhattanDistance{}
 			got := m.Distance(tt.args.p1, tt.args.p2)
 			assert.InDelta(t, tt.want, got, 0.001, "got %v expect %v", got, tt.want)
+		})
+	}
+}
+
+func Test_ppair_RequiredRotation(t *testing.T) {
+	type fields struct {
+		F         float64
+		X         int
+		Y         int
+		Direction Direction
+	}
+	type args struct {
+		pt Point
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   int
+	}{
+		{
+			name: "heading west, target is in south",
+			fields: fields{
+				X:         0,
+				Y:         1,
+				Direction: West,
+			},
+			args: args{
+				pt: Point{0, 2},
+			},
+			want:    1,
+		},
+		{
+			name: "heading west, target is in east",
+			fields: fields{
+				X:         0,
+				Y:         1,
+				Direction: West,
+			},
+			args: args{
+				pt: Point{1, 1},
+			},
+			want:    2,
+		},
+		{
+			name: "heading west, target is in north",
+			fields: fields{
+				X:         0,
+				Y:         1,
+				Direction: West,
+			},
+			args: args{
+				pt: Point{0, 0},
+			},
+			want:    1,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			p := &ppair{
+				F:         tt.fields.F,
+				X:         tt.fields.X,
+				Y:         tt.fields.Y,
+				Direction: tt.fields.Direction,
+			}
+			if got := p.RequiredRotation(tt.args.pt); got != tt.want {
+				t.Errorf("RequiredRotation() = %v, want %v", got, tt.want)
+			}
 		})
 	}
 }

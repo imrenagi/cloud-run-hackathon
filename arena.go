@@ -1,6 +1,6 @@
 package main
 
-type Grid [][]Cell // TODO should this be [][]Cell or [][]Player
+type Grid [][]Cell
 
 // A Utility Function to check whether the given cell is
 // blocked or not
@@ -38,6 +38,13 @@ func (a *Arena) PutPlayer(p PlayerState) {
 	a.Grid[p.Y][p.X].Player = &p
 }
 
+func (a *Arena) GetPlayer(pt Point) *PlayerState {
+	if !a.IsValid(pt) {
+		return nil
+	}
+	return a.Grid[pt.Y][pt.X].Player
+}
+
 // Traverse with BFS
 func (a Arena) Traverse(start Point) []Point {
 	var traversedNode []Point
@@ -54,7 +61,7 @@ func (a Arena) Traverse(start Point) []Point {
 		pt := queue[0]
 		traversedNode = append(traversedNode, pt)
 		queue = queue[1:]
-		adjancentNodes := a.GetAdjacent(pt)
+		adjancentNodes := a.GetAdjacent(pt, WithDiagonalAdjacents())
 		for _, n := range adjancentNodes {
 			if !visited[n.Y*a.Width+n.X] {
 				visited[n.Y*a.Width+n.X] = true
