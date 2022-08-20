@@ -8,3 +8,4 @@ const (
 	TurnLeft    Decision = "L"
 	Fight       Decision = "T"
 )
+

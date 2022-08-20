@@ -222,6 +222,47 @@ func TestAStar_Search(t *testing.T) {
 			},
 			want: []Point{{1, 1}, {0, 1}, {0, 0}},
 		},
+		{
+			name: "test search heading to west and choose the shortest path if there is obstacle",
+			fields: fields{
+				distanceCalculator: &ManhattanDistance{},
+			},
+			args: args{
+				a: Arena{
+					Width:  3,
+					Height: 3,
+					Grid: [][]Cell{
+						{{Player: nil}, {Player: nil}, {Player: nil}},
+						{{Player: &PlayerState{}}, {Player: &PlayerState{X: 1, Y: 1, Direction: "W"}}, {Player: nil}},
+						{{Player: nil}, {Player: nil}, {Player: nil}},
+					},
+				},
+				src:  Point{1, 1},
+				dest: Point{0, 0},
+			},
+			want: []Point{{1, 1}, {1, 0}, {0, 0}},
+		},
+		{
+			name: "no path at all because blocked by obstacle",
+			fields: fields{
+				distanceCalculator: &ManhattanDistance{},
+			},
+			args: args{
+				a: Arena{
+					Width:  3,
+					Height: 3,
+					Grid: [][]Cell{
+						{{Player: nil}, {Player: &PlayerState{}}, {Player: nil}},
+						{{Player: &PlayerState{}}, {Player: &PlayerState{X: 1, Y: 1, Direction: "W"}}, {Player: nil}},
+						{{Player: nil}, {Player: nil}, {Player: nil}},
+					},
+				},
+				src:  Point{1, 1},
+				dest: Point{0, 0},
+			},
+			want: nil,
+			wantErr: ErrPathNotFound,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -330,8 +371,8 @@ func Test_ppair_RequiredRotation(t *testing.T) {
 				Y:         tt.fields.Y,
 				Direction: tt.fields.Direction,
 			}
-			if got := p.RequiredRotation(tt.args.pt); got != tt.want {
-				t.Errorf("RequiredRotation() = %v, want %v", got, tt.want)
+			if got := p.requiredRotation(tt.args.pt); got != tt.want {
+				t.Errorf("requiredRotation() = %v, want %v", got, tt.want)
 			}
 		})
 	}

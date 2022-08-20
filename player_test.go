@@ -406,3 +406,89 @@ func TestPlayerState_FindShooterFromDirection(t *testing.T) {
 	}
 }
 
+
+func TestPlayerState_GetShortestRotation(t *testing.T) {
+	type fields struct {
+		X         int
+		Y         int
+		Direction string
+		WasHit    bool
+		Score     int
+		Game      Game
+	}
+	type args struct {
+		toPt Point
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    []Decision
+		wantErr error
+	}{
+		{
+			name: "heading west, target is in south",
+			fields: fields{
+				X:         0,
+				Y:         1,
+				Direction: "W",
+			},
+			args: args{
+				toPt: Point{0, 2},
+			},
+			want:    []Decision{TurnLeft},
+		},
+		{
+			name: "heading west, target is in east",
+			fields: fields{
+				X:         0,
+				Y:         1,
+				Direction: "W",
+			},
+			args: args{
+				toPt: Point{1, 1},
+			},
+			want:    []Decision{TurnLeft, TurnLeft},
+		},
+		{
+			name: "heading west, target is in north",
+			fields: fields{
+				X:         0,
+				Y:         1,
+				Direction: "W",
+			},
+			args: args{
+				toPt: Point{0, 0},
+			},
+			want:    []Decision{TurnRight},
+		},
+		{
+			name: "heading west, target is in north",
+			fields: fields{
+				X:         0,
+				Y:         0,
+				Direction: "W",
+			},
+			args: args{
+				toPt: Point{2, 0},
+			},
+			want:    nil,
+			wantErr: ErrDestNotFound,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			p := PlayerState{
+				X:         tt.fields.X,
+				Y:         tt.fields.Y,
+				Direction: tt.fields.Direction,
+				WasHit:    tt.fields.WasHit,
+				Score:     tt.fields.Score,
+				Game:      tt.fields.Game,
+			}
+			got, err := p.GetShortestRotation(tt.args.toPt)
+			assert.Equal(t, tt.wantErr, err)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}

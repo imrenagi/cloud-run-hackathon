@@ -175,11 +175,13 @@ func (as *AStar) SearchPath(src, dest Point) ([]Point, error) {
 	}
 
 	if !foundDest {
-		return nil, fmt.Errorf("path not found")
+		return nil, ErrPathNotFound
 	}
 
 	return as.tracePath(as.cellDetails, dest), nil
 }
+
+var ErrPathNotFound = fmt.Errorf("path not found")
 
 func (as *AStar) checkSuccessor(currNode ppair, successor Point, dest Point) bool {
 
@@ -192,7 +194,7 @@ func (as *AStar) checkSuccessor(currNode ppair, successor Point, dest Point) boo
 			log.Info().Msg("The destination cell is found")
 			return true
 		} else if !as.closedList[successor.Y][successor.X] && as.arena.Grid.IsUnblock(successor) {
-			step := currNode.RequiredRotation(successor)
+			step := currNode.requiredRotation(successor)
 
 			gNew = as.cellDetails[currNode.Y][currNode.X].G + 1.0 + float64(step)
 			hNew = as.distanceCalculator.Distance(successor, dest)
@@ -216,8 +218,6 @@ func (as *AStar) checkSuccessor(currNode ppair, successor Point, dest Point) boo
 	}
 	return false
 }
-
-
 
 func (as AStar) tracePath(cellDetails [][]cellDetail, dest Point) []Point {
 	var finalPath Path
@@ -251,7 +251,6 @@ func (as AStar) tracePath(cellDetails [][]cellDetail, dest Point) []Point {
 		finalPath = append(finalPath, p)
 	}
 
-	log.Info().Stringer("path", finalPath).Msg("path found")
 	return finalPath
 }
 
@@ -261,11 +260,11 @@ type ppair struct {
 	Direction Direction
 }
 
-func (p *ppair) RotateCounterClockwise() {
+func (p *ppair) rotateCounterClockwise() {
 	p.Direction = p.Direction.Left()
 }
 
-func (p *ppair) RotateClockwise() {
+func (p *ppair) rotateClockwise() {
 	p.Direction = p.Direction.Right()
 }
 
@@ -273,8 +272,8 @@ func (p *ppair) setDirection(d Direction) {
 	p.Direction = d
 }
 
-// RequiredRotation returns the number of rotation need to be performed to head toward the pt
-func (p *ppair) RequiredRotation(pt Point) int {
+// requiredRotation returns the number of rotation need to be performed to head toward the pt
+func (p *ppair) requiredRotation(pt Point) int {
 	myPt := Point{X: p.X, Y: p.Y}
 	const distance = 1
 	var cCount, ccCount int // clockwise and counter clockwise counter
@@ -284,7 +283,7 @@ func (p *ppair) RequiredRotation(pt Point) int {
 		if ptInFront.Equal(pt) {
 			break
 		}
-		p.RotateCounterClockwise()
+		p.rotateCounterClockwise()
 		ccCount++
 	}
 	p.setDirection(initialDirection)
@@ -293,20 +292,20 @@ func (p *ppair) RequiredRotation(pt Point) int {
 		if ptInFront.Equal(pt) {
 			break
 		}
-		p.RotateClockwise()
+		p.rotateClockwise()
 		cCount++
 	}
 	p.setDirection(initialDirection)
 
 	minRotationCount := ccCount
 	for i := 0; i<ccCount; i++ {
-		p.RotateCounterClockwise()
+		p.rotateCounterClockwise()
 	}
 	if minRotationCount > cCount {
 		minRotationCount = cCount
 		p.setDirection(initialDirection)
 		for i := 0; i<cCount; i++ {
-			p.RotateClockwise()
+			p.rotateClockwise()
 		}
 	}
 	return minRotationCount
