@@ -31,12 +31,10 @@ func TestPlayerState_Walk(t *testing.T) {
 					Arena: Arena{
 						Width:  4,
 						Height: 3,
-					},
-					PlayersByPosition: map[string]PlayerState{
-						"1,1": {
-							X:         1,
-							Y:         1,
-							Direction: "W",
+						Grid: [][]Cell{
+							{{}, {}, {}, {}},
+							{{}, {Player: &PlayerState{X: 1, Y: 1, Direction: "W"}}, {}, {}},
+							{{}, {}, {}, {}},
 						},
 					},
 				},
@@ -53,12 +51,10 @@ func TestPlayerState_Walk(t *testing.T) {
 					Arena: Arena{
 						Width:  4,
 						Height: 3,
-					},
-					PlayersByPosition: map[string]PlayerState{
-						"0,0": {
-							X:         0,
-							Y:         0,
-							Direction: "W",
+						Grid: [][]Cell{
+							{{Player: &PlayerState{X: 0, Y: 0, Direction: "W"}}, {}, {}, {}},
+							{{}, {}, {}, {}},
+							{{}, {}, {}, {}},
 						},
 					},
 				},
@@ -75,17 +71,10 @@ func TestPlayerState_Walk(t *testing.T) {
 					Arena: Arena{
 						Width:  4,
 						Height: 3,
-					},
-					PlayersByPosition: map[string]PlayerState{
-						"1,1": {
-							X:         1,
-							Y:         1,
-							Direction: "W",
-						},
-						"0,1": {
-							X:         0,
-							Y:         1,
-							Direction: "W",
+						Grid: [][]Cell{
+							{{}, {}, {}, {}},
+							{{Player: &PlayerState{X: 0, Y: 1, Direction: "W"}}, {Player: &PlayerState{X: 1, Y: 1, Direction: "W"}}, {}, {}},
+							{{}, {}, {}, {}},
 						},
 					},
 				},
@@ -140,25 +129,31 @@ func TestPlayerState_GetPlayersInFront(t *testing.T) {
 					Arena: Arena{
 						Width:  4,
 						Height: 4,
-					},
-					PlayersByPosition: map[string]PlayerState{
-						"0,0": {
-							X: 0,
-							Y: 0,
-						},
-						"1,0": {
-							X: 1,
-							Y: 0,
-						},
-						"2,0": {
-							X: 2,
-							Y: 0,
-						},
-						"3,0": {
-							X: 3,
-							Y: 0,
+						Grid: [][]Cell{
+							{{Player: &PlayerState{X: 0, Y: 0}}, {Player: &PlayerState{X: 1, Y: 0}}, {Player: &PlayerState{X: 2, Y: 0}}, {Player: &PlayerState{X: 3, Y: 0}}},
+							{{}, {}, {}, {}},
+							{{}, {}, {}, {}},
+							{{}, {}, {}, {}},
 						},
 					},
+					// PlayersByPosition: map[string]PlayerState{
+					// 	"0,0": {
+					// 		X: 0,
+					// 		Y: 0,
+					// 	},
+					// 	"1,0": {
+					// 		X: 1,
+					// 		Y: 0,
+					// 	},
+					// 	"2,0": {
+					// 		X: 2,
+					// 		Y: 0,
+					// 	},
+					// 	"3,0": {
+					// 		X: 3,
+					// 		Y: 0,
+					// 	},
+					// },
 				},
 			},
 			args: args{
@@ -178,23 +173,11 @@ func TestPlayerState_GetPlayersInFront(t *testing.T) {
 					Arena: Arena{
 						Width:  4,
 						Height: 4,
-					},
-					PlayersByPosition: map[string]PlayerState{
-						"0,0": {
-							X: 0,
-							Y: 0,
-						},
-						"1,0": {
-							X: 1,
-							Y: 0,
-						},
-						"2,0": {
-							X: 2,
-							Y: 0,
-						},
-						"3,0": {
-							X: 3,
-							Y: 0,
+						Grid: [][]Cell{
+							{{Player: &PlayerState{X:0, Y:0, Direction: "E"}}, {Player: &PlayerState{X:1, Y:0, Direction: "E"}}, {Player: &PlayerState{X:2, Y:0, Direction: "E"}}, {Player: &PlayerState{X:3, Y:0, Direction: "E"}}},
+							{{}, {}, {}, {}},
+							{{}, {}, {}, {}},
+							{{}, {}, {}, {}},
 						},
 					},
 				},
@@ -250,17 +233,10 @@ func TestPlayerState_FindShooterFromDirection(t *testing.T) {
 					Arena: Arena{
 						Width:  4,
 						Height: 3,
-					},
-					PlayersByPosition: map[string]PlayerState{
-						"1,1": {
-							X:         1,
-							Y:         1,
-							Direction: "W",
-						},
-						"1,0": {
-							X:         1,
-							Y:         0,
-							Direction: "S",
+						Grid: [][]Cell{
+							{{}, {Player: &PlayerState{X:1, Y:0, Direction: "S"}}, {}, {}},
+							{{}, {Player: &PlayerState{X:1, Y:1, Direction: "W"}}, {}, {}},
+							{{}, {}, {}, {}},
 						},
 					},
 				},
@@ -286,17 +262,10 @@ func TestPlayerState_FindShooterFromDirection(t *testing.T) {
 					Arena: Arena{
 						Width:  4,
 						Height: 3,
-					},
-					PlayersByPosition: map[string]PlayerState{
-						"1,1": {
-							X:         1,
-							Y:         1,
-							Direction: "W",
-						},
-						"3,1": {
-							X:         3,
-							Y:         1,
-							Direction: "W",
+						Grid: [][]Cell{
+							{{}, {}, {}, {}},
+							{{}, {Player: &PlayerState{X:1, Y:1, Direction: "W"}}, {}, {Player: &PlayerState{X:3, Y:1, Direction: "W"}}},
+							{{}, {}, {}, {}},
 						},
 					},
 				},
@@ -322,17 +291,11 @@ func TestPlayerState_FindShooterFromDirection(t *testing.T) {
 					Arena: Arena{
 						Width:  4,
 						Height: 4,
-					},
-					PlayersByPosition: map[string]PlayerState{
-						"1,1": {
-							X:         1,
-							Y:         1,
-							Direction: "W",
-						},
-						"1,2": {
-							X:         1,
-							Y:         2,
-							Direction: "N",
+						Grid: [][]Cell{
+							{{}, {}, {}, {}},
+							{{}, {Player: &PlayerState{X:1, Y:1, Direction: "W"}}, {}, {}},
+							{{}, {Player: &PlayerState{X:1, Y:2, Direction: "N"}}, {}, {}},
+							{{}, {}, {}, {}},
 						},
 					},
 				},
@@ -358,17 +321,10 @@ func TestPlayerState_FindShooterFromDirection(t *testing.T) {
 					Arena: Arena{
 						Width:  4,
 						Height: 3,
-					},
-					PlayersByPosition: map[string]PlayerState{
-						"1,1": {
-							X:         1,
-							Y:         1,
-							Direction: "W",
-						},
-						"0,1": {
-							X:         0,
-							Y:         1,
-							Direction: "E",
+						Grid: [][]Cell{
+							{{}, {}, {}, {}},
+							{{Player: &PlayerState{X:0, Y:1, Direction: "E"}}, {Player: &PlayerState{X:1, Y:1, Direction: "W"}}, {}, {}},
+							{{}, {}, {}, {}},
 						},
 					},
 				},
@@ -406,7 +362,6 @@ func TestPlayerState_FindShooterFromDirection(t *testing.T) {
 	}
 }
 
-
 func TestPlayerState_GetShortestRotation(t *testing.T) {
 	type fields struct {
 		X         int
@@ -436,7 +391,7 @@ func TestPlayerState_GetShortestRotation(t *testing.T) {
 			args: args{
 				toPt: Point{0, 2},
 			},
-			want:    []Decision{TurnLeft, MoveForward},
+			want: []Decision{TurnLeft, MoveForward},
 		},
 		{
 			name: "heading west, target is in east",
@@ -448,7 +403,7 @@ func TestPlayerState_GetShortestRotation(t *testing.T) {
 			args: args{
 				toPt: Point{1, 1},
 			},
-			want:    []Decision{TurnLeft, TurnLeft, MoveForward},
+			want: []Decision{TurnLeft, TurnLeft, MoveForward},
 		},
 		{
 			name: "heading west, target is in north",
@@ -460,7 +415,7 @@ func TestPlayerState_GetShortestRotation(t *testing.T) {
 			args: args{
 				toPt: Point{0, 0},
 			},
-			want:    []Decision{TurnRight, MoveForward},
+			want: []Decision{TurnRight, MoveForward},
 		},
 		{
 			name: "heading west, target is in north",
@@ -514,26 +469,26 @@ func TestVector_Angle(t *testing.T) {
 		{
 			name:   "90 degree",
 			fields: fields{X: 1, Y: 0},
-			args:   args{
+			args: args{
 				v2: Vector{X: 0, Y: 1},
 			},
-			want:   90,
+			want: 90,
 		},
 		{
 			name:   "180 degree",
 			fields: fields{X: 1, Y: 0},
-			args:   args{
+			args: args{
 				v2: Vector{X: -1, Y: 0},
 			},
-			want:   180,
+			want: 180,
 		},
 		{
 			name:   "-90 degree",
 			fields: fields{X: 1, Y: 0},
-			args:   args{
+			args: args{
 				v2: Vector{X: 0, Y: -1},
 			},
-			want:   -90,
+			want: -90,
 		},
 	}
 	for _, tt := range tests {
