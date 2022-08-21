@@ -19,6 +19,7 @@ func (p PlayerState) Play() Decision {
 	if p.WasHit {
 		state = Escape{Player: p}
 	}
+	// state := Escape{Player: p}
 	return state.Play()
 }
 
@@ -146,14 +147,6 @@ var ErrDestNotFound = fmt.Errorf("target not found")
 
 // GetShortestRotation return decision to turn to change direction to toPt
 func (p PlayerState) GetShortestRotation(toPt Point) ([]Decision, error) {
-
-	// myPt := Point{X: p.X, Y: p.Y}
-	// const distance = 1
-	// ptInFront := myPt.TranslateToDirection(distance, p.GetDirection())
-	//
-	// vec1 := NewVector(myPt, ptInFront)
-	// vec2 := NewVector(myPt, toPt)
-
 	myPt := Point{X: p.X, Y: p.Y}
 	const distance = 1
 	var cCount, ccCount int // clockwise and counter clockwise counter
@@ -201,6 +194,8 @@ func (p PlayerState) GetShortestRotation(toPt Point) ([]Decision, error) {
 			p.rotateClockwise()
 		}
 	}
+
+	rotationDecision = append(rotationDecision, MoveForward)
 
 	return rotationDecision, nil
 }

@@ -129,7 +129,7 @@ func TestEscape_Play(t *testing.T) {
 					},
 				},
 			},
-			want: TurnRight,
+			want: TurnLeft,
 		},
 		{
 			name: "opponent is attacking from the top and bottom, player heading east",
@@ -490,7 +490,7 @@ func TestEscape_Play(t *testing.T) {
 					},
 				},
 			},
-			want: TurnRight,
+			want: TurnLeft,
 		},
 		{
 			name: "opponent is attacking from the left",
@@ -558,7 +558,77 @@ func TestEscape_Play(t *testing.T) {
 					},
 				},
 			},
+			want: MoveForward,
+		},
+		{
+			name: "opponent is attacking from the back, but on the edge, should turn to right",
+			fields: fields{
+				Player: PlayerState{
+					X:         0,
+					Y:         0,
+					Direction: "E",
+					WasHit:    true,
+					Score:     0,
+					Game: Game{
+						Arena: Arena{Width: 4, Height: 3,
+							Grid: [][]Cell{
+								{{Player: &PlayerState{}}, {Player: &PlayerState{}}, {}, {}},
+								{{}, {}, {}, {}},
+								{{}, {}, {}, {}},
+
+							},
+						},
+						PlayersByPosition: map[string]PlayerState{
+							"1,0": {
+								X:         1,
+								Y:         0,
+								Direction: "E",
+							},
+							"0,0": {
+								X:         0,
+								Y:         0,
+								Direction: "E",
+							},
+						},
+					},
+				},
+			},
 			want: TurnRight,
+		},
+		{
+			name: "opponent is attacking from the front, but on the edge, should turn to left",
+			fields: fields{
+				Player: PlayerState{
+					X:         1,
+					Y:         0,
+					Direction: "W",
+					WasHit:    true,
+					Score:     0,
+					Game: Game{
+						Arena: Arena{Width: 4, Height: 3,
+							Grid: [][]Cell{
+								{{Player: &PlayerState{}}, {Player: &PlayerState{}}, {}, {}},
+								{{}, {}, {}, {}},
+								{{}, {}, {}, {}},
+
+							},
+						},
+						PlayersByPosition: map[string]PlayerState{
+							"1,0": {
+								X:         1,
+								Y:         0,
+								Direction: "W",
+							},
+							"0,0": {
+								X:         0,
+								Y:         0,
+								Direction: "E",
+							},
+						},
+					},
+				},
+			},
+			want: TurnLeft,
 		},
 		{
 			name: "opponent is attacking from the back, user is on the edge",
@@ -626,7 +696,7 @@ func TestEscape_Play(t *testing.T) {
 					},
 				},
 			},
-			want: "R",
+			want: MoveForward,
 		},
 		{
 			name: "opponent is attacking from the back, but there is other opponent in front",
@@ -704,7 +774,7 @@ func TestEscape_Play(t *testing.T) {
 					},
 				},
 			},
-			want: "R",
+			want: TurnLeft,
 		},
 		{
 			name: "none attacking",

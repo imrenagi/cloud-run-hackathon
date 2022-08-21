@@ -436,7 +436,7 @@ func TestPlayerState_GetShortestRotation(t *testing.T) {
 			args: args{
 				toPt: Point{0, 2},
 			},
-			want:    []Decision{TurnLeft},
+			want:    []Decision{TurnLeft, MoveForward},
 		},
 		{
 			name: "heading west, target is in east",
@@ -448,7 +448,7 @@ func TestPlayerState_GetShortestRotation(t *testing.T) {
 			args: args{
 				toPt: Point{1, 1},
 			},
-			want:    []Decision{TurnLeft, TurnLeft},
+			want:    []Decision{TurnLeft, TurnLeft, MoveForward},
 		},
 		{
 			name: "heading west, target is in north",
@@ -460,7 +460,7 @@ func TestPlayerState_GetShortestRotation(t *testing.T) {
 			args: args{
 				toPt: Point{0, 0},
 			},
-			want:    []Decision{TurnRight},
+			want:    []Decision{TurnRight, MoveForward},
 		},
 		{
 			name: "heading west, target is in north",
