@@ -492,3 +492,59 @@ func TestPlayerState_GetShortestRotation(t *testing.T) {
 		})
 	}
 }
+
+func TestVector_Angle(t *testing.T) {
+
+	t.Skip()
+	t.Log("still not complete")
+
+	type fields struct {
+		X float64
+		Y float64
+	}
+	type args struct {
+		v2 Vector
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   float64
+	}{
+		{
+			name:   "90 degree",
+			fields: fields{X: 1, Y: 0},
+			args:   args{
+				v2: Vector{X: 0, Y: 1},
+			},
+			want:   90,
+		},
+		{
+			name:   "180 degree",
+			fields: fields{X: 1, Y: 0},
+			args:   args{
+				v2: Vector{X: -1, Y: 0},
+			},
+			want:   180,
+		},
+		{
+			name:   "-90 degree",
+			fields: fields{X: 1, Y: 0},
+			args:   args{
+				v2: Vector{X: 0, Y: -1},
+			},
+			want:   -90,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			v := Vector{
+				X: tt.fields.X,
+				Y: tt.fields.Y,
+			}
+			if got := v.Angle(tt.args.v2); got != tt.want {
+				t.Errorf("Angle() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

@@ -8,6 +8,10 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+var ErrPathNotFound = fmt.Errorf("path not found")
+var ErrSourceInvalid = fmt.Errorf("source is invalid")
+var ErrDestinationInvalid = fmt.Errorf("destination is invalid")
+
 type Option func(options *Options)
 
 type Options struct {
@@ -69,18 +73,18 @@ type AStar struct {
 	openList []ppair
 }
 
-func (as *AStar) SearchPath(src, dest Point) ([]Point, error) {
+func (as *AStar) SearchPath(src, dest Point) (Path, error) {
 
 	// If the source is out of range
 	if !as.arena.IsValid(src) {
 		log.Error().Msg("source is invalid")
-		return nil, fmt.Errorf("source is invalid")
+		return nil, ErrSourceInvalid
 	}
 
 	// If the destination is out of range
 	if !as.arena.IsValid(dest) {
 		log.Error().Msg("destination is invalid")
-		return nil, fmt.Errorf("destination is invalid")
+		return nil, ErrDestinationInvalid
 	}
 
 	// Either the source or the destination is blocked
@@ -181,7 +185,7 @@ func (as *AStar) SearchPath(src, dest Point) ([]Point, error) {
 	return as.tracePath(as.cellDetails, dest), nil
 }
 
-var ErrPathNotFound = fmt.Errorf("path not found")
+
 
 func (as *AStar) checkSuccessor(currNode ppair, successor Point, dest Point) bool {
 
@@ -219,7 +223,7 @@ func (as *AStar) checkSuccessor(currNode ppair, successor Point, dest Point) boo
 	return false
 }
 
-func (as AStar) tracePath(cellDetails [][]cellDetail, dest Point) []Point {
+func (as AStar) tracePath(cellDetails [][]cellDetail, dest Point) Path {
 	var finalPath Path
 	row := dest.Y
 	col := dest.X

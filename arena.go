@@ -10,7 +10,7 @@ func (g Grid) IsUnblock(p Point) bool {
 
 type Cell struct {
 	// TODO Should cell know about its location?
-	Player  *PlayerState
+	Player *PlayerState
 }
 
 func NewArena(w, h int) Arena {
@@ -73,15 +73,22 @@ func (a Arena) Traverse(start Point) []Point {
 	return traversedNode
 }
 
-type AdjacentOption func (*AdjacentOptions)
+type AdjacentOption func(*AdjacentOptions)
 
 type AdjacentOptions struct {
 	IncludeDiagonal bool
+	OnlyEmptyCell   bool
 }
 
 func WithDiagonalAdjacents() AdjacentOption {
 	return func(options *AdjacentOptions) {
 		options.IncludeDiagonal = true
+	}
+}
+
+func WithEmptyAdjacent() AdjacentOption {
+	return func(options *AdjacentOptions) {
+		options.OnlyEmptyCell = true
 	}
 }
 
@@ -95,15 +102,19 @@ func (a Arena) GetAdjacent(p Point, opts ...AdjacentOption) []Point {
 	for _, i := range iterator {
 		for _, j := range iterator {
 			if !options.IncludeDiagonal {
-				if i * j == -1 || i*j == 1 {
+				if i*j == -1 || i*j == 1 {
 					continue
 				}
 			}
 			if i != 0 || j != 0 {
 				p := Point{X: p.X + i, Y: p.Y + j}
-				if p.IsInArena(a) {
-					adj = append(adj, p)
+				if !p.IsInArena(a) {
+					continue
 				}
+				if options.OnlyEmptyCell && !a.Grid.IsUnblock(p) {
+					continue
+				}
+				adj = append(adj, p)
 			}
 		}
 	}

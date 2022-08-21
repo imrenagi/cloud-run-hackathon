@@ -19,7 +19,7 @@ func TestAStar_Search(t *testing.T) {
 		name    string
 		fields  fields
 		args    args
-		want    []Point
+		want    Path
 		wantErr error
 	}{
 		{

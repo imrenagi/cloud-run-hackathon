@@ -126,6 +126,26 @@ func TestArena_GetAdjacent(t *testing.T) {
 				{2, 0},
 			},
 		},
+		{
+			name:  "on the middle top edge, return no diagonal and only empty cell",
+			arena: Arena{
+				Width:  5,
+				Height: 3,
+				Grid:   [][]Cell{
+					{{}, {}, {}, {}, {}},
+					{{}, {Player: &PlayerState{}}, {}, {}, {}},
+					{{}, {}, {}, {}, {}},
+				},
+			},
+			args:  args{
+				p: Point{1, 0},
+				options: []AdjacentOption{WithEmptyAdjacent()},
+			},
+			want: []Point{
+				{0, 0},
+				{2, 0},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

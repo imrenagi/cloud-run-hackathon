@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"math"
+)
 
 type PlayerState struct {
 	X         int    `json:"x"`
@@ -141,15 +144,16 @@ func (p *PlayerState) setDirection(d Direction) {
 
 var ErrDestNotFound = fmt.Errorf("target not found")
 
-// TODO ini bisa pakai vector. cari sudut antara dua vector.
-/*
-	p2 = p translateAngle 1
-	v1 = p2 - p
-	v2 = toPt - p
-	// cari sudut antara v1 dan v2 pakai cross product/dot product
- */
 // GetShortestRotation return decision to turn to change direction to toPt
 func (p PlayerState) GetShortestRotation(toPt Point) ([]Decision, error) {
+
+	// myPt := Point{X: p.X, Y: p.Y}
+	// const distance = 1
+	// ptInFront := myPt.TranslateToDirection(distance, p.GetDirection())
+	//
+	// vec1 := NewVector(myPt, ptInFront)
+	// vec2 := NewVector(myPt, toPt)
+
 	myPt := Point{X: p.X, Y: p.Y}
 	const distance = 1
 	var cCount, ccCount int // clockwise and counter clockwise counter
@@ -200,6 +204,25 @@ func (p PlayerState) GetShortestRotation(toPt Point) ([]Decision, error) {
 
 	return rotationDecision, nil
 }
+
+func NewVector(p1, p2 Point) Vector {
+	return Vector{
+		X: float64(p2.X - p1.X),
+		Y: float64(p2.Y - p1.Y),
+	}
+}
+
+type Vector struct {
+	X, Y float64
+}
+
+func (v Vector) Angle(v2 Vector) float64 {
+	nom := v.X*v2.Y - v2.X*v.Y
+	denom := math.Sqrt(v.X*v.X + v.Y*v.Y) * math.Sqrt(v2.X*v2.X + v2.Y*v2.Y)
+	angleInRad := math.Asin(nom/denom)
+	return 180 * angleInRad / math.Pi
+}
+
 
 // TODO fix obstacle logic in a star
 // TODO translate shortest path to Decision

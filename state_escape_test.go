@@ -24,12 +24,22 @@ func TestEscape_Play(t *testing.T) {
 						Arena: Arena{
 							Width:  4,
 							Height: 3,
+							Grid: [][]Cell{
+								{{}, {Player: &PlayerState{}}, {}, {}},
+								{{}, {Player: &PlayerState{}}, {}, {}},
+								{{}, {Player: &PlayerState{}}, {}, {}},
+							},
 						},
 						PlayersByPosition: map[string]PlayerState{
 							"1,0": {
 								X:         1,
 								Y:         0,
 								Direction: "S",
+							},
+							"1,1": {
+								X:         1,
+								Y:         1,
+								Direction: "W",
 							},
 							"1,2": {
 								X:         1,
@@ -55,11 +65,21 @@ func TestEscape_Play(t *testing.T) {
 						Arena: Arena{
 							Width:  4,
 							Height: 3,
+							Grid: [][]Cell{
+								{{}, {Player: &PlayerState{}}, {}, {}},
+								{{}, {Player: &PlayerState{}}, {}, {}},
+								{{}, {Player: &PlayerState{}}, {}, {}},
+							},
 						},
 						PlayersByPosition: map[string]PlayerState{
 							"1,0": {
 								X:         1,
 								Y:         0,
+								Direction: "S",
+							},
+							"1,1": {
+								X:         1,
+								Y:         1,
 								Direction: "S",
 							},
 							"1,2": {
@@ -83,12 +103,22 @@ func TestEscape_Play(t *testing.T) {
 					WasHit:    true,
 					Score:     0,
 					Game: Game{
-						Arena: Arena{Width: 4, Height: 3},
+						Arena: Arena{Width: 4, Height: 3,
+							Grid: [][]Cell{
+								{{}, {Player: &PlayerState{}}, {}, {}},
+								{{}, {Player: &PlayerState{}}, {}, {}},
+								{{}, {Player: &PlayerState{}}, {}, {}},
+							}},
 						PlayersByPosition: map[string]PlayerState{
 							"1,0": {
 								X:         1,
 								Y:         0,
 								Direction: "S",
+							},
+							"1,1": {
+								X:         1,
+								Y:         1,
+								Direction: "N",
 							},
 							"1,2": {
 								X:         1,
@@ -111,12 +141,22 @@ func TestEscape_Play(t *testing.T) {
 					WasHit:    true,
 					Score:     0,
 					Game: Game{
-						Arena: Arena{Width: 4, Height: 3},
+						Arena: Arena{Width: 4, Height: 3,
+							Grid: [][]Cell{
+								{{}, {Player: &PlayerState{}}, {}, {}},
+								{{}, {Player: &PlayerState{}}, {}, {}},
+								{{}, {Player: &PlayerState{}}, {}, {}},
+							}},
 						PlayersByPosition: map[string]PlayerState{
 							"1,0": {
 								X:         1,
 								Y:         0,
 								Direction: "S",
+							},
+							"1,1": {
+								X:         1,
+								Y:         0,
+								Direction: "E",
 							},
 							"1,2": {
 								X:         1,
@@ -139,7 +179,13 @@ func TestEscape_Play(t *testing.T) {
 					WasHit:    true,
 					Score:     0,
 					Game: Game{
-						Arena: Arena{Width: 4, Height: 3},
+						Arena: Arena{Width: 4, Height: 3,
+							Grid: [][]Cell{
+								{{}, {}, {}, {}},
+								{{}, {Player: &PlayerState{}}, {}, {}},
+								{{}, {Player: &PlayerState{}}, {}, {}},
+							},
+						},
 						PlayersByPosition: map[string]PlayerState{
 							"1,1": {
 								X:         1,
@@ -170,6 +216,13 @@ func TestEscape_Play(t *testing.T) {
 						Arena: Arena{
 							Width:  7,
 							Height: 5,
+							Grid: [][]Cell{
+								{{}, {}, {}, {}, {}, {}, {}},
+								{{}, {}, {}, {}, {}, {}, {}},
+								{{}, {}, {}, {}, {}, {}, {Player: &PlayerState{}}},
+								{{}, {}, {}, {}, {}, {}, {}},
+								{{}, {}, {}, {}, {}, {}, {Player: &PlayerState{}}},
+							},
 						},
 						PlayersByPosition: map[string]PlayerState{
 							"6,2": {
@@ -200,6 +253,13 @@ func TestEscape_Play(t *testing.T) {
 						Arena: Arena{
 							Width:  7,
 							Height: 5,
+							Grid: [][]Cell{
+								{{}, {}, {}, {}, {}, {}, {}},
+								{{}, {}, {}, {}, {}, {}, {}},
+								{{}, {}, {}, {}, {}, {}, {}},
+								{{}, {}, {}, {}, {}, {Player: &PlayerState{}}, {Player: &PlayerState{}}},
+								{{}, {}, {}, {}, {}, {Player: &PlayerState{}}, {}},
+							},
 						},
 						PlayersByPosition: map[string]PlayerState{
 							"5,3": {
@@ -234,6 +294,13 @@ func TestEscape_Play(t *testing.T) {
 						Arena: Arena{
 							Width:  7,
 							Height: 5,
+							Grid: [][]Cell{
+								{{}, {}, {}, {}, {}, {}, {}},
+								{{}, {}, {}, {}, {}, {}, {}},
+								{{}, {}, {}, {}, {}, {}, {}},
+								{{}, {}, {}, {Player: &PlayerState{}}, {}, {Player: &PlayerState{}}, {Player: &PlayerState{}}},
+								{{}, {}, {}, {}, {}, {Player: &PlayerState{}}, {}},
+							},
 						},
 						PlayersByPosition: map[string]PlayerState{
 							"3,3": {
@@ -273,6 +340,13 @@ func TestEscape_Play(t *testing.T) {
 						Arena: Arena{
 							Width:  7,
 							Height: 5,
+							Grid: [][]Cell{
+								{{}, {}, {}, {}, {}, {}, {}},
+								{{}, {}, {}, {}, {}, {}, {}},
+								{{}, {}, {}, {}, {}, {}, {}},
+								{{}, {}, {}, {Player: &PlayerState{}}, {}, {Player: &PlayerState{}}, {Player: &PlayerState{}}},
+								{{}, {}, {}, {}, {}, {Player: &PlayerState{}}, {}},
+							},
 						},
 						PlayersByPosition: map[string]PlayerState{
 							"3,3": {
@@ -301,6 +375,88 @@ func TestEscape_Play(t *testing.T) {
 			},
 			want: MoveForward,
 		},
+		{
+			name: "we are cornered, should attack the front player if any",
+			fields: fields{
+				Player: PlayerState{
+					X:         6,
+					Y:         4,
+					Direction: "W",
+					Game: Game{
+						Arena: Arena{
+							Width:  7,
+							Height: 5,
+							Grid: [][]Cell{
+								{{}, {}, {}, {}, {}, {}, {}},
+								{{}, {}, {}, {}, {}, {}, {}},
+								{{}, {}, {}, {}, {}, {}, {}},
+								{{}, {}, {}, {}, {}, {}, {Player: &PlayerState{}}},
+								{{}, {}, {}, {}, {}, {Player: &PlayerState{}}, {Player: &PlayerState{}}},
+							},
+						},
+						PlayersByPosition: map[string]PlayerState{
+							"6,4": {
+								X:         6,
+								Y:         4,
+								Direction: "W",
+							},
+							"5,4": {
+								X:         5,
+								Y:         4,
+								Direction: "E",
+							},
+							"6,3": {
+								X:         6,
+								Y:         3,
+								Direction: "S",
+							},
+						},
+					},
+				},
+			},
+			want: Fight,
+		},
+		{
+			name: "we are cornered, but no front adjacent",
+			fields: fields{
+				Player: PlayerState{
+					X:         6,
+					Y:         4,
+					Direction: "E",
+					Game: Game{
+						Arena: Arena{
+							Width:  7,
+							Height: 5,
+							Grid: [][]Cell{
+								{{}, {}, {}, {}, {}, {}, {}},
+								{{}, {}, {}, {}, {}, {}, {}},
+								{{}, {}, {}, {}, {}, {}, {}},
+								{{}, {}, {}, {}, {}, {}, {Player: &PlayerState{}}},
+								{{}, {}, {}, {}, {}, {Player: &PlayerState{}}, {Player: &PlayerState{}}},
+							},
+						},
+						PlayersByPosition: map[string]PlayerState{
+							"6,4": {
+								X:         6,
+								Y:         4,
+								Direction: "E",
+							},
+							"5,4": {
+								X:         5,
+								Y:         4,
+								Direction: "E",
+							},
+							"6,3": {
+								X:         6,
+								Y:         3,
+								Direction: "S",
+							},
+						},
+					},
+				},
+			},
+			want: TurnLeft,
+		},
 		// -----
 		{
 			name: "opponent is attacking from the front",
@@ -312,7 +468,13 @@ func TestEscape_Play(t *testing.T) {
 					WasHit:    true,
 					Score:     0,
 					Game: Game{
-						Arena: Arena{Width: 4, Height: 3},
+						Arena: Arena{Width: 4, Height: 3,
+							Grid: [][]Cell{
+								{{}, {}, {}, {}},
+								{{}, {Player: &PlayerState{}}, {Player: &PlayerState{}}, {}},
+								{{}, {}, {}, {}},
+							},
+						},
 						PlayersByPosition: map[string]PlayerState{
 							"1,1": {
 								X:         1,
@@ -340,7 +502,13 @@ func TestEscape_Play(t *testing.T) {
 					WasHit:    true,
 					Score:     0,
 					Game: Game{
-						Arena: Arena{Width: 4, Height: 3},
+						Arena: Arena{Width: 4, Height: 3,
+							Grid: [][]Cell{
+								{{}, {}, {}, {}},
+								{{Player: &PlayerState{}}, {Player: &PlayerState{}}, {}, {}},
+								{{}, {}, {}, {}},
+							},
+						},
 						PlayersByPosition: map[string]PlayerState{
 							"1,1": {
 								X:         1,
@@ -368,7 +536,13 @@ func TestEscape_Play(t *testing.T) {
 					WasHit:    true,
 					Score:     0,
 					Game: Game{
-						Arena: Arena{Width: 4, Height: 3},
+						Arena: Arena{Width: 4, Height: 3,
+							Grid: [][]Cell{
+								{{}, {}, {}, {}},
+								{{Player: &PlayerState{}}, {Player: &PlayerState{}}, {}, {}},
+								{{}, {}, {}, {}},
+							},
+						},
 						PlayersByPosition: map[string]PlayerState{
 							"1,1": {
 								X:         1,
@@ -396,8 +570,19 @@ func TestEscape_Play(t *testing.T) {
 					WasHit:    true,
 					Score:     0,
 					Game: Game{
-						Arena: Arena{Width: 4, Height: 3},
+						Arena: Arena{Width: 4, Height: 3,
+							Grid: [][]Cell{
+								{{}, {}, {}, {}},
+								{{Player: &PlayerState{}}, {Player: &PlayerState{}}, {}, {}},
+								{{}, {}, {}, {}},
+							},
+						},
 						PlayersByPosition: map[string]PlayerState{
+							"0,1": {
+								X:         0,
+								Y:         1,
+								Direction: "W",
+							},
 							"1,1": {
 								X:         1,
 								Y:         1,
@@ -419,21 +604,32 @@ func TestEscape_Play(t *testing.T) {
 					WasHit:    true,
 					Score:     0,
 					Game: Game{
-						Arena: Arena{Width: 4, Height: 3},
+						Arena: Arena{Width: 4, Height: 3,
+							Grid: [][]Cell{
+								{{}, {}, {}, {}},
+								{{}, {}, {}, {}},
+								{{}, {}, {Player: &PlayerState{}}, {Player: &PlayerState{}}},
+							},
+						},
 						PlayersByPosition: map[string]PlayerState{
+							"2,2": {
+								X:         2,
+								Y:         2,
+								Direction: "W",
+							},
 							"3,2": {
-								X:         1,
-								Y:         1,
+								X:         3,
+								Y:         2,
 								Direction: "W",
 							},
 						},
 					},
 				},
 			},
-			want: "F",
+			want: "R",
 		},
 		{
-			name: "opponent is attacking from the back, but there is other opponent",
+			name: "opponent is attacking from the back, but there is other opponent in front",
 			fields: fields{
 				Player: PlayerState{
 					X:         1,
@@ -442,7 +638,13 @@ func TestEscape_Play(t *testing.T) {
 					WasHit:    true,
 					Score:     0,
 					Game: Game{
-						Arena: Arena{Width: 4, Height: 3},
+						Arena: Arena{Width: 4, Height: 3,
+							Grid: [][]Cell{
+								{{}, {}, {}, {}},
+								{{Player: &PlayerState{}}, {Player: &PlayerState{}}, {Player: &PlayerState{}}, {}},
+								{{}, {}, {}, {}},
+							},
+						},
 						PlayersByPosition: map[string]PlayerState{
 							"0,1": {
 								X:         0,
@@ -475,7 +677,13 @@ func TestEscape_Play(t *testing.T) {
 					WasHit:    true,
 					Score:     0,
 					Game: Game{
-						Arena: Arena{Width: 4, Height: 3},
+						Arena: Arena{Width: 4, Height: 3,
+							Grid: [][]Cell{
+								{{}, {}, {}, {}},
+								{{}, {Player: &PlayerState{}}, {Player: &PlayerState{}}, {Player: &PlayerState{}}},
+								{{}, {}, {}, {}},
+							},
+						},
 						PlayersByPosition: map[string]PlayerState{
 							"1,1": {
 								X:         1,
@@ -508,7 +716,13 @@ func TestEscape_Play(t *testing.T) {
 					WasHit:    true,
 					Score:     0,
 					Game: Game{
-						Arena: Arena{Width: 4, Height: 3},
+						Arena: Arena{Width: 4, Height: 3,
+							Grid: [][]Cell{
+								{{}, {}, {}, {}},
+								{{}, {Player: &PlayerState{}}, {}, {}},
+								{{}, {}, {}, {}},
+							},
+							},
 						PlayersByPosition: map[string]PlayerState{
 							"1,1": {
 								X:         1,

@@ -10,8 +10,22 @@ func (e Escape) Play() Decision {
 	left := len(e.Player.FindShooterOnDirection(e.Player.GetDirection().Left()))
 	right := len(e.Player.FindShooterOnDirection(e.Player.GetDirection().Right()))
 
-	// TODO kalau dibelakang ada. jaraknya lebih deket (2 puteran), puter aja.
-	// TODO kalau udah kepepet, serang aja.
+	emptyAdjacents := e.Player.Game.Arena.GetAdjacent(e.Player.GetPosition(), WithEmptyAdjacent())
+	if len(emptyAdjacents) == 0 {
+		if front > 0 {
+			return Fight
+		} else if left > 0 {
+			return TurnLeft
+		} else if right > 0 {
+			return TurnRight
+		} else {
+			return e.Player.Walk()
+		}
+	}
+
+
+
+	// TODO belum bisa nentuin mau belok kanan atau kiri efficiently ketika kabur
 
 	if (front > 0 && back == 0 && right == 0 && left == 0) ||
 	  (front == 0 && back > 0 && right == 0 && left == 0) {
@@ -19,10 +33,8 @@ func (e Escape) Play() Decision {
 		// cari valid adjacent. (kiri atau kanan). Terus cari shortest path ke valid adjacent.
 		// ini mestinya bisa solve kalau pakai path planning
 		return TurnRight
+		// return Fight
 	} else {
 		return e.Player.Walk()
 	}
 }
-
-
-
