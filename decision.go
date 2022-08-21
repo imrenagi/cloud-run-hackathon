@@ -1,11 +1,11 @@
 package main
 
-type Decision string
+type Move string
 
 const (
-	MoveForward Decision = "F"
-	TurnRight   Decision = "R"
-	TurnLeft    Decision = "L"
-	Fight       Decision = "T"
+	WalkForward Move = "F"
+	TurnRight   Move = "R"
+	TurnLeft    Move = "L"
+	Throw       Move = "T"
 )
 

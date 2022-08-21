@@ -10,7 +10,7 @@ func TestEscape_Play(t *testing.T) {
 	tests := []struct {
 		name   string
 		fields fields
-		want   Decision
+		want   Move
 	}{
 		{
 			name: "opponent is attacking from the top(left) and bottom(right), player heading west",
@@ -34,7 +34,7 @@ func TestEscape_Play(t *testing.T) {
 					},
 				},
 			},
-			want: MoveForward,
+			want: WalkForward,
 		},
 		{
 			name: "opponent is attacking from the top and bottom, player heading south",
@@ -100,7 +100,7 @@ func TestEscape_Play(t *testing.T) {
 					},
 				},
 			},
-			want: MoveForward,
+			want: WalkForward,
 		},
 		{
 			name: "opponent is attacking from the right, player heading east",
@@ -122,7 +122,7 @@ func TestEscape_Play(t *testing.T) {
 					},
 				},
 			},
-			want: MoveForward,
+			want: WalkForward,
 		},
 		{
 			name: "opponent is attacking from the bottom, player heading west",
@@ -148,7 +148,7 @@ func TestEscape_Play(t *testing.T) {
 					},
 				},
 			},
-			want: MoveForward,
+			want: WalkForward,
 		},
 		// ---- diserang beberapa sekaligus
 		{
@@ -173,7 +173,7 @@ func TestEscape_Play(t *testing.T) {
 					},
 				},
 			},
-			want: MoveForward,
+			want: WalkForward,
 		},
 		{
 			name: "opponent is attacking from the bottom left right and back, player heading north, should move forward",
@@ -197,7 +197,7 @@ func TestEscape_Play(t *testing.T) {
 					},
 				},
 			},
-			want: MoveForward,
+			want: WalkForward,
 		},
 		{
 			name: "opponent is attacking from the bottom left right and back, player heading west, should turn right",
@@ -221,7 +221,7 @@ func TestEscape_Play(t *testing.T) {
 					},
 				},
 			},
-			want: MoveForward,
+			want: WalkForward,
 		},
 		{
 			name: "we are cornered, should attack the front player if any",
@@ -245,7 +245,7 @@ func TestEscape_Play(t *testing.T) {
 					},
 				},
 			},
-			want: Fight,
+			want: Throw,
 		},
 		{
 			name: "we are cornered, but no front adjacent",
@@ -313,7 +313,7 @@ func TestEscape_Play(t *testing.T) {
 					},
 				},
 			},
-			want: MoveForward,
+			want: WalkForward,
 		},
 		{
 			name: "opponent is attacking from the back",
@@ -335,7 +335,7 @@ func TestEscape_Play(t *testing.T) {
 					},
 				},
 			},
-			want: MoveForward,
+			want: WalkForward,
 		},
 		{
 			name: "opponent is attacking from the back, but on the edge, should turn to right",
@@ -423,7 +423,7 @@ func TestEscape_Play(t *testing.T) {
 					},
 				},
 			},
-			want: MoveForward,
+			want: WalkForward,
 		},
 		{
 			name: "opponent is attacking from the back, but there is other opponent in front",

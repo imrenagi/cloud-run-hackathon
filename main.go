@@ -22,11 +22,11 @@ func main() {
 	log.Fatal().Msgf("http listen error: %v", err)
 }
 
-var answer = Fight
+var answer = Throw
 
 func mode(w http.ResponseWriter, req *http.Request) {
 	param1 := req.URL.Query().Get("key")
-	answer = Decision(param1)
+	answer = Move(param1)
 	log.Debug().Msgf("answer is %s", answer)
 	fmt.Fprint(w, answer)
 	return
@@ -53,7 +53,7 @@ func handler(w http.ResponseWriter, req *http.Request) {
 	fmt.Fprint(w, resp)
 }
 
-func Play(input ArenaUpdate) Decision {
+func Play(input ArenaUpdate) Move {
 	game := NewGame(input)
 	player := game.Player(input.Links.Self.Href)
 	return player.Play()

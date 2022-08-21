@@ -12,7 +12,7 @@ func TestAttack_Play(t *testing.T) {
 	tests := []struct {
 		name   string
 		fields fields
-		want   Decision
+		want   Move
 	}{
 		{
 			name: "should attack player in front",
@@ -36,7 +36,7 @@ func TestAttack_Play(t *testing.T) {
 					},
 				},
 			},
-			want: Fight,
+			want: Throw,
 		},
 		{
 			name: "should turn left if there is enemy on the left",
@@ -108,7 +108,7 @@ func TestAttack_Play(t *testing.T) {
 					},
 				},
 			},
-			want: MoveForward,
+			want: WalkForward,
 		},
 	}
 	for _, tt := range tests {

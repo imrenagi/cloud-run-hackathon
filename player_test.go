@@ -19,7 +19,7 @@ func TestPlayerState_Walk(t *testing.T) {
 	tests := []struct {
 		name   string
 		fields fields
-		want   Decision
+		want   Move
 	}{
 		{
 			name: "move forward",
@@ -378,7 +378,7 @@ func TestPlayerState_GetShortestRotation(t *testing.T) {
 		name    string
 		fields  fields
 		args    args
-		want    []Decision
+		want    []Move
 		wantErr error
 	}{
 		{
@@ -391,7 +391,7 @@ func TestPlayerState_GetShortestRotation(t *testing.T) {
 			args: args{
 				toPt: Point{0, 2},
 			},
-			want: []Decision{TurnLeft, MoveForward},
+			want: []Move{TurnLeft, WalkForward},
 		},
 		{
 			name: "heading west, target is in east",
@@ -403,7 +403,7 @@ func TestPlayerState_GetShortestRotation(t *testing.T) {
 			args: args{
 				toPt: Point{1, 1},
 			},
-			want: []Decision{TurnLeft, TurnLeft, MoveForward},
+			want: []Move{TurnLeft, TurnLeft, WalkForward},
 		},
 		{
 			name: "heading west, target is in north",
@@ -415,7 +415,7 @@ func TestPlayerState_GetShortestRotation(t *testing.T) {
 			args: args{
 				toPt: Point{0, 0},
 			},
-			want: []Decision{TurnRight, MoveForward},
+			want: []Move{TurnRight, WalkForward},
 		},
 		{
 			name: "heading west, target is in north",
@@ -441,7 +441,7 @@ func TestPlayerState_GetShortestRotation(t *testing.T) {
 				Score:     tt.fields.Score,
 				Game:      tt.fields.Game,
 			}
-			got, err := p.GetShortestRotation(tt.args.toPt)
+			got, err := p.MoveNeededToReachAdjacent(tt.args.toPt)
 			assert.Equal(t, tt.wantErr, err)
 			assert.Equal(t, tt.want, got)
 		})

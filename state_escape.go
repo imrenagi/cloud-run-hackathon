@@ -4,7 +4,7 @@ type Escape struct {
 	Player PlayerState
 }
 
-func (e Escape) Play() Decision {
+func (e Escape) Play() Move {
 	front := len(e.Player.FindShooterOnDirection(e.Player.GetDirection()))
 	// back := len(e.Player.FindShooterOnDirection(e.Player.GetDirection().Backward()))
 	left := len(e.Player.FindShooterOnDirection(e.Player.GetDirection().Left()))
@@ -13,7 +13,7 @@ func (e Escape) Play() Decision {
 	emptyAdjacents := e.Player.Game.Arena.GetAdjacent(e.Player.GetPosition(), WithEmptyAdjacent())
 	if len(emptyAdjacents) == 0 {
 		if front > 0 {
-			return Fight
+			return Throw
 		} else if left > 0 {
 			return TurnLeft
 		} else if right > 0 {
@@ -24,9 +24,9 @@ func (e Escape) Play() Decision {
 	}
 
 	// TODO cari adjacent dengan movement paling minimal
-	scores := make([][]Decision, len(emptyAdjacents))
+	scores := make([][]Move, len(emptyAdjacents))
 	for idx, adj := range emptyAdjacents {
-		decisions, err := e.Player.GetShortestRotation(adj)
+		decisions, err := e.Player.MoveNeededToReachAdjacent(adj)
 		if err != nil {
 			continue
 		}

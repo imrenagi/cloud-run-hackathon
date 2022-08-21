@@ -14,7 +14,7 @@ type PlayerState struct {
 	Game      Game   `json:"-"`
 }
 
-func (p PlayerState) Play() Decision {
+func (p PlayerState) Play() Move {
 	var state State = Attack{Player: p}
 	if p.WasHit {
 		state = Escape{Player: p}
@@ -43,7 +43,7 @@ func (p PlayerState) GetPosition() Point {
 	}
 }
 
-func (p PlayerState) Walk() Decision {
+func (p PlayerState) Walk() Move {
 	destination := p.GetPosition().TranslateToDirection(1, p.GetDirection())
 	if !p.Game.Arena.IsValid(destination) {
 		return TurnRight
@@ -53,7 +53,7 @@ func (p PlayerState) Walk() Decision {
 	if len(players) > 0 {
 		return TurnRight
 	}
-	return MoveForward
+	return WalkForward
 }
 
 
@@ -120,17 +120,6 @@ func (p PlayerState) GetPlayersInRange(direction Direction, distance int) []Play
 	return playersInRange
 }
 
-func (p PlayerState) PlanDecision(path Path) []Decision {
-	if path == nil || len(path) == 0 {
-		return nil
-	}
-
-
-
-
-	return nil
-}
-
 func (p *PlayerState) rotateCounterClockwise() {
 	p.Direction = p.GetDirection().Left().Name
 }
@@ -145,8 +134,8 @@ func (p *PlayerState) setDirection(d Direction) {
 
 var ErrDestNotFound = fmt.Errorf("target not found")
 
-// GetShortestRotation return decision to turn to change direction to toPt
-func (p PlayerState) GetShortestRotation(toPt Point) ([]Decision, error) {
+// MoveNeededToReachAdjacent return array of moves to reach adjacent cell
+func (p PlayerState) MoveNeededToReachAdjacent(toPt Point) ([]Move, error) {
 	myPt := Point{X: p.X, Y: p.Y}
 	const distance = 1
 	var cCount, ccCount int // clockwise and counter clockwise counter
@@ -178,7 +167,7 @@ func (p PlayerState) GetShortestRotation(toPt Point) ([]Decision, error) {
 	}
 	p.setDirection(initialDirection)
 
-	var rotationDecision []Decision
+	var rotationDecision []Move
 	minRotationCount := ccCount
 	for i := 0; i<ccCount; i++ {
 		p.rotateCounterClockwise()
@@ -186,7 +175,7 @@ func (p PlayerState) GetShortestRotation(toPt Point) ([]Decision, error) {
 	}
 
 	if minRotationCount > cCount {
-		rotationDecision = []Decision{}
+		rotationDecision = []Move{}
 		minRotationCount = cCount
 		p.setDirection(initialDirection)
 		for i := 0; i<cCount; i++ {
@@ -195,7 +184,7 @@ func (p PlayerState) GetShortestRotation(toPt Point) ([]Decision, error) {
 		}
 	}
 
-	rotationDecision = append(rotationDecision, MoveForward)
+	rotationDecision = append(rotationDecision, WalkForward)
 
 	return rotationDecision, nil
 }
@@ -220,4 +209,4 @@ func (v Vector) Angle(v2 Vector) float64 {
 
 
 // TODO fix obstacle logic in a star
-// TODO translate shortest path to Decision
+// TODO translate shortest path to Move

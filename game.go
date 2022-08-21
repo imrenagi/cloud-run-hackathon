@@ -22,7 +22,6 @@ type GameConfig struct {
 
 type Game struct {
 	Arena             Arena
-	// PlayersByPosition map[string]PlayerState
 	PlayersByURL      map[string]PlayerState
 	Config            GameConfig
 }
@@ -33,15 +32,12 @@ func NewGame(a ArenaUpdate) Game {
 	height := a.Arena.Dimensions[1]
 	arena := NewArena(width, height)
 
-	// playersByPosition := make(map[string]PlayerState)
 	for _, v := range a.Arena.State {
-		// playersByPosition[v.GetPosition().String()] = v
 		arena.PutPlayer(v)
 	}
 
 	return Game{
 		Arena: arena,
-		// PlayersByPosition: playersByPosition,
 		PlayersByURL:      a.Arena.State,
 		Config: GameConfig{
 			AttackRange: defaultAttackRange,
@@ -60,7 +56,6 @@ func (g Game) GetPlayerByPosition(p Point) (PlayerState, bool) {
 	if player == nil {
 		return PlayerState{}, false
 	}
-
 	player.Game = g
 	return *player, true
 }
