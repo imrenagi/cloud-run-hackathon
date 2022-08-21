@@ -3,9 +3,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
+
+	"github.com/rs/zerolog/log"
 )
 
 func main() {
@@ -14,15 +15,27 @@ func main() {
 		port = v
 	}
 	http.HandleFunc("/", handler)
+	http.HandleFunc("/mode", mode)
 
-	log.Printf("starting server on port :%s", port)
+	log.Info().Msgf("starting server on port :%s", port)
 	err := http.ListenAndServe(":"+port, nil)
-	log.Fatalf("http listen error: %v", err)
+	log.Fatal().Msgf("http listen error: %v", err)
+}
+
+var answer = Fight
+
+func mode(w http.ResponseWriter, req *http.Request) {
+	param1 := req.URL.Query().Get("key")
+	answer = Decision(param1)
+	log.Debug().Msgf("answer is %s", answer)
+	fmt.Fprint(w, answer)
+	return
 }
 
 func handler(w http.ResponseWriter, req *http.Request) {
 	if req.Method == http.MethodGet {
 		fmt.Fprint(w, "Let the battle begin!")
+		log.Debug().Msg("Let the battle begin!")
 		return
 	}
 
