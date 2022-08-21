@@ -7,7 +7,7 @@ import (
 func TestAttack_Play(t *testing.T) {
 
 	type fields struct {
-		Player PlayerState
+		Player Player
 	}
 	tests := []struct {
 		name   string
@@ -17,7 +17,7 @@ func TestAttack_Play(t *testing.T) {
 		{
 			name: "should attack player in front",
 			fields: fields{
-				Player: PlayerState{
+				Player: Player{
 					X:         1,
 					Y:         1,
 					Direction: "W",
@@ -41,7 +41,7 @@ func TestAttack_Play(t *testing.T) {
 		{
 			name: "should turn left if there is enemy on the left",
 			fields: fields{
-				Player: PlayerState{
+				Player: Player{
 					X:         1,
 					Y:         1,
 					Direction: "N",
@@ -65,7 +65,7 @@ func TestAttack_Play(t *testing.T) {
 		{
 			name: "should turn right if there is enemy on the right",
 			fields: fields{
-				Player: PlayerState{
+				Player: Player{
 					X:         1,
 					Y:         1,
 					Direction: "N",
@@ -89,7 +89,7 @@ func TestAttack_Play(t *testing.T) {
 		{
 			name: "should just move forward when none is observed",
 			fields: fields{
-				Player: PlayerState{
+				Player: Player{
 					X:         1,
 					Y:         1,
 					Direction: "N",

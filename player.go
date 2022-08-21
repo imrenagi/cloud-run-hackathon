@@ -5,7 +5,29 @@ import (
 	"math"
 )
 
-type PlayerState struct {
+func NewPlayerWithUrl(url string, state PlayerState) *Player {
+	return &Player{
+		Name:      url,
+		X:         state.X, // TODO ubah jadi location
+		Y:         state.Y,
+		Direction: state.Direction, // TODO ubah jadi direction
+		WasHit:    state.WasHit,
+		Score:     state.Score,
+	}
+}
+
+func NewPlayer(state PlayerState) *Player {
+	return &Player{
+		X:         state.X, // TODO ubah jadi location
+		Y:         state.Y,
+		Direction: state.Direction, // TODO ubah jadi direction
+		WasHit:    state.WasHit,
+		Score:     state.Score,
+	}
+}
+
+type Player struct {
+	Name      string
 	X         int    `json:"x"`
 	Y         int    `json:"y"`
 	Direction string `json:"direction"`
@@ -14,7 +36,7 @@ type PlayerState struct {
 	Game      Game   `json:"-"`
 }
 
-func (p PlayerState) Play() Move {
+func (p Player) Play() Move {
 	var state State = Attack{Player: p}
 	if p.WasHit {
 		state = Escape{Player: p}
@@ -23,7 +45,7 @@ func (p PlayerState) Play() Move {
 	return state.Play()
 }
 
-func (p PlayerState) GetDirection() Direction {
+func (p Player) GetDirection() Direction {
 	switch p.Direction {
 	case "N":
 		return North
@@ -36,14 +58,14 @@ func (p PlayerState) GetDirection() Direction {
 	}
 }
 
-func (p PlayerState) GetPosition() Point {
+func (p Player) GetPosition() Point {
 	return Point{
 		X: p.X,
 		Y: p.Y,
 	}
 }
 
-func (p PlayerState) Walk() Move {
+func (p Player) Walk() Move {
 	destination := p.GetPosition().TranslateToDirection(1, p.GetDirection())
 	if !p.Game.Arena.IsValid(destination) {
 		return TurnRight
@@ -56,13 +78,11 @@ func (p PlayerState) Walk() Move {
 	return WalkForward
 }
 
-
-
 const attackRange = 3
 
 // FindShooterOnDirection return other players which are in attach range and heading toward the player
-func (p PlayerState) FindShooterOnDirection(direction Direction) []PlayerState {
-	var filtered []PlayerState
+func (p Player) FindShooterOnDirection(direction Direction) []Player {
+	var filtered []Player
 	opponents := p.GetPlayersInRange(direction, attackRange)
 	for _, opponent := range opponents {
 		// exclude if they are not heading toward the player
@@ -73,12 +93,12 @@ func (p PlayerState) FindShooterOnDirection(direction Direction) []PlayerState {
 	return filtered
 }
 
-func (p PlayerState) isMe(p2 PlayerState) bool {
+func (p Player) isMe(p2 Player) bool {
 	// TODO Compare with url instead
 	return p2.GetPosition().Equal(p.GetPosition())
 }
 
-func (p PlayerState) canBeAttackedBy(p2 PlayerState) bool {
+func (p Player) canBeAttackedBy(p2 Player) bool {
 	players := p2.GetPlayersInRange(p2.GetDirection(), attackRange)
 	for i, player := range players {
 		probablyIsAttackingMe := p.isMe(player) && i == 0
@@ -89,8 +109,8 @@ func (p PlayerState) canBeAttackedBy(p2 PlayerState) bool {
 	return false
 }
 
-func (p PlayerState) GetPlayersInRange(direction Direction, distance int) []PlayerState {
-	var playersInRange []PlayerState
+func (p Player) GetPlayersInRange(direction Direction, distance int) []Player {
+	var playersInRange []Player
 	var ptA = p.GetPosition()
 	var ptB = p.GetPosition().TranslateToDirection(distance, direction)
 
@@ -113,36 +133,36 @@ func (p PlayerState) GetPlayersInRange(direction Direction, distance int) []Play
 			break
 		}
 
-		if player, ok := p.Game.GetPlayerByPosition(npt); ok {
-			playersInRange = append(playersInRange, player)
+		if player := p.Game.GetPlayerByPosition(npt); player != nil {
+			playersInRange = append(playersInRange, *player)
 		}
 	}
 	return playersInRange
 }
 
-func (p *PlayerState) rotateCounterClockwise() {
+func (p *Player) rotateCounterClockwise() {
 	p.Direction = p.GetDirection().Left().Name
 }
 
-func (p *PlayerState) rotateClockwise() {
+func (p *Player) rotateClockwise() {
 	p.Direction = p.GetDirection().Right().Name
 }
 
-func (p *PlayerState) setDirection(d Direction) {
+func (p *Player) setDirection(d Direction) {
 	p.Direction = d.Name
 }
 
 var ErrDestNotFound = fmt.Errorf("target not found")
 
 // MoveNeededToReachAdjacent return array of moves to reach adjacent cell
-func (p PlayerState) MoveNeededToReachAdjacent(toPt Point) ([]Move, error) {
+func (p Player) MoveNeededToReachAdjacent(toPt Point) ([]Move, error) {
 	myPt := Point{X: p.X, Y: p.Y}
 	const distance = 1
 	var cCount, ccCount int // clockwise and counter clockwise counter
 	initialDirection := p.GetDirection()
 
 	var found = false
-	for i := 0; i<4; i++ {
+	for i := 0; i < 4; i++ {
 		ptInFront := myPt.TranslateToDirection(distance, p.GetDirection())
 		if ptInFront.Equal(toPt) {
 			found = true
@@ -157,7 +177,7 @@ func (p PlayerState) MoveNeededToReachAdjacent(toPt Point) ([]Move, error) {
 		return nil, ErrDestNotFound
 	}
 
-	for i := 0; i<4; i++ {
+	for i := 0; i < 4; i++ {
 		ptInFront := myPt.TranslateToDirection(distance, p.GetDirection())
 		if ptInFront.Equal(toPt) {
 			break
@@ -169,7 +189,7 @@ func (p PlayerState) MoveNeededToReachAdjacent(toPt Point) ([]Move, error) {
 
 	var rotationDecision []Move
 	minRotationCount := ccCount
-	for i := 0; i<ccCount; i++ {
+	for i := 0; i < ccCount; i++ {
 		p.rotateCounterClockwise()
 		rotationDecision = append(rotationDecision, TurnLeft)
 	}
@@ -178,7 +198,7 @@ func (p PlayerState) MoveNeededToReachAdjacent(toPt Point) ([]Move, error) {
 		rotationDecision = []Move{}
 		minRotationCount = cCount
 		p.setDirection(initialDirection)
-		for i := 0; i<cCount; i++ {
+		for i := 0; i < cCount; i++ {
 			rotationDecision = append(rotationDecision, TurnRight)
 			p.rotateClockwise()
 		}
@@ -202,11 +222,10 @@ type Vector struct {
 
 func (v Vector) Angle(v2 Vector) float64 {
 	nom := v.X*v2.Y - v2.X*v.Y
-	denom := math.Sqrt(v.X*v.X + v.Y*v.Y) * math.Sqrt(v2.X*v2.X + v2.Y*v2.Y)
-	angleInRad := math.Asin(nom/denom)
+	denom := math.Sqrt(v.X*v.X+v.Y*v.Y) * math.Sqrt(v2.X*v2.X+v2.Y*v2.Y)
+	angleInRad := math.Asin(nom / denom)
 	return 180 * angleInRad / math.Pi
 }
-
 
 // TODO fix obstacle logic in a star
 // TODO translate shortest path to Move

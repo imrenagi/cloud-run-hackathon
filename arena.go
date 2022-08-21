@@ -9,7 +9,6 @@ func (g Grid) IsUnblock(p Point) bool {
 }
 
 type Cell struct {
-	// TODO Should cell know about its location?
 	Player *PlayerState
 }
 

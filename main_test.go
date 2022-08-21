@@ -29,7 +29,7 @@ func TestPlay(t *testing.T) {
 					}{Href: "player1"},
 				},
 				Arena: struct {
-					Dimensions []int                  `json:"dims"`
+					Dimensions []int             `json:"dims"`
 					State      map[string]PlayerState `json:"state"`
 				}{
 					Dimensions: []int{4,3},
@@ -67,7 +67,7 @@ func TestPlay(t *testing.T) {
 					}{Href: "player1"},
 				},
 				Arena: struct {
-					Dimensions []int                  `json:"dims"`
+					Dimensions []int             `json:"dims"`
 					State      map[string]PlayerState `json:"state"`
 				}{
 					Dimensions: []int{4,3},
@@ -105,7 +105,7 @@ func TestPlay(t *testing.T) {
 					}{Href: "player1"},
 				},
 				Arena: struct {
-					Dimensions []int                  `json:"dims"`
+					Dimensions []int             `json:"dims"`
 					State      map[string]PlayerState `json:"state"`
 				}{
 					Dimensions: []int{4,3},
@@ -143,7 +143,7 @@ func TestPlay(t *testing.T) {
 					}{Href: "player1"},
 				},
 				Arena: struct {
-					Dimensions []int                  `json:"dims"`
+					Dimensions []int             `json:"dims"`
 					State      map[string]PlayerState `json:"state"`
 				}{
 					Dimensions: []int{4,3},
@@ -170,7 +170,8 @@ func TestPlay(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotResponse := Play(tt.args.input);
+			srv := NewServer()
+			gotResponse := srv.Play(tt.args.input);
 			assert.Contains(t, tt.wantResponse, string(gotResponse))
 		})
 	}

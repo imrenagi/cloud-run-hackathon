@@ -1,7 +1,7 @@
 package main
 
 type Escape struct {
-	Player PlayerState
+	Player Player
 }
 
 func (e Escape) Play() Move {
@@ -10,6 +10,8 @@ func (e Escape) Play() Move {
 	left := len(e.Player.FindShooterOnDirection(e.Player.GetDirection().Left()))
 	right := len(e.Player.FindShooterOnDirection(e.Player.GetDirection().Right()))
 
+
+	// TODO Logic Kabur Perlu di update. Tembak 3 kali user di depan. Kalau masih belum, tembak adjacent lain.
 	emptyAdjacents := e.Player.Game.Arena.GetAdjacent(e.Player.GetPosition(), WithEmptyAdjacent())
 	if len(emptyAdjacents) == 0 {
 		if front > 0 {

@@ -5,7 +5,7 @@ import "testing"
 func TestEscape_Play(t *testing.T) {
 
 	type fields struct {
-		Player PlayerState
+		Player Player
 	}
 	tests := []struct {
 		name   string
@@ -15,7 +15,7 @@ func TestEscape_Play(t *testing.T) {
 		{
 			name: "opponent is attacking from the top(left) and bottom(right), player heading west",
 			fields: fields{
-				Player: PlayerState{
+				Player: Player{
 					X:         1,
 					Y:         1,
 					Direction: "W",
@@ -39,7 +39,7 @@ func TestEscape_Play(t *testing.T) {
 		{
 			name: "opponent is attacking from the top and bottom, player heading south",
 			fields: fields{
-				Player: PlayerState{
+				Player: Player{
 					X:         1,
 					Y:         1,
 					Direction: "S",
@@ -63,7 +63,7 @@ func TestEscape_Play(t *testing.T) {
 		{
 			name: "opponent is attacking from the top and bottom, player heading north",
 			fields: fields{
-				Player: PlayerState{
+				Player: Player{
 					X:         1,
 					Y:         1,
 					Direction: "N",
@@ -84,7 +84,7 @@ func TestEscape_Play(t *testing.T) {
 		{
 			name: "opponent is attacking from the top and bottom, player heading east",
 			fields: fields{
-				Player: PlayerState{
+				Player: Player{
 					X:         1,
 					Y:         1,
 					Direction: "E",
@@ -105,7 +105,7 @@ func TestEscape_Play(t *testing.T) {
 		{
 			name: "opponent is attacking from the right, player heading east",
 			fields: fields{
-				Player: PlayerState{
+				Player: Player{
 					X:         1,
 					Y:         1,
 					Direction: "E",
@@ -127,7 +127,7 @@ func TestEscape_Play(t *testing.T) {
 		{
 			name: "opponent is attacking from the bottom, player heading west",
 			fields: fields{
-				Player: PlayerState{
+				Player: Player{
 					X:         6,
 					Y:         2,
 					Direction: "W",
@@ -154,7 +154,7 @@ func TestEscape_Play(t *testing.T) {
 		{
 			name: "opponent is attacking from the bottom left and back, player heading west, should move forward",
 			fields: fields{
-				Player: PlayerState{
+				Player: Player{
 					X:         5,
 					Y:         3,
 					Direction: "W",
@@ -178,7 +178,7 @@ func TestEscape_Play(t *testing.T) {
 		{
 			name: "opponent is attacking from the bottom left right and back, player heading north, should move forward",
 			fields: fields{
-				Player: PlayerState{
+				Player: Player{
 					X:         5,
 					Y:         3,
 					Direction: "N",
@@ -202,7 +202,7 @@ func TestEscape_Play(t *testing.T) {
 		{
 			name: "opponent is attacking from the bottom left right and back, player heading west, should turn right",
 			fields: fields{
-				Player: PlayerState{
+				Player: Player{
 					X:         5,
 					Y:         3,
 					Direction: "W",
@@ -226,7 +226,7 @@ func TestEscape_Play(t *testing.T) {
 		{
 			name: "we are cornered, should attack the front player if any",
 			fields: fields{
-				Player: PlayerState{
+				Player: Player{
 					X:         6,
 					Y:         4,
 					Direction: "W",
@@ -250,7 +250,7 @@ func TestEscape_Play(t *testing.T) {
 		{
 			name: "we are cornered, but no front adjacent",
 			fields: fields{
-				Player: PlayerState{
+				Player: Player{
 					X:         6,
 					Y:         4,
 					Direction: "E",
@@ -274,7 +274,7 @@ func TestEscape_Play(t *testing.T) {
 		{
 			name: "opponent is attacking from the front",
 			fields: fields{
-				Player: PlayerState{
+				Player: Player{
 					X:         1,
 					Y:         1,
 					Direction: "E",
@@ -296,7 +296,7 @@ func TestEscape_Play(t *testing.T) {
 		{
 			name: "opponent is attacking from the left",
 			fields: fields{
-				Player: PlayerState{
+				Player: Player{
 					X:         1,
 					Y:         1,
 					Direction: "E",
@@ -318,7 +318,7 @@ func TestEscape_Play(t *testing.T) {
 		{
 			name: "opponent is attacking from the back",
 			fields: fields{
-				Player: PlayerState{
+				Player: Player{
 					X:         1,
 					Y:         1,
 					Direction: "E",
@@ -340,7 +340,7 @@ func TestEscape_Play(t *testing.T) {
 		{
 			name: "opponent is attacking from the back, but on the edge, should turn to right",
 			fields: fields{
-				Player: PlayerState{
+				Player: Player{
 					X:         0,
 					Y:         0,
 					Direction: "E",
@@ -362,7 +362,7 @@ func TestEscape_Play(t *testing.T) {
 		{
 			name: "opponent is attacking from the front, but on the edge, should turn to left",
 			fields: fields{
-				Player: PlayerState{
+				Player: Player{
 					X:         1,
 					Y:         0,
 					Direction: "W",
@@ -384,7 +384,7 @@ func TestEscape_Play(t *testing.T) {
 		{
 			name: "opponent is attacking from the back, user is on the edge",
 			fields: fields{
-				Player: PlayerState{
+				Player: Player{
 					X:         0,
 					Y:         1,
 					Direction: "W",
@@ -406,7 +406,7 @@ func TestEscape_Play(t *testing.T) {
 		{
 			name: "opponent is attacking from the back, user is not on the edge",
 			fields: fields{
-				Player: PlayerState{
+				Player: Player{
 					X:         2,
 					Y:         2,
 					Direction: "W",
@@ -428,7 +428,7 @@ func TestEscape_Play(t *testing.T) {
 		{
 			name: "opponent is attacking from the back, but there is other opponent in front",
 			fields: fields{
-				Player: PlayerState{
+				Player: Player{
 					X:         1,
 					Y:         1,
 					Direction: "W",
@@ -450,7 +450,7 @@ func TestEscape_Play(t *testing.T) {
 		{
 			name: "opponent is attacking other user",
 			fields: fields{
-				Player: PlayerState{
+				Player: Player{
 					X:         1,
 					Y:         1,
 					Direction: "E",
@@ -472,7 +472,7 @@ func TestEscape_Play(t *testing.T) {
 		{
 			name: "none attacking",
 			fields: fields{
-				Player: PlayerState{
+				Player: Player{
 					X:         1,
 					Y:         1,
 					Direction: "E",
@@ -482,7 +482,7 @@ func TestEscape_Play(t *testing.T) {
 						Arena: Arena{Width: 4, Height: 3,
 							Grid: [][]Cell{
 								{{}, {}, {}, {}},
-								{{}, {Player: &PlayerState{X:1, Y: 1, Direction: "E"}}, {}, {}},
+								{{}, {Player: &PlayerState{X: 1, Y: 1, Direction: "E"}}, {}, {}},
 								{{}, {}, {}, {}},
 							},
 						},

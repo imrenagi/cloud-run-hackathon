@@ -1,7 +1,7 @@
 package main
 
 type Attack struct {
-	Player PlayerState
+	Player Player
 }
 
 func (a Attack) Play() Move {

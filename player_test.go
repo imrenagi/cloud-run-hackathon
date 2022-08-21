@@ -84,7 +84,7 @@ func TestPlayerState_Walk(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			p := PlayerState{
+			p := Player{
 				X:         tt.fields.X,
 				Y:         tt.fields.Y,
 				Direction: tt.fields.Direction,
@@ -136,7 +136,7 @@ func TestPlayerState_GetPlayersInFront(t *testing.T) {
 							{{}, {}, {}, {}},
 						},
 					},
-					// PlayersByPosition: map[string]PlayerState{
+					// PlayersByPosition: map[string]Player{
 					// 	"0,0": {
 					// 		X: 0,
 					// 		Y: 0,
@@ -174,7 +174,7 @@ func TestPlayerState_GetPlayersInFront(t *testing.T) {
 						Width:  4,
 						Height: 4,
 						Grid: [][]Cell{
-							{{Player: &PlayerState{X:0, Y:0, Direction: "E"}}, {Player: &PlayerState{X:1, Y:0, Direction: "E"}}, {Player: &PlayerState{X:2, Y:0, Direction: "E"}}, {Player: &PlayerState{X:3, Y:0, Direction: "E"}}},
+							{{Player: &PlayerState{X: 0, Y:0, Direction: "E"}}, {Player: &PlayerState{X: 1, Y:0, Direction: "E"}}, {Player: &PlayerState{X: 2, Y:0, Direction: "E"}}, {Player: &PlayerState{X: 3, Y:0, Direction: "E"}}},
 							{{}, {}, {}, {}},
 							{{}, {}, {}, {}},
 							{{}, {}, {}, {}},
@@ -190,7 +190,7 @@ func TestPlayerState_GetPlayersInFront(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			p := PlayerState{
+			p := Player{
 				X:         tt.fields.X,
 				Y:         tt.fields.Y,
 				Direction: tt.fields.Direction,
@@ -221,7 +221,7 @@ func TestPlayerState_FindShooterFromDirection(t *testing.T) {
 		name   string
 		fields fields
 		args   args
-		want   []PlayerState
+		want   []Player
 	}{
 		{
 			name: "shooter from right",
@@ -234,8 +234,8 @@ func TestPlayerState_FindShooterFromDirection(t *testing.T) {
 						Width:  4,
 						Height: 3,
 						Grid: [][]Cell{
-							{{}, {Player: &PlayerState{X:1, Y:0, Direction: "S"}}, {}, {}},
-							{{}, {Player: &PlayerState{X:1, Y:1, Direction: "W"}}, {}, {}},
+							{{}, {Player: &PlayerState{X: 1, Y:0, Direction: "S"}}, {}, {}},
+							{{}, {Player: &PlayerState{X: 1, Y:1, Direction: "W"}}, {}, {}},
 							{{}, {}, {}, {}},
 						},
 					},
@@ -244,7 +244,7 @@ func TestPlayerState_FindShooterFromDirection(t *testing.T) {
 			args: args{
 				direction: North,
 			},
-			want: []PlayerState{
+			want: []Player{
 				{
 					X:         1,
 					Y:         0,
@@ -264,7 +264,7 @@ func TestPlayerState_FindShooterFromDirection(t *testing.T) {
 						Height: 3,
 						Grid: [][]Cell{
 							{{}, {}, {}, {}},
-							{{}, {Player: &PlayerState{X:1, Y:1, Direction: "W"}}, {}, {Player: &PlayerState{X:3, Y:1, Direction: "W"}}},
+							{{}, {Player: &PlayerState{X: 1, Y:1, Direction: "W"}}, {}, {Player: &PlayerState{X: 3, Y:1, Direction: "W"}}},
 							{{}, {}, {}, {}},
 						},
 					},
@@ -273,7 +273,7 @@ func TestPlayerState_FindShooterFromDirection(t *testing.T) {
 			args: args{
 				direction: East,
 			},
-			want: []PlayerState{
+			want: []Player{
 				{
 					X:         3,
 					Y:         1,
@@ -293,8 +293,8 @@ func TestPlayerState_FindShooterFromDirection(t *testing.T) {
 						Height: 4,
 						Grid: [][]Cell{
 							{{}, {}, {}, {}},
-							{{}, {Player: &PlayerState{X:1, Y:1, Direction: "W"}}, {}, {}},
-							{{}, {Player: &PlayerState{X:1, Y:2, Direction: "N"}}, {}, {}},
+							{{}, {Player: &PlayerState{X: 1, Y:1, Direction: "W"}}, {}, {}},
+							{{}, {Player: &PlayerState{X: 1, Y:2, Direction: "N"}}, {}, {}},
 							{{}, {}, {}, {}},
 						},
 					},
@@ -303,7 +303,7 @@ func TestPlayerState_FindShooterFromDirection(t *testing.T) {
 			args: args{
 				direction: South,
 			},
-			want: []PlayerState{
+			want: []Player{
 				{
 					X:         1,
 					Y:         2,
@@ -323,7 +323,7 @@ func TestPlayerState_FindShooterFromDirection(t *testing.T) {
 						Height: 3,
 						Grid: [][]Cell{
 							{{}, {}, {}, {}},
-							{{Player: &PlayerState{X:0, Y:1, Direction: "E"}}, {Player: &PlayerState{X:1, Y:1, Direction: "W"}}, {}, {}},
+							{{Player: &PlayerState{X: 0, Y:1, Direction: "E"}}, {Player: &PlayerState{X: 1, Y:1, Direction: "W"}}, {}, {}},
 							{{}, {}, {}, {}},
 						},
 					},
@@ -333,7 +333,7 @@ func TestPlayerState_FindShooterFromDirection(t *testing.T) {
 
 				direction: West,
 			},
-			want: []PlayerState{
+			want: []Player{
 				{
 					X:         0,
 					Y:         1,
@@ -344,7 +344,7 @@ func TestPlayerState_FindShooterFromDirection(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			p := PlayerState{
+			p := Player{
 				X:         tt.fields.X,
 				Y:         tt.fields.Y,
 				Direction: tt.fields.Direction,
@@ -433,7 +433,7 @@ func TestPlayerState_GetShortestRotation(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			p := PlayerState{
+			p := Player{
 				X:         tt.fields.X,
 				Y:         tt.fields.Y,
 				Direction: tt.fields.Direction,
