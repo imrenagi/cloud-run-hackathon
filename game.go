@@ -1,5 +1,7 @@
 package main
 
+import "sort"
+
 type ArenaUpdate struct {
 	Links struct {
 		Self struct {
@@ -7,7 +9,7 @@ type ArenaUpdate struct {
 		} `json:"self"`
 	} `json:"_links"`
 	Arena struct {
-		Dimensions []int             `json:"dims"`
+		Dimensions []int                  `json:"dims"`
 		State      map[string]PlayerState `json:"state"`
 	} `json:"arena"`
 }
@@ -44,22 +46,12 @@ type GameConfig struct {
 type Game struct {
 	Arena            Arena
 	PlayerStateByURL map[string]PlayerState
+	Players          []PlayerState
 	Config           GameConfig
 }
 
 func NewGame() Game {
-
-	// width := a.Arena.Dimensions[0]
-	// height := a.Arena.Dimensions[1]
-	// arena := NewArena(width, height)
-	//
-	// for _, v := range a.Arena.State {
-	// 	arena.PutPlayer(v)
-	// }
-
 	return Game{
-		// Arena: arena,
-		// PlayerStateByURL:      a.Arena.State,
 		Config: GameConfig{
 			AttackRange: defaultAttackRange,
 		},
@@ -70,9 +62,14 @@ func (g *Game) UpdateArena(a ArenaUpdate) {
 	width := a.Arena.Dimensions[0]
 	height := a.Arena.Dimensions[1]
 	arena := NewArena(width, height)
+
+	g.Players = nil
 	for _, v := range a.Arena.State {
 		arena.PutPlayer(v)
+		g.Players = append(g.Players, v)
 	}
+
+	sort.Sort(byScore(g.Players))
 	g.Arena = arena
 	g.PlayerStateByURL = a.Arena.State
 }
@@ -111,3 +108,10 @@ func (g Game) GetPlayerByPosition(p Point) *Player {
 	player.Game = g
 	return player
 }
+
+// ByAge implements sort.Interface based on the Age field.
+type byScore []PlayerState
+
+func (a byScore) Len() int           { return len(a) }
+func (a byScore) Less(i, j int) bool { return a[i].Score > a[j].Score }
+func (a byScore) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }

@@ -8,6 +8,7 @@ func TestEscape_Play(t *testing.T) {
 		Player Player
 	}
 	tests := []struct {
+		skip bool
 		name   string
 		fields fields
 		want   Move
@@ -221,7 +222,7 @@ func TestEscape_Play(t *testing.T) {
 					},
 				},
 			},
-			want: WalkForward,
+			want: TurnRight,
 		},
 		{
 			name: "we are cornered, should attack the front player if any",
@@ -247,7 +248,6 @@ func TestEscape_Play(t *testing.T) {
 			},
 			want: Throw,
 		},
-
 		{
 			name: "we are cornered, should turn to right if trapped and hit 3 times",
 			fields: fields{
@@ -337,6 +337,51 @@ func TestEscape_Play(t *testing.T) {
 							Grid: [][]Cell{
 								{{}, {}, {}, {}},
 								{{}, {Player: &PlayerState{X: 1, Y: 1, Direction: "E"}}, {Player: &PlayerState{X: 2, Y: 1, Direction: "W"}}, {}},
+								{{}, {}, {}, {}},
+							},
+						},
+					},
+				},
+			},
+			want: TurnLeft,
+		},
+		{
+			name: "opponent is attacking from the front, should immediately turn when get attack",
+			fields: fields{
+				Player: Player{
+					X:         0,
+					Y:         1,
+					Direction: "E",
+					WasHit:    true,
+					Score:     0,
+					Game: Game{
+						Arena: Arena{Width: 4, Height: 3,
+							Grid: [][]Cell{
+								{{}, {}, {}, {}},
+								{{Player: &PlayerState{X: 0, Y: 1, Direction: "E"}}, {}, {Player: &PlayerState{X: 2, Y: 1, Direction: "W"}}, {}},
+								{{}, {}, {}, {}},
+							},
+						},
+					},
+				},
+			},
+			want: TurnLeft,
+		},
+		{
+			name: "opponent is attacking from the back, should immediately turn when get attack",
+			skip: true, // skip because when we are hit, we expect to run away as far as possible
+			fields: fields{
+				Player: Player{
+					X:         1,
+					Y:         1,
+					Direction: "W",
+					WasHit:    true,
+					Score:     0,
+					Game: Game{
+						Arena: Arena{Width: 4, Height: 3,
+							Grid: [][]Cell{
+								{{}, {}, {}, {}},
+								{{}, {Player: &PlayerState{X: 1, Y: 1, Direction: "W"}}, {}, {Player: &PlayerState{X: 3, Y: 1, Direction: "W"}}},
 								{{}, {}, {}, {}},
 							},
 						},
@@ -546,6 +591,9 @@ func TestEscape_Play(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			if tt.skip {
+				t.Skip()
+			}
 			e := Escape{
 				Player: &tt.fields.Player,
 			}

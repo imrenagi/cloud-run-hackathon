@@ -95,6 +95,36 @@ func (p Player) FindShooterOnDirection(direction Direction) []Player {
 	return filtered
 }
 
+func (p Player) CanAttack(pt Point) bool {
+	var ptA = p.GetPosition()
+	var ptB = p.GetPosition().TranslateToDirection(attackRange, p.GetDirection())
+
+	if ptB.X > p.Game.Arena.Width-1 {
+		ptB.X = p.Game.Arena.Width - 1
+	}
+	if ptB.Y > p.Game.Arena.Height-1 {
+		ptB.Y = p.Game.Arena.Height - 1
+	}
+	if ptB.X < 0 {
+		ptB.X = 0
+	}
+	if ptB.Y < 0 {
+		ptB.Y = 0
+	}
+
+	for i := 1; i < (attackRange + 1); i++ {
+		npt := ptA.TranslateToDirection(i, p.GetDirection())
+		if !p.Game.Arena.IsValid(npt) {
+			break
+		}
+
+		if npt.X == pt.X && npt.Y == pt.Y {
+			return true
+		}
+	}
+	return false
+}
+
 func (p Player) isMe(p2 Player) bool {
 	// TODO Compare with url instead
 	return p2.GetPosition().Equal(p.GetPosition())
