@@ -34,12 +34,14 @@ type Player struct {
 	WasHit    bool   `json:"wasHit"`
 	Score     int    `json:"score"`
 	Game      Game   `json:"-"`
+
+	trappedCount int
 }
 
-func (p Player) Play() Move {
-	var state State = Attack{Player: p}
+func (p *Player) Play() Move {
+	var state State = &Attack{Player: p}
 	if p.WasHit {
-		state = Escape{Player: p}
+		state = &Escape{Player: p}
 	}
 	// state := Escape{Player: p}
 	return state.Play()

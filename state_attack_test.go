@@ -114,7 +114,7 @@ func TestAttack_Play(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			a := Attack{
-				Player: tt.fields.Player,
+				Player: &tt.fields.Player,
 			}
 			if got := a.Play(); got != tt.want {
 				t.Errorf("Play() = %v, want %v", got, tt.want)

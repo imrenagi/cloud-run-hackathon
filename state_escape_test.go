@@ -247,6 +247,58 @@ func TestEscape_Play(t *testing.T) {
 			},
 			want: Throw,
 		},
+
+		{
+			name: "we are cornered, should turn to right if trapped and hit 3 times",
+			fields: fields{
+				Player: Player{
+					X:         6,
+					Y:         4,
+					Direction: "W",
+					trappedCount: 3,
+					Game: Game{
+						Arena: Arena{
+							Width:  7,
+							Height: 5,
+							Grid: [][]Cell{
+								{{}, {}, {}, {}, {}, {}, {}},
+								{{}, {}, {}, {}, {}, {}, {}},
+								{{}, {}, {}, {}, {}, {}, {}},
+								{{}, {}, {}, {}, {}, {}, {Player: &PlayerState{X: 6, Y: 3, Direction: "S"}}},
+								{{}, {}, {}, {}, {}, {Player: &PlayerState{X: 5, Y: 4, Direction: "E"}}, {Player: &PlayerState{X: 6, Y: 4, Direction: "W"}}},
+							},
+						},
+					},
+				},
+			},
+			want: TurnRight,
+		},
+		{
+			name: "we are cornered, should turn to left if trapped and hit 3 times",
+			fields: fields{
+				Player: Player{
+					X:         6,
+					Y:         4,
+					Direction: "N",
+					trappedCount: 3,
+					Game: Game{
+						Arena: Arena{
+							Width:  7,
+							Height: 5,
+							Grid: [][]Cell{
+								{{}, {}, {}, {}, {}, {}, {}},
+								{{}, {}, {}, {}, {}, {}, {}},
+								{{}, {}, {}, {}, {}, {}, {}},
+								{{}, {}, {}, {}, {}, {}, {Player: &PlayerState{X: 6, Y: 3, Direction: "S"}}},
+								{{}, {}, {}, {}, {}, {Player: &PlayerState{X: 5, Y: 4, Direction: "E"}}, {Player: &PlayerState{X: 6, Y: 4, Direction: "N"}}},
+							},
+						},
+					},
+				},
+			},
+			want: TurnLeft,
+		},
+
 		{
 			name: "we are cornered, but no front adjacent",
 			fields: fields{
@@ -495,7 +547,7 @@ func TestEscape_Play(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			e := Escape{
-				Player: tt.fields.Player,
+				Player: &tt.fields.Player,
 			}
 			if got := e.Play(); got != tt.want {
 				t.Errorf("Play() = %v, want %v", got, tt.want)

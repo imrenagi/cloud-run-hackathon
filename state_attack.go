@@ -1,10 +1,10 @@
 package main
 
 type Attack struct {
-	Player Player
+	Player *Player
 }
 
-func (a Attack) Play() Move {
+func (a *Attack) Play() Move {
 	playersInFront := a.Player.GetPlayersInRange(a.Player.GetDirection(), 3)
 	playersInLeft := a.Player.GetPlayersInRange(a.Player.GetDirection().Left(), 3)
 	playersInRight := a.Player.GetPlayersInRange(a.Player.GetDirection().Right(), 3)
