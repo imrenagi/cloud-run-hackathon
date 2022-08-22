@@ -6,45 +6,39 @@ import (
 )
 
 func NewPlayerWithUrl(url string, state PlayerState) *Player {
-	return &Player{
-		Name:      url,
-		X:         state.X, // TODO ubah jadi location
-		Y:         state.Y,
-		Direction: state.Direction, // TODO ubah jadi direction
-		WasHit:    state.WasHit,
-		Score:     state.Score,
-	}
+	p := NewPlayer(state)
+	p.Name = url
+	p.Strategy = DefaultStrategy(p)
+	return p
 }
 
 func NewPlayer(state PlayerState) *Player {
-	return &Player{
+	p := &Player{
 		X:         state.X, // TODO ubah jadi location
 		Y:         state.Y,
 		Direction: state.Direction, // TODO ubah jadi direction
 		WasHit:    state.WasHit,
 		Score:     state.Score,
 	}
+	p.Strategy = DefaultStrategy(p)
+	return p
 }
 
 type Player struct {
 	Name      string
-	X         int    `json:"x"`
-	Y         int    `json:"y"`
-	Direction string `json:"direction"`
-	WasHit    bool   `json:"wasHit"`
-	Score     int    `json:"score"`
-	Game      Game   `json:"-"`
+	X         int      `json:"x"`
+	Y         int      `json:"y"`
+	Direction string   `json:"direction"`
+	WasHit    bool     `json:"wasHit"`
+	Score     int      `json:"score"`
+	Game      Game     `json:"-"`
 
+	Strategy  Strategy `json:"-"`
 	trappedCount int
 }
 
 func (p *Player) Play() Move {
-	var state State = &Attack{Player: p}
-	if p.WasHit {
-		state = &Escape{Player: p}
-	}
-	// state := Escape{Player: p}
-	return state.Play()
+	return p.Strategy.Play()
 }
 
 func (p Player) GetDirection() Direction {
