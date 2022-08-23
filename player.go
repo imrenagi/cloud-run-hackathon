@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"math"
 )
 
 func NewPlayerWithUrl(url string, state PlayerState) *Player {
@@ -230,28 +229,8 @@ func (p Player) MoveNeededToReachAdjacent(toPt Point) ([]Move, error) {
 		}
 	}
 
+	// add move forward
 	rotationDecision = append(rotationDecision, WalkForward)
 
 	return rotationDecision, nil
 }
-
-func NewVector(p1, p2 Point) Vector {
-	return Vector{
-		X: float64(p2.X - p1.X),
-		Y: float64(p2.Y - p1.Y),
-	}
-}
-
-type Vector struct {
-	X, Y float64
-}
-
-func (v Vector) Angle(v2 Vector) float64 {
-	nom := v.X*v2.Y - v2.X*v.Y
-	denom := math.Sqrt(v.X*v.X+v.Y*v.Y) * math.Sqrt(v2.X*v2.X+v2.Y*v2.Y)
-	angleInRad := math.Asin(nom / denom)
-	return 180 * angleInRad / math.Pi
-}
-
-// TODO fix obstacle logic in a star
-// TODO translate shortest path to Move

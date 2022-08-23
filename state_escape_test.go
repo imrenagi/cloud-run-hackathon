@@ -222,6 +222,30 @@ func TestEscape_Play(t *testing.T) {
 					},
 				},
 			},
+			want: WalkForward,
+		},
+		{
+			name: "opponent is attacking from the bottom left right and back, player heading west, should turn right",
+			fields: fields{
+				Player: Player{
+					X:         4,
+					Y:         3,
+					Direction: "W",
+					Game: Game{
+						Arena: Arena{
+							Width:  7,
+							Height: 5,
+							Grid: [][]Cell{
+								{{}, {}, {}, {}, {}, {}, {}},
+								{{}, {}, {}, {}, {}, {}, {}},
+								{{}, {}, {}, {}, {}, {}, {}},
+								{{}, {}, {}, {Player: &PlayerState{X: 3, Y: 3, Direction: "E"}}, {Player: &PlayerState{X: 4, Y: 3, Direction: "W"}}, {}, {Player: &PlayerState{X: 6, Y: 3, Direction: "W"}}},
+								{{}, {}, {}, {}, {}, {Player: &PlayerState{X: 5, Y: 4, Direction: "N"}}, {}},
+							},
+						},
+					},
+				},
+			},
 			want: TurnRight,
 		},
 		{
@@ -322,6 +346,55 @@ func TestEscape_Play(t *testing.T) {
 				},
 			},
 			want: TurnLeft,
+		},
+		{
+			name: "we are cornered from distance (has some adjacents)",
+			fields: fields{
+				Player: Player{
+					X:         6,
+					Y:         4,
+					Direction: "E",
+					Game: Game{
+						Arena: Arena{
+							Width:  7,
+							Height: 5,
+							Grid: [][]Cell{
+								{{}, {}, {}, {}, {}, {}, {}},
+								{{}, {}, {}, {}, {}, {}, {}},
+								{{}, {}, {}, {}, {}, {}, {Player: &PlayerState{X: 6, Y: 2, Direction: "S"}}},
+								{{}, {}, {}, {}, {}, {}, {}},
+								{{}, {}, {}, {}, {Player: &PlayerState{X: 4, Y: 4, Direction: "E"}}, {}, {Player: &PlayerState{X: 6, Y: 4, Direction: "E"}}},
+							},
+						},
+					},
+				},
+			},
+			want: TurnLeft,
+		},
+		{
+			// TODO yang ini bisa crash.
+			name: "we are cornered from distance (has some adjacents)",
+			fields: fields{
+				Player: Player{
+					X:         1,
+					Y:         4,
+					Direction: "E",
+					Game: Game{
+						Arena: Arena{
+							Width:  7,
+							Height: 5,
+							Grid: [][]Cell{
+								{{}, {}, {}, {}, {}, {}, {}},
+								{{}, {}, {}, {}, {}, {}, {}},
+								{{}, {}, {}, {}, {}, {}, {}},
+								{{}, {Player: &PlayerState{X: 2, Y: 3, Direction: "S"}}, {}, {}, {}, {}, {}},
+								{{Player: &PlayerState{X: 0, Y: 4, Direction: "E"}}, {Player: &PlayerState{X: 1, Y: 4, Direction: "E"}}, {}, {}, {Player: &PlayerState{X: 5, Y: 4, Direction: "W"}}, {}, {}},
+							},
+						},
+					},
+				},
+			},
+			want: WalkForward,
 		},
 		{
 			name: "opponent is attacking from the front",
