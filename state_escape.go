@@ -1,6 +1,7 @@
 package main
 
 import (
+	"math"
 	"sort"
 
 	"github.com/rs/zerolog/log"
@@ -100,13 +101,28 @@ func (e *Escape) Play() Move {
 	e.Player.trappedCount = 0
 	sort.Sort(byPathLength(paths))
 
+	// nextPt := paths[0][1]
 	// foreach path,
 	// 	ambil titik kedua (asumsi titik pertama adalah source)
 	// 	calculate movement needed utk kesana
-	requiredMoves := make([][]Move, len(paths))
 
-	// TODO ambil dulu path terpendek
-	for idx, aPath := range paths {
+
+	minPathLength := math.MaxInt
+	var shortestPaths []Path
+	for _, path := range paths {
+		if minPathLength > len(path) {
+			minPathLength = len(path)
+		}
+	}
+
+	for _, path := range paths {
+		if len(path) <= minPathLength {
+			shortestPaths = append(shortestPaths, path)
+		}
+	}
+
+	requiredMoves := make([][]Move, len(shortestPaths))
+	for idx, aPath := range shortestPaths {
 		nextPt := aPath[1]
 		moves, err := e.Player.MoveNeededToReachAdjacent(nextPt)
 		if err != nil {

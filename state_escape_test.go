@@ -490,7 +490,7 @@ func TestEscape_Play(t *testing.T) {
 					},
 				},
 			},
-			want: WalkForward,
+			want: TurnLeft,
 		},
 		{
 			name: "opponent is attacking from the front",
@@ -515,7 +515,7 @@ func TestEscape_Play(t *testing.T) {
 			want: TurnLeft,
 		},
 		{
-			name: "opponent is attacking from the front, should immediately move forward to reach the safe space when get attack",
+			name: "opponent is attacking from the front, should immediately turn to avoid attack",
 			fields: fields{
 				Player: Player{
 					X:         0,
@@ -534,7 +534,7 @@ func TestEscape_Play(t *testing.T) {
 					},
 				},
 			},
-			want: WalkForward,
+			want: TurnLeft,
 		},
 		{
 			name: "opponent is attacking from the front, should immediately turn when get attack",
