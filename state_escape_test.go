@@ -372,6 +372,78 @@ func TestEscape_Play(t *testing.T) {
 			want: TurnLeft,
 		},
 		{
+			name: "we are cornered from distance (has some adjacents)",
+			fields: fields{
+				Player: Player{
+					X:         0,
+					Y:         1,
+					Direction: "E",
+					Game: Game{
+						Arena: Arena{
+							Width:  7,
+							Height: 5,
+							Grid: [][]Cell{
+								{{Player: &PlayerState{X: 0, Y:0, Direction: "S"}}, {}, {}, {}, {}, {}, {}},
+								{{Player: &PlayerState{X: 0, Y:1, Direction: "E"}}, {}, {Player: &PlayerState{X: 2, Y:1, Direction: "W"}}, {}, {}, {}, {}},
+								{{}, {}, {}, {}, {}, {}, {}},
+								{{Player: &PlayerState{X: 0, Y:3, Direction: "N"}}, {}, {}, {}, {}, {}, {}},
+								{{}, {}, {}, {}, {}, {}, {}},
+							},
+						},
+					},
+				},
+			},
+			want: WalkForward,
+		},
+		{
+			name: "should not move forward when right or left is empty and enemy is attacking from the front",
+			fields: fields{
+				Player: Player{
+					X:         0,
+					Y:         1,
+					Direction: "E",
+					Game: Game{
+						Arena: Arena{
+							Width:  7,
+							Height: 5,
+							Grid: [][]Cell{
+								{{}, {}, {}, {}, {}, {}, {}},
+								{{Player: &PlayerState{X: 0, Y:1, Direction: "E"}}, {}, {}, {Player: &PlayerState{X: 3, Y:1, Direction: "W"}}, {}, {}, {}},
+								{{}, {}, {}, {}, {}, {}, {}},
+								{{}, {}, {}, {}, {}, {}, {}},
+								{{}, {}, {}, {}, {}, {}, {}},
+							},
+						},
+					},
+				},
+			},
+			want: TurnLeft,
+		},
+		{
+			name: "we are cornered from distance (has some adjacents)",
+			fields: fields{
+				Player: Player{
+					X:         0,
+					Y:         1,
+					Direction: "S",
+					Game: Game{
+						Arena: Arena{
+							Width:  7,
+							Height: 5,
+							Grid: [][]Cell{
+								{{Player: &PlayerState{X: 0, Y:0, Direction: "S"}}, {}, {}, {}, {}, {}, {}},
+								{{Player: &PlayerState{X: 0, Y:1, Direction: "S"}}, {}, {Player: &PlayerState{X: 2, Y:1, Direction: "W"}}, {}, {}, {}, {}},
+								{{}, {}, {}, {}, {}, {}, {}},
+								{{Player: &PlayerState{X: 0, Y:3, Direction: "N"}}, {}, {}, {}, {}, {}, {}},
+								{{}, {}, {}, {}, {}, {}, {}},
+							},
+						},
+					},
+				},
+			},
+			want: WalkForward,
+		},
+		{
 			// TODO yang ini bisa crash.
 			name: "we are cornered from distance (has some adjacents)",
 			fields: fields{
@@ -387,8 +459,32 @@ func TestEscape_Play(t *testing.T) {
 								{{}, {}, {}, {}, {}, {}, {}},
 								{{}, {}, {}, {}, {}, {}, {}},
 								{{}, {}, {}, {}, {}, {}, {}},
-								{{}, {Player: &PlayerState{X: 2, Y: 3, Direction: "S"}}, {}, {}, {}, {}, {}},
-								{{Player: &PlayerState{X: 0, Y: 4, Direction: "E"}}, {Player: &PlayerState{X: 1, Y: 4, Direction: "E"}}, {}, {}, {Player: &PlayerState{X: 5, Y: 4, Direction: "W"}}, {}, {}},
+								{{}, {Player: &PlayerState{X: 1, Y: 3, Direction: "S"}}, {}, {}, {}, {}, {}},
+								{{Player: &PlayerState{X: 0, Y: 4, Direction: "E"}}, {Player: &PlayerState{X: 1, Y: 4, Direction: "E"}}, {}, {}, {Player: &PlayerState{X: 4, Y: 4, Direction: "W"}}, {}, {}},
+							},
+						},
+					},
+				},
+			},
+			want: WalkForward,
+		},
+		{
+			name: "we are cornered from distance (has some adjacents)",
+			fields: fields{
+				Player: Player{
+					X:         2,
+					Y:         4,
+					Direction: "E",
+					Game: Game{
+						Arena: Arena{
+							Width:  7,
+							Height: 5,
+							Grid: [][]Cell{
+								{{}, {}, {}, {}, {}, {}, {}},
+								{{}, {}, {}, {}, {}, {}, {}},
+								{{}, {}, {}, {}, {}, {}, {}},
+								{{}, {Player: &PlayerState{X: 1, Y: 3, Direction: "S"}}, {}, {}, {}, {}, {}},
+								{{Player: &PlayerState{X: 0, Y: 4, Direction: "E"}}, {}, {Player: &PlayerState{X: 2, Y: 4, Direction: "E"}}, {}, {Player: &PlayerState{X: 4, Y: 4, Direction: "W"}}, {}, {}},
 							},
 						},
 					},
@@ -419,7 +515,7 @@ func TestEscape_Play(t *testing.T) {
 			want: TurnLeft,
 		},
 		{
-			name: "opponent is attacking from the front, should immediately turn when get attack",
+			name: "opponent is attacking from the front, should immediately move forward to reach the safe space when get attack",
 			fields: fields{
 				Player: Player{
 					X:         0,
@@ -432,6 +528,28 @@ func TestEscape_Play(t *testing.T) {
 							Grid: [][]Cell{
 								{{}, {}, {}, {}},
 								{{Player: &PlayerState{X: 0, Y: 1, Direction: "E"}}, {}, {Player: &PlayerState{X: 2, Y: 1, Direction: "W"}}, {}},
+								{{}, {}, {}, {}},
+							},
+						},
+					},
+				},
+			},
+			want: WalkForward,
+		},
+		{
+			name: "opponent is attacking from the front, should immediately turn when get attack",
+			fields: fields{
+				Player: Player{
+					X:         1,
+					Y:         1,
+					Direction: "E",
+					WasHit:    true,
+					Score:     0,
+					Game: Game{
+						Arena: Arena{Width: 4, Height: 3,
+							Grid: [][]Cell{
+								{{}, {}, {}, {}},
+								{{}, {Player: &PlayerState{X: 1, Y: 1, Direction: "E"}}, {Player: &PlayerState{X: 2, Y: 1, Direction: "W"}}, {}},
 								{{}, {}, {}, {}},
 							},
 						},

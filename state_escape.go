@@ -1,5 +1,11 @@
 package main
 
+import (
+	"sort"
+
+	"github.com/rs/zerolog/log"
+)
+
 type Escape struct {
 	// TODO should pass pointer
 	Player *Player
@@ -23,7 +29,30 @@ func (e *Escape) Play() Move {
 			for _, adj := range validAdjacent {
 				if !fp.CanAttack(adj) {
 					newAdjacent = append(newAdjacent, adj)
-					break
+				}
+			}
+		}
+		validAdjacent = newAdjacent
+	}
+	if len(left) > 0 {
+		var newAdjacent []Point
+		for _, fp := range left {
+			// iterate cuma sampai lokasi player. kalau udah ketemu, lgsg break
+			for _, adj := range validAdjacent {
+				if !fp.CanAttack(adj) {
+					newAdjacent = append(newAdjacent, adj)
+				}
+			}
+		}
+		validAdjacent = newAdjacent
+	}
+	if len(right) > 0 {
+		var newAdjacent []Point
+		for _, fp := range right {
+			// iterate cuma sampai lokasi player. kalau udah ketemu, lgsg break
+			for _, adj := range validAdjacent {
+				if !fp.CanAttack(adj) {
+					newAdjacent = append(newAdjacent, adj)
 				}
 			}
 		}
@@ -39,8 +68,13 @@ func (e *Escape) Play() Move {
 	}
 
 
-
 	if len(paths) == 0 {
+		log.Info().
+			Int("trappedCount", e.Player.trappedCount).
+			Bool("wasHit", e.Player.WasHit).
+			Int("score", e.Player.Score).
+			Msgf("trapped")
+
 		if len(front) > 0 {
 			e.Player.trappedCount++
 			if e.Player.trappedCount > maxHitWhenTrapped {
@@ -64,10 +98,14 @@ func (e *Escape) Play() Move {
 
 
 	e.Player.trappedCount = 0
+	sort.Sort(byPathLength(paths))
+
 	// foreach path,
 	// 	ambil titik kedua (asumsi titik pertama adalah source)
 	// 	calculate movement needed utk kesana
 	requiredMoves := make([][]Move, len(paths))
+
+	// TODO ambil dulu path terpendek
 	for idx, aPath := range paths {
 		nextPt := aPath[1]
 		moves, err := e.Player.MoveNeededToReachAdjacent(nextPt)
