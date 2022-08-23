@@ -133,47 +133,6 @@ func (e *Escape) Play() Move {
 	}
 
 	return mostEfficientMoves[0]
-
-	//
-	// // TODO cari adjacent dengan movement paling minimal
-	// // isOnAttackRange := make([]bool, len(emptyAdjacents))
-	// requiredMoves := make([][]Move, len(emptyAdjacents))
-	// for idx, adj := range emptyAdjacents {
-	// 	decisions, err := e.Player.MoveNeededToReachAdjacent(adj)
-	// 	if err != nil {
-	// 		continue
-	// 	}
-	// 	requiredMoves[idx] = decisions
-	// }
-	//
-	// //untuk setiap adjacent, run a star, cari path terpendek dan f value terkecil
-	// //kalau path not found, tembak 3 kali.
-	//
-	// // TODO: cari 8 adjacent. Cari adjacent yg aman dari tembakan front, back, left, right.
-	// // cari shortest path, execute.
-	//
-	// // TODO bug: kalau terpojok, tapi dari jarak tertentu. jadinya masih ada adjacent yg bisa
-	// // tapi malah stuck puter2
-	//
-	// // TODO bug: kalau hadap2an, dia malah ngejar. harusnya kabur. ini karena adjacent di depan
-	// // available dan satisfy the minimum step juga lebih kecil.
-	//
-	// // TODO check whether adjacent is on opponents attack range?
-	// // kalau gak ada ambil yg ada aja.
-	//
-	// if len(requiredMoves) == 0 {
-	// 	return e.Player.Walk()
-	// }
-	//
-	// mostEfficientMoves := requiredMoves[0]
-	// for _, sc := range requiredMoves {
-	// 	if len(sc) < len(mostEfficientMoves) {
-	// 		mostEfficientMoves = sc
-	// 	}
-	// }
-	//
-	// return mostEfficientMoves[0]
-	// return e.Player.Walk()
 }
 
 type byPathLength []Path

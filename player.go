@@ -119,7 +119,6 @@ func (p Player) CanAttack(pt Point) bool {
 }
 
 func (p Player) isMe(p2 Player) bool {
-	// TODO Compare with url instead
 	return p2.GetPosition().Equal(p.GetPosition())
 }
 

@@ -444,7 +444,6 @@ func TestEscape_Play(t *testing.T) {
 			want: WalkForward,
 		},
 		{
-			// TODO yang ini bisa crash.
 			name: "we are cornered from distance (has some adjacents)",
 			fields: fields{
 				Player: Player{

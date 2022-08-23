@@ -16,6 +16,7 @@ func (a *Attack) Play() Move {
 	} else if len(playersInRight) > 0 {
 		return TurnRight
 	} else {
+		// TODO traverse graph. cari jarak terpendek. jalan ke arah sana.
 		return a.Player.Walk()
 	}
 }

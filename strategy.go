@@ -25,3 +25,8 @@ func (ns *NormalStrategy) Play() Move {
 type ChasingStrategy struct {
 
 }
+
+// lol just idea if we play with swarm bot
+type SurroundedStrategy struct {
+
+}
