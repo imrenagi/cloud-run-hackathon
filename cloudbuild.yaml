@@ -11,8 +11,8 @@ steps:
     args: [
         'run', 'deploy', '--image', 'gcr.io/$PROJECT_ID/waterfight:$COMMIT_SHA', '--region', 'us-central1',
         '--project=$PROJECT_ID', '--region=us-central1',
-        '--platform=managed', '--max-instances=1', '--allow-unauthenticated', 'waterfight-$DEPLOYMENT_SUFFIX']
+        '--platform=managed', '--max-instances=1', '--allow-unauthenticated', 'waterfight-${_DEPLOYMENT_SUFFIX}']
     env:
-      - 'DEPLOYMENT_SUFFIX=${_DEPLOYMENT_SUFFIX}'
+      - '_DEPLOYMENT_SUFFIX=${_DEPLOYMENT_SUFFIX}'
 images:
   - gcr.io/$PROJECT_ID/waterfight:$COMMIT_SHA
