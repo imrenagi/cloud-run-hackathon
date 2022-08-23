@@ -1,6 +1,7 @@
 package main
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -174,7 +175,7 @@ func TestPlayerState_GetPlayersInFront(t *testing.T) {
 						Width:  4,
 						Height: 4,
 						Grid: [][]Cell{
-							{{Player: &PlayerState{X: 0, Y:0, Direction: "E"}}, {Player: &PlayerState{X: 1, Y:0, Direction: "E"}}, {Player: &PlayerState{X: 2, Y:0, Direction: "E"}}, {Player: &PlayerState{X: 3, Y:0, Direction: "E"}}},
+							{{Player: &PlayerState{X: 0, Y: 0, Direction: "E"}}, {Player: &PlayerState{X: 1, Y: 0, Direction: "E"}}, {Player: &PlayerState{X: 2, Y: 0, Direction: "E"}}, {Player: &PlayerState{X: 3, Y: 0, Direction: "E"}}},
 							{{}, {}, {}, {}},
 							{{}, {}, {}, {}},
 							{{}, {}, {}, {}},
@@ -234,8 +235,8 @@ func TestPlayerState_FindShooterFromDirection(t *testing.T) {
 						Width:  4,
 						Height: 3,
 						Grid: [][]Cell{
-							{{}, {Player: &PlayerState{X: 1, Y:0, Direction: "S"}}, {}, {}},
-							{{}, {Player: &PlayerState{X: 1, Y:1, Direction: "W"}}, {}, {}},
+							{{}, {Player: &PlayerState{X: 1, Y: 0, Direction: "S"}}, {}, {}},
+							{{}, {Player: &PlayerState{X: 1, Y: 1, Direction: "W"}}, {}, {}},
 							{{}, {}, {}, {}},
 						},
 					},
@@ -264,7 +265,7 @@ func TestPlayerState_FindShooterFromDirection(t *testing.T) {
 						Height: 3,
 						Grid: [][]Cell{
 							{{}, {}, {}, {}},
-							{{}, {Player: &PlayerState{X: 1, Y:1, Direction: "W"}}, {}, {Player: &PlayerState{X: 3, Y:1, Direction: "W"}}},
+							{{}, {Player: &PlayerState{X: 1, Y: 1, Direction: "W"}}, {}, {Player: &PlayerState{X: 3, Y: 1, Direction: "W"}}},
 							{{}, {}, {}, {}},
 						},
 					},
@@ -293,8 +294,8 @@ func TestPlayerState_FindShooterFromDirection(t *testing.T) {
 						Height: 4,
 						Grid: [][]Cell{
 							{{}, {}, {}, {}},
-							{{}, {Player: &PlayerState{X: 1, Y:1, Direction: "W"}}, {}, {}},
-							{{}, {Player: &PlayerState{X: 1, Y:2, Direction: "N"}}, {}, {}},
+							{{}, {Player: &PlayerState{X: 1, Y: 1, Direction: "W"}}, {}, {}},
+							{{}, {Player: &PlayerState{X: 1, Y: 2, Direction: "N"}}, {}, {}},
 							{{}, {}, {}, {}},
 						},
 					},
@@ -323,7 +324,7 @@ func TestPlayerState_FindShooterFromDirection(t *testing.T) {
 						Height: 3,
 						Grid: [][]Cell{
 							{{}, {}, {}, {}},
-							{{Player: &PlayerState{X: 0, Y:1, Direction: "E"}}, {Player: &PlayerState{X: 1, Y:1, Direction: "W"}}, {}, {}},
+							{{Player: &PlayerState{X: 0, Y: 1, Direction: "E"}}, {Player: &PlayerState{X: 1, Y: 1, Direction: "W"}}, {}, {}},
 							{{}, {}, {}, {}},
 						},
 					},
@@ -418,6 +419,18 @@ func TestPlayerState_GetShortestRotation(t *testing.T) {
 			want: []Move{TurnRight, WalkForward},
 		},
 		{
+			name: "heading west, target is in west",
+			fields: fields{
+				X:         1,
+				Y:         1,
+				Direction: "W",
+			},
+			args: args{
+				toPt: Point{0, 1},
+			},
+			want: []Move{WalkForward},
+		},
+		{
 			name: "heading west, target is in north",
 			fields: fields{
 				X:         0,
@@ -448,3 +461,201 @@ func TestPlayerState_GetShortestRotation(t *testing.T) {
 	}
 }
 
+func TestPlayer_NextMove(t *testing.T) {
+	type fields struct {
+		X            int
+		Y            int
+		Direction    string
+		Game         Game
+	}
+	type args struct {
+		forPath Path
+		opts []MoveOption
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    []Move
+	}{
+		{
+			name: "not moving",
+			fields: fields{
+				X:         0,
+				Y:         0,
+				Direction: "E",
+				Game: Game{
+					Arena: NewArena(5, 3),
+				},
+			},
+			args: args{
+				forPath: Path{{0,0}},
+			},
+			want: nil,
+		},
+		{
+			name: "move forward",
+			fields: fields{
+				X:         0,
+				Y:         0,
+				Direction: "E",
+				Game: Game{
+					Arena: NewArena(5, 3),
+				},
+			},
+			args: args{
+				forPath: Path{{0,0}, {1,0}},
+			},
+			want: []Move{WalkForward},
+		},
+		{
+			name: "move forward and turn",
+			fields: fields{
+				X:         0,
+				Y:         0,
+				Direction: "E",
+				Game: Game{
+					Arena: NewArena(5, 3),
+				},
+			},
+			args: args{
+				forPath: Path{{0,0}, {1,0}, {2, 0}, {2, 1}},
+			},
+			want: []Move{WalkForward, WalkForward, TurnRight, WalkForward},
+		},
+		{
+			name: "only return next move",
+			fields: fields{
+				X:         0,
+				Y:         0,
+				Direction: "E",
+				Game: Game{
+					Arena: NewArena(5, 3),
+				},
+			},
+			args: args{
+				forPath: Path{{0,0}, {1,0}, {2, 0}, {2, 1}},
+				opts: []MoveOption{WithOnlyNextMove()},
+			},
+			want: []Move{WalkForward},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			p := Player{
+				X:            tt.fields.X,
+				Y:            tt.fields.Y,
+				Direction:    tt.fields.Direction,
+				Game:         tt.fields.Game,
+
+			}
+			got := p.RequiredMoves(tt.args.forPath, tt.args.opts...)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("RequiredMoves() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestPlayer_Apply(t *testing.T) {
+	type fields struct {
+		X         int
+		Y         int
+		Direction string
+		Game      Game
+	}
+	type args struct {
+		m Move
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   fields
+	}{
+		{
+			name: "turn left",
+			fields: fields{
+				X:         0,
+				Y:         0,
+				Direction: "N",
+			},
+			args: args{
+				m: TurnLeft,
+			},
+			want: fields{
+				X:         0,
+				Y:         0,
+				Direction: "W",
+			},
+		},
+		{
+			name: "turn right",
+			fields: fields{
+				X:         0,
+				Y:         0,
+				Direction: "N",
+			},
+			args: args{
+				m: TurnRight,
+			},
+			want: fields{
+				X:         0,
+				Y:         0,
+				Direction: "E",
+			},
+		},
+		{
+			name: "move forward",
+			fields: fields{
+				X:         0,
+				Y:         0,
+				Direction: "E",
+				Game: Game{
+					Arena: NewArena(5, 3),
+				},
+			},
+			args: args{
+				m: WalkForward,
+			},
+			want: fields{
+				X:         1,
+				Y:         0,
+				Direction: "E",
+			},
+		},
+		{
+			name: "move forward",
+			fields: fields{
+				X:         0,
+				Y:         0,
+				Direction: "N",
+				Game: Game{
+					Arena: NewArena(5, 3),
+				},
+			},
+			args: args{
+				m: WalkForward,
+			},
+			want: fields{
+				X:         0,
+				Y:         0,
+				Direction: "N",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			p := &Player{
+				X:         tt.fields.X,
+				Y:         tt.fields.Y,
+				Direction: tt.fields.Direction,
+				Game: tt.fields.Game,
+			}
+			p.Apply(tt.args.m)
+			assert.Equal(t, tt.want.X, p.X)
+			assert.Equal(t, tt.want.Y, p.Y)
+			assert.Equal(t, tt.want.Direction, p.Direction)
+		})
+	}
+}

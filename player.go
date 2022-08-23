@@ -36,6 +36,20 @@ type Player struct {
 	trappedCount int
 }
 
+func (p Player) Clone() Player {
+	return Player{
+		Name:         p.Name,
+		X:            p.X,
+		Y:            p.Y,
+		Direction:    p.Direction,
+		WasHit:       p.WasHit,
+		Score:        p.Score,
+		Game:         p.Game,
+		Strategy:     p.Strategy,
+		trappedCount: p.trappedCount,
+	}
+}
+
 func (p *Player) Play() Move {
 	return p.Strategy.Play()
 }
@@ -172,64 +186,115 @@ func (p *Player) rotateClockwise() {
 	p.Direction = p.GetDirection().Right().Name
 }
 
+func (p *Player) moveForward() {
+	newPt := p.GetPosition().TranslateToDirection(1, p.GetDirection())
+	if p.Game.Arena.IsValid(newPt) {
+		p.setLocation(newPt)
+	}
+}
+
 func (p *Player) setDirection(d Direction) {
 	p.Direction = d.Name
+}
+
+func (p *Player) setLocation(pt Point) {
+	p.X = pt.X
+	p.Y = pt.Y
+}
+
+type MoveOption func (o *MoveOptions)
+
+type MoveOptions struct {
+	NextMoveOnly bool
+}
+
+func WithOnlyNextMove() MoveOption {
+	return func(o *MoveOptions) {
+		o.NextMoveOnly = true
+	}
+}
+
+// RequiredMoves return array of moves that should be taken to follow path
+func (p Player) RequiredMoves(forPath Path, opts... MoveOption) []Move {
+	options := &MoveOptions{}
+	for _, o := range opts {
+		o(options)
+	}
+	var fMoves []Move
+	pc := p.Clone()
+	for _, pt := range forPath {
+		// skip the source path
+		if pt.Equal(p.GetPosition()) {
+			continue
+		}
+		moves, err := pc.MoveNeededToReachAdjacent(pt)
+		if err != nil {
+			break
+		}
+		for _, move := range moves {
+			fMoves = append(fMoves, move)
+			if options.NextMoveOnly && len(fMoves) == 1 {
+				return fMoves
+			}
+			pc.Apply(move)
+		}
+	}
+	return fMoves
+}
+
+func (p *Player) Apply(m Move) {
+	switch m {
+	case WalkForward:
+		p.moveForward()
+	case TurnRight:
+		p.rotateClockwise()
+	case TurnLeft:
+		p.rotateCounterClockwise()
+	}
 }
 
 var ErrDestNotFound = fmt.Errorf("target not found")
 
 // MoveNeededToReachAdjacent return array of moves to reach adjacent cell
 func (p Player) MoveNeededToReachAdjacent(toPt Point) ([]Move, error) {
-	myPt := Point{X: p.X, Y: p.Y}
 	const distance = 1
 	var cCount, ccCount int // clockwise and counter clockwise counter
-	initialDirection := p.GetDirection()
+
+	p1 := p.Clone()
+	p2 := p.Clone()
+	var p1Move, p2Move []Move
 
 	var found = false
 	for i := 0; i < 4; i++ {
-		ptInFront := myPt.TranslateToDirection(distance, p.GetDirection())
+		ptInFront := p1.GetPosition().TranslateToDirection(distance, p1.GetDirection())
 		if ptInFront.Equal(toPt) {
 			found = true
 			break
 		}
-		p.rotateCounterClockwise()
+		p1.rotateCounterClockwise()
+		p1Move = append(p1Move, TurnLeft)
 		ccCount++
 	}
-	p.setDirection(initialDirection)
 
 	if !found {
 		return nil, ErrDestNotFound
 	}
 
 	for i := 0; i < 4; i++ {
-		ptInFront := myPt.TranslateToDirection(distance, p.GetDirection())
+		ptInFront := p2.GetPosition().TranslateToDirection(distance, p2.GetDirection())
 		if ptInFront.Equal(toPt) {
 			break
 		}
-		p.rotateClockwise()
+		p2.rotateClockwise()
+		p2Move = append(p2Move, TurnRight)
 		cCount++
 	}
-	p.setDirection(initialDirection)
 
-	var rotationDecision []Move
-	minRotationCount := ccCount
-	for i := 0; i < ccCount; i++ {
-		p.rotateCounterClockwise()
-		rotationDecision = append(rotationDecision, TurnLeft)
+	if ccCount <= cCount {
+		p1Move = append(p1Move, WalkForward)
+		return p1Move, nil
+	} else {
+		p2Move = append(p2Move, WalkForward)
+		return p2Move, nil
 	}
-
-	if minRotationCount > cCount {
-		rotationDecision = []Move{}
-		minRotationCount = cCount
-		p.setDirection(initialDirection)
-		for i := 0; i < cCount; i++ {
-			rotationDecision = append(rotationDecision, TurnRight)
-			p.rotateClockwise()
-		}
-	}
-
-	// add move forward
-	rotationDecision = append(rotationDecision, WalkForward)
-
-	return rotationDecision, nil
 }
