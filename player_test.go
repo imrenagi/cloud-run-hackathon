@@ -454,7 +454,7 @@ func TestPlayerState_GetShortestRotation(t *testing.T) {
 				Score:     tt.fields.Score,
 				Game:      tt.fields.Game,
 			}
-			got, err := p.MoveNeededToReachAdjacent(tt.args.toPt)
+			got, err := p.MoveToAdjacent(tt.args.toPt)
 			assert.Equal(t, tt.wantErr, err)
 			assert.Equal(t, tt.want, got)
 		})

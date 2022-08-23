@@ -1,7 +1,5 @@
 package main
 
-import "sort"
-
 type ArenaUpdate struct {
 	Links struct {
 		Self struct {
@@ -69,7 +67,7 @@ func (g *Game) UpdateArena(a ArenaUpdate) {
 		g.Players = append(g.Players, v)
 	}
 
-	sort.Sort(byScore(g.Players))
+	// sort.Sort(byScore(g.Players))
 	g.Arena = arena
 	g.PlayerStateByURL = a.Arena.State
 }

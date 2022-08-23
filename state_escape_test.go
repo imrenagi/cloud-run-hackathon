@@ -348,7 +348,7 @@ func TestEscape_Play(t *testing.T) {
 			want: TurnLeft,
 		},
 		{
-			name: "we are cornered from distance (has some adjacents)",
+			name: "we are cornered from dPair (has some adjacents)",
 			fields: fields{
 				Player: Player{
 					X:         6,
@@ -372,7 +372,7 @@ func TestEscape_Play(t *testing.T) {
 			want: TurnLeft,
 		},
 		{
-			name: "we are cornered from distance (has some adjacents)",
+			name: "we are cornered from dPair (has some adjacents)",
 			fields: fields{
 				Player: Player{
 					X:         0,
@@ -420,7 +420,7 @@ func TestEscape_Play(t *testing.T) {
 			want: TurnLeft,
 		},
 		{
-			name: "we are cornered from distance (has some adjacents)",
+			name: "we are cornered from dPair (has some adjacents)",
 			fields: fields{
 				Player: Player{
 					X:         0,
@@ -444,7 +444,7 @@ func TestEscape_Play(t *testing.T) {
 			want: WalkForward,
 		},
 		{
-			name: "we are cornered from distance (has some adjacents)",
+			name: "we are cornered from dPair (has some adjacents)",
 			fields: fields{
 				Player: Player{
 					X:         1,
@@ -468,7 +468,7 @@ func TestEscape_Play(t *testing.T) {
 			want: WalkForward,
 		},
 		{
-			name: "we are cornered from distance (has some adjacents)",
+			name: "we are cornered from dPair (has some adjacents)",
 			fields: fields{
 				Player: Player{
 					X:         2,

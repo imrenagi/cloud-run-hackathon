@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"sort"
 )
 
 func NewPlayerWithUrl(url string, state PlayerState) *Player {
@@ -25,14 +26,14 @@ func NewPlayer(state PlayerState) *Player {
 
 type Player struct {
 	Name      string
-	X         int      `json:"x"`
-	Y         int      `json:"y"`
-	Direction string   `json:"direction"`
-	WasHit    bool     `json:"wasHit"`
-	Score     int      `json:"score"`
-	Game      Game     `json:"-"`
+	X         int    `json:"x"`
+	Y         int    `json:"y"`
+	Direction string `json:"direction"`
+	WasHit    bool   `json:"wasHit"`
+	Score     int    `json:"score"`
+	Game      Game   `json:"-"`
 
-	Strategy  Strategy `json:"-"`
+	Strategy     Strategy `json:"-"`
 	trappedCount int
 }
 
@@ -202,7 +203,7 @@ func (p *Player) setLocation(pt Point) {
 	p.Y = pt.Y
 }
 
-type MoveOption func (o *MoveOptions)
+type MoveOption func(o *MoveOptions)
 
 type MoveOptions struct {
 	NextMoveOnly bool
@@ -215,7 +216,7 @@ func WithOnlyNextMove() MoveOption {
 }
 
 // RequiredMoves return array of moves that should be taken to follow path
-func (p Player) RequiredMoves(forPath Path, opts... MoveOption) []Move {
+func (p Player) RequiredMoves(forPath Path, opts ...MoveOption) []Move {
 	options := &MoveOptions{}
 	for _, o := range opts {
 		o(options)
@@ -227,7 +228,7 @@ func (p Player) RequiredMoves(forPath Path, opts... MoveOption) []Move {
 		if pt.Equal(p.GetPosition()) {
 			continue
 		}
-		moves, err := pc.MoveNeededToReachAdjacent(pt)
+		moves, err := pc.MoveToAdjacent(pt)
 		if err != nil {
 			break
 		}
@@ -255,8 +256,10 @@ func (p *Player) Apply(m Move) {
 
 var ErrDestNotFound = fmt.Errorf("target not found")
 
-// MoveNeededToReachAdjacent return array of moves to reach adjacent cell
-func (p Player) MoveNeededToReachAdjacent(toPt Point) ([]Move, error) {
+// MoveToAdjacent return array of moves to reach adjacent cell.
+// This only return non empty moves if the toPt is adjacent cell on north, east,
+// west, or south.
+func (p Player) MoveToAdjacent(toPt Point) ([]Move, error) {
 	const distance = 1
 	var cCount, ccCount int // clockwise and counter clockwise counter
 
@@ -298,3 +301,40 @@ func (p Player) MoveNeededToReachAdjacent(toPt Point) ([]Move, error) {
 		return p2Move, nil
 	}
 }
+
+func (p Player) FindClosestPlayers() *Player {
+
+	distanceCalculator := EuclideanDistance{}
+	var dPairs []dPair
+
+	for _, ps := range p.Game.Players {
+		otherPlayerPt := Point{ps.X, ps.Y}
+		if p.GetPosition().Equal(otherPlayerPt) {
+			continue
+		}
+
+		d := distanceCalculator.Distance(p.GetPosition(), otherPlayerPt)
+		dPairs = append(dPairs, dPair{
+			distance: d,
+			player:   ps,
+		})
+	}
+	if len(dPairs) == 0 {
+		return nil
+	}
+
+	sort.Sort(byDistance(dPairs))
+	closestPlayer := dPairs[0].player
+	return p.Game.GetPlayerByPosition(Point{X: closestPlayer.X, Y: closestPlayer.Y})
+}
+
+type dPair struct {
+	distance float64
+	player   PlayerState
+}
+
+type byDistance []dPair
+
+func (a byDistance) Len() int           { return len(a) }
+func (a byDistance) Less(i, j int) bool { return a[i].distance < a[j].distance }
+func (a byDistance) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }

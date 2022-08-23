@@ -16,7 +16,30 @@ func (a *Attack) Play() Move {
 	} else if len(playersInRight) > 0 {
 		return TurnRight
 	} else {
-		// TODO traverse graph. cari jarak terpendek. jalan ke arah sana.
+
 		return a.Player.Walk()
+
+		// TODO add test cases buat ini
+		// target := a.Player.FindClosestPlayers()
+		// if target == nil {
+		// 	return Throw
+		// }
+		//
+		// aStar := NewAStar(a.Player.Game.Arena)
+		// path, err := aStar.SearchPath(a.Player.GetPosition(), target.GetPosition())
+		// if err != nil {
+		// 	return a.Player.Walk()
+		// }
+		//
+		// moves := a.Player.RequiredMoves(path, WithOnlyNextMove())
+		// if len(moves) > 0 {
+		// 	return moves[0]
+		// } else {
+		// 	return a.Player.Walk()
+		// }
+
+		// TODO make a* algorithm to consider attack range as unblock
+		// TODO predict user yg kemungkinan masuk ke attack range kita di depan, kiri atau kanan.. kalau ada stop.
+
 	}
 }

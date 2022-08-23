@@ -114,7 +114,7 @@ func (e *Escape) Play() Move {
 	requiredMoves := make([][]Move, len(shortestPaths))
 	for idx, aPath := range shortestPaths {
 		nextPt := aPath[1]
-		moves, err := e.Player.MoveNeededToReachAdjacent(nextPt)
+		moves, err := e.Player.MoveToAdjacent(nextPt)
 		if err != nil {
 			continue
 		}
