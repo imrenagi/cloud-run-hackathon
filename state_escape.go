@@ -3,12 +3,9 @@ package main
 import (
 	"math"
 	"sort"
-
-	"github.com/rs/zerolog/log"
 )
 
 type Escape struct {
-	// TODO should pass pointer
 	Player *Player
 }
 
@@ -68,14 +65,7 @@ func (e *Escape) Play() Move {
 		paths = append(paths, path)
 	}
 
-
 	if len(paths) == 0 {
-		log.Info().
-			Int("trappedCount", e.Player.trappedCount).
-			Bool("wasHit", e.Player.WasHit).
-			Int("score", e.Player.Score).
-			Msgf("trapped")
-
 		if len(front) > 0 {
 			e.Player.trappedCount++
 			if e.Player.trappedCount > maxHitWhenTrapped {

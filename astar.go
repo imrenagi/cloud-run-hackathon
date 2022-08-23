@@ -195,7 +195,6 @@ func (as *AStar) checkSuccessor(currNode ppair, successor Point, dest Point) boo
 		if as.arena.IsDestination(successor, dest) {
 			as.cellDetails[successor.Y][successor.X].ParentY = currNode.Y
 			as.cellDetails[successor.Y][successor.X].ParentX = currNode.X
-			log.Info().Msg("The destination cell is found")
 			return true
 		} else if !as.closedList[successor.Y][successor.X] && as.arena.Grid.IsUnblock(successor) {
 			step := currNode.requiredRotation(successor)
