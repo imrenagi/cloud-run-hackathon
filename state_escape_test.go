@@ -420,6 +420,31 @@ func TestEscape_Play(t *testing.T) {
 			want: TurnLeft,
 		},
 		{
+			name: "should not move forward when right or left is empty and enemy is attacking from the front and back",
+			fields: fields{
+				Player: Player{
+					X:         1,
+					Y:         1,
+					Direction: "E",
+					Game: Game{
+						Arena: Arena{
+							Width:  7,
+							Height: 5,
+							Grid: [][]Cell{
+								{{}, {}, {}, {}, {}, {}, {}},
+								{{Player: &PlayerState{X: 0, Y:1, Direction: "E"}}, {Player: &PlayerState{X: 1, Y:1, Direction: "E"}}, {}, {Player: &PlayerState{X: 3, Y:1, Direction: "W"}}, {}, {}, {}},
+								{{}, {}, {}, {}, {}, {}, {}},
+								{{}, {}, {}, {}, {}, {}, {}},
+								{{}, {}, {}, {}, {}, {}, {}},
+							},
+						},
+					},
+				},
+			},
+			want: TurnLeft,
+		},
+
+		{
 			name: "we are cornered from dPair (has some adjacents)",
 			fields: fields{
 				Player: Player{

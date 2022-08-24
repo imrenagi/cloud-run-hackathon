@@ -12,10 +12,23 @@ var ErrPathNotFound = fmt.Errorf("path not found")
 var ErrSourceInvalid = fmt.Errorf("source is invalid")
 var ErrDestinationInvalid = fmt.Errorf("destination is invalid")
 
-type Option func(options *Options)
+type AStarOption func(options *AStarOptions)
 
-type Options struct {
+type AStarOptions struct {
 	DistanceCalculator DistanceCalculator
+	IsUnblockFn        IsUnblockFn
+}
+
+func WithDistanceCalculator(dc DistanceCalculator) AStarOption {
+	return func(options *AStarOptions) {
+		options.DistanceCalculator = dc
+	}
+}
+
+func WithIsUnblockFn(fn IsUnblockFn) AStarOption {
+	return func(options *AStarOptions) {
+		options.IsUnblockFn = fn
+	}
 }
 
 type cellDetail struct {
@@ -25,10 +38,11 @@ type cellDetail struct {
 	G, H    float64
 }
 
-func NewAStar(a Arena, opts ...Option) AStar {
+func NewAStar(a Arena, opts ...AStarOption) AStar {
 
-	options := &Options{
+	options := &AStarOptions{
 		DistanceCalculator: &ManhattanDistance{},
+		IsUnblockFn:        a.Grid.IsUnblock,
 	}
 	for _, o := range opts {
 		o(options)
@@ -49,8 +63,11 @@ func NewAStar(a Arena, opts ...Option) AStar {
 		distanceCalculator: options.DistanceCalculator,
 		closedList:         closedList,
 		cellDetails:        cellDetails,
+		isUnblockFn:        options.IsUnblockFn,
 	}
 }
+
+type IsUnblockFn func(p Point) bool
 
 type AStar struct {
 	distanceCalculator DistanceCalculator
@@ -71,6 +88,8 @@ type AStar struct {
 	   This open list is implemented as a set of pair of
 	   pair.*/
 	openList []ppair
+
+	isUnblockFn IsUnblockFn
 }
 
 func (as *AStar) SearchPath(src, dest Point) (Path, error) {
@@ -185,8 +204,6 @@ func (as *AStar) SearchPath(src, dest Point) (Path, error) {
 	return as.tracePath(as.cellDetails, dest), nil
 }
 
-
-
 func (as *AStar) checkSuccessor(currNode ppair, successor Point, dest Point) bool {
 
 	var gNew, hNew, fNew float64
@@ -196,7 +213,7 @@ func (as *AStar) checkSuccessor(currNode ppair, successor Point, dest Point) boo
 			as.cellDetails[successor.Y][successor.X].ParentY = currNode.Y
 			as.cellDetails[successor.Y][successor.X].ParentX = currNode.X
 			return true
-		} else if !as.closedList[successor.Y][successor.X] && as.arena.Grid.IsUnblock(successor) {
+		} else if !as.closedList[successor.Y][successor.X] && as.isUnblockFn(successor) {
 			step := currNode.requiredRotation(successor)
 
 			gNew = as.cellDetails[currNode.Y][currNode.X].G + 1.0 + float64(step)
@@ -206,9 +223,9 @@ func (as *AStar) checkSuccessor(currNode ppair, successor Point, dest Point) boo
 			if as.cellDetails[successor.Y][successor.X].F == math.MaxFloat64 ||
 			  as.cellDetails[successor.Y][successor.X].F > fNew {
 				as.openList = append(as.openList, ppair{
-					F: fNew,
-					X: successor.X,
-					Y: successor.Y,
+					F:         fNew,
+					X:         successor.X,
+					Y:         successor.Y,
 					Direction: currNode.Direction,
 				})
 				as.cellDetails[successor.Y][successor.X].F = fNew
@@ -281,7 +298,7 @@ func (p *ppair) requiredRotation(pt Point) int {
 	const distance = 1
 	var cCount, ccCount int // clockwise and counter clockwise counter
 	initialDirection := p.Direction
-	for i := 0; i<4; i++ {
+	for i := 0; i < 4; i++ {
 		ptInFront := myPt.TranslateToDirection(distance, p.Direction)
 		if ptInFront.Equal(pt) {
 			break
@@ -290,7 +307,7 @@ func (p *ppair) requiredRotation(pt Point) int {
 		ccCount++
 	}
 	p.setDirection(initialDirection)
-	for i := 0; i<4; i++ {
+	for i := 0; i < 4; i++ {
 		ptInFront := myPt.TranslateToDirection(distance, p.Direction)
 		if ptInFront.Equal(pt) {
 			break
@@ -301,13 +318,13 @@ func (p *ppair) requiredRotation(pt Point) int {
 	p.setDirection(initialDirection)
 
 	minRotationCount := ccCount
-	for i := 0; i<ccCount; i++ {
+	for i := 0; i < ccCount; i++ {
 		p.rotateCounterClockwise()
 	}
 	if minRotationCount > cCount {
 		minRotationCount = cCount
 		p.setDirection(initialDirection)
-		for i := 0; i<cCount; i++ {
+		for i := 0; i < cCount; i++ {
 			p.rotateClockwise()
 		}
 	}

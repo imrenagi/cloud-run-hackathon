@@ -17,29 +17,32 @@ func (a *Attack) Play() Move {
 		return TurnRight
 	} else {
 
-		return a.Player.Walk()
+		// return a.Player.Walk()
 
 		// TODO add test cases buat ini
-		// target := a.Player.FindClosestPlayers()
-		// if target == nil {
-		// 	return Throw
-		// }
-		//
-		// aStar := NewAStar(a.Player.Game.Arena)
-		// path, err := aStar.SearchPath(a.Player.GetPosition(), target.GetPosition())
-		// if err != nil {
-		// 	return a.Player.Walk()
-		// }
-		//
-		// moves := a.Player.RequiredMoves(path, WithOnlyNextMove())
-		// if len(moves) > 0 {
-		// 	return moves[0]
-		// } else {
-		// 	return a.Player.Walk()
-		// }
+		target := a.Player.FindClosestPlayers()
+		if target == nil {
+			return Throw
+		}
 
-		// TODO make a* algorithm to consider attack range as unblock
+		aStar := NewAStar(a.Player.Game.Arena,
+			WithIsUnblockFn(func(p Point) bool {
+				return !target.CanAttack(p)
+			}),
+		)
+		path, err := aStar.SearchPath(a.Player.GetPosition(), target.GetPosition())
+		if err != nil {
+			return a.Player.Walk()
+		}
+
+		moves := a.Player.RequiredMoves(path, WithOnlyNextMove())
+		if len(moves) > 0 {
+			return moves[0]
+		} else {
+			return a.Player.Walk()
+		}
+
+		// TODO hindari attack range lawan
 		// TODO predict user yg kemungkinan masuk ke attack range kita di depan, kiri atau kanan.. kalau ada stop.
-
 	}
 }

@@ -463,20 +463,20 @@ func TestPlayerState_GetShortestRotation(t *testing.T) {
 
 func TestPlayer_NextMove(t *testing.T) {
 	type fields struct {
-		X            int
-		Y            int
-		Direction    string
-		Game         Game
+		X         int
+		Y         int
+		Direction string
+		Game      Game
 	}
 	type args struct {
 		forPath Path
-		opts []MoveOption
+		opts    []MoveOption
 	}
 	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    []Move
+		name   string
+		fields fields
+		args   args
+		want   []Move
 	}{
 		{
 			name: "not moving",
@@ -489,7 +489,7 @@ func TestPlayer_NextMove(t *testing.T) {
 				},
 			},
 			args: args{
-				forPath: Path{{0,0}},
+				forPath: Path{{0, 0}},
 			},
 			want: nil,
 		},
@@ -504,7 +504,7 @@ func TestPlayer_NextMove(t *testing.T) {
 				},
 			},
 			args: args{
-				forPath: Path{{0,0}, {1,0}},
+				forPath: Path{{0, 0}, {1, 0}},
 			},
 			want: []Move{WalkForward},
 		},
@@ -519,7 +519,7 @@ func TestPlayer_NextMove(t *testing.T) {
 				},
 			},
 			args: args{
-				forPath: Path{{0,0}, {1,0}, {2, 0}, {2, 1}},
+				forPath: Path{{0, 0}, {1, 0}, {2, 0}, {2, 1}},
 			},
 			want: []Move{WalkForward, WalkForward, TurnRight, WalkForward},
 		},
@@ -534,8 +534,8 @@ func TestPlayer_NextMove(t *testing.T) {
 				},
 			},
 			args: args{
-				forPath: Path{{0,0}, {1,0}, {2, 0}, {2, 1}},
-				opts: []MoveOption{WithOnlyNextMove()},
+				forPath: Path{{0, 0}, {1, 0}, {2, 0}, {2, 1}},
+				opts:    []MoveOption{WithOnlyNextMove()},
 			},
 			want: []Move{WalkForward},
 		},
@@ -543,11 +543,10 @@ func TestPlayer_NextMove(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			p := Player{
-				X:            tt.fields.X,
-				Y:            tt.fields.Y,
-				Direction:    tt.fields.Direction,
-				Game:         tt.fields.Game,
-
+				X:         tt.fields.X,
+				Y:         tt.fields.Y,
+				Direction: tt.fields.Direction,
+				Game:      tt.fields.Game,
 			}
 			got := p.RequiredMoves(tt.args.forPath, tt.args.opts...)
 			if !reflect.DeepEqual(got, tt.want) {
@@ -650,12 +649,177 @@ func TestPlayer_Apply(t *testing.T) {
 				X:         tt.fields.X,
 				Y:         tt.fields.Y,
 				Direction: tt.fields.Direction,
-				Game: tt.fields.Game,
+				Game:      tt.fields.Game,
 			}
 			p.Apply(tt.args.m)
 			assert.Equal(t, tt.want.X, p.X)
 			assert.Equal(t, tt.want.Y, p.Y)
 			assert.Equal(t, tt.want.Direction, p.Direction)
+		})
+	}
+}
+
+func TestPlayer_FindClosestPlayers(t *testing.T) {
+	type fields struct {
+		X         int
+		Y         int
+		Direction string
+		Game      Game
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   *Player
+	}{
+		{
+			name: "get closest player",
+			fields: fields{
+				X:         1,
+				Y:         1,
+				Direction: "E",
+				Game: Game{
+					Arena: Arena{
+						Width:  7,
+						Height: 5,
+						Grid: [][]Cell{
+							{{Player: &PlayerState{X: 0, Y: 0, Direction: "E"}}, {}, {}, {}, {}, {}, {}},
+							{{}, {Player: &PlayerState{X: 1, Y: 1, Direction: "E"}}, {}, {}, {}, {}, {}},
+							{{}, {}, {}, {}, {}, {}, {}},
+							{{}, {}, {}, {}, {}, {Player: &PlayerState{X: 5, Y: 3, Direction: "E"}}, {}},
+							{{}, {}, {}, {}, {}, {}, {}},
+						},
+					},
+					Players: []PlayerState{
+						{X: 0, Y: 0, Direction: "E"},
+						{X: 1, Y: 1, Direction: "E"},
+						{X: 5, Y: 3, Direction: "E"},
+					},
+				},
+			},
+			want: &Player{
+				X:         0,
+				Y:         0,
+				Direction: "E",
+			},
+		},
+		{
+			name: "no closest player found",
+			fields: fields{
+				X:         1,
+				Y:         1,
+				Direction: "E",
+				Game: Game{
+					Arena: Arena{
+						Width:  7,
+						Height: 5,
+						Grid: [][]Cell{
+							{{}, {}, {}, {}, {}, {}, {}},
+							{{}, {Player: &PlayerState{X: 1, Y: 1, Direction: "E"}}, {}, {}, {}, {}, {}},
+							{{}, {}, {}, {}, {}, {}, {}},
+							{{}, {}, {}, {}, {}, {}, {}},
+							{{}, {}, {}, {}, {}, {}, {}},
+						},
+					},
+					Players: []PlayerState{
+						{X: 1, Y: 1, Direction: "E"},
+					},
+				},
+			},
+			want: nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			p := Player{
+				X:         tt.fields.X,
+				Y:         tt.fields.Y,
+				Direction: tt.fields.Direction,
+				Game:      tt.fields.Game,
+			}
+			got := p.FindClosestPlayers()
+			if tt.want != nil {
+				assert.NotNil(t, got)
+				assert.Equal(t, tt.want.X, got.X)
+				assert.Equal(t, tt.want.Y, got.Y)
+				assert.Equal(t, tt.want.Direction, got.Direction)
+			} else {
+				assert.Nil(t, got)
+			}
+
+		})
+	}
+}
+
+func TestPlayer_CanAttack(t *testing.T) {
+	type fields struct {
+		Name         string
+		X            int
+		Y            int
+		Direction    string
+		WasHit       bool
+		Score        int
+		Game         Game
+		Strategy     Strategy
+		trappedCount int
+	}
+	type args struct {
+		pt Point
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   bool
+	}{
+		{
+			name: "can attack",
+			args: args{pt: Point{2, 1}},
+			fields: fields{
+				X:         1,
+				Y:         1,
+				Direction: "E",
+				Game: Game{
+					Arena: Arena{
+						Width:  7,
+						Height: 5,
+					},
+				},
+			},
+			want: true,
+		},
+		{
+			name: "cant attack",
+			args: args{pt: Point{1, 0}},
+			fields: fields{
+				X:         1,
+				Y:         1,
+				Direction: "E",
+				Game: Game{
+					Arena: Arena{
+						Width:  7,
+						Height: 5,
+					},
+				},
+			},
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			p := Player{
+				Name:         tt.fields.Name,
+				X:            tt.fields.X,
+				Y:            tt.fields.Y,
+				Direction:    tt.fields.Direction,
+				WasHit:       tt.fields.WasHit,
+				Score:        tt.fields.Score,
+				Game:         tt.fields.Game,
+				Strategy:     tt.fields.Strategy,
+				trappedCount: tt.fields.trappedCount,
+			}
+			if got := p.CanAttack(tt.args.pt); got != tt.want {
+				t.Errorf("CanAttack() = %v, want %v", got, tt.want)
+			}
 		})
 	}
 }

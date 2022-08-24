@@ -103,6 +103,7 @@ func (p Player) FindShooterOnDirection(direction Direction) []Player {
 	return filtered
 }
 
+// CanAttack check whether can attack a player in pt
 func (p Player) CanAttack(pt Point) bool {
 	var ptA = p.GetPosition()
 	var ptB = p.GetPosition().TranslateToDirection(attackRange, p.GetDirection())
@@ -303,7 +304,6 @@ func (p Player) MoveToAdjacent(toPt Point) ([]Move, error) {
 }
 
 func (p Player) FindClosestPlayers() *Player {
-
 	distanceCalculator := EuclideanDistance{}
 	var dPairs []dPair
 
