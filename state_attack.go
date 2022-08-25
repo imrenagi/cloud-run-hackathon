@@ -20,18 +20,59 @@ func (a *Attack) Play() Move {
 		// return a.Player.Walk()
 
 		// TODO add test cases buat ini
-		target := a.Player.FindClosestPlayers()
-		if target == nil {
+		targets := a.Player.FindClosestPlayers()
+		if len(targets) == 0 {
 			return Throw
 		}
 
-		aStar := NewAStar(a.Player.Game.Arena,
-			WithIsUnblockFn(func(p Point) bool {
-				return !target.CanAttack(p)
-			}),
-		)
-		path, err := aStar.SearchPath(a.Player.GetPosition(), target.GetPosition())
-		if err != nil {
+		var path Path
+		for _, target := range targets {
+			aStar := NewAStar(a.Player.Game.Arena,
+				WithIsUnblockFn(func(p Point) bool {
+					canHit := target.CanAttack(p)
+					if !target.WasHit {
+						return !canHit
+					}
+
+					right := target.FindShooterOnDirection(target.GetDirection().Right())
+					if len(right) > 0 {
+						rp := right[0]
+						canHit = canHit || rp.CanAttack(p)
+					}
+
+					back := target.FindShooterOnDirection(target.GetDirection().Backward())
+					if len(back) > 0 {
+						bp := back[0]
+						canHit = canHit || bp.CanAttack(p)
+					}
+
+					// TODO add test
+					front := target.FindShooterOnDirection(target.GetDirection())
+					if len(front) > 0 {
+						fp := front[0]
+						canHit = canHit || fp.CanAttack(p)
+					}
+
+					// TODO add test
+					left := target.FindShooterOnDirection(target.GetDirection().Left())
+					if len(left) > 0 {
+						lp := left[0]
+						canHit = canHit || lp.CanAttack(p)
+					}
+					return !canHit
+				}),
+			)
+			var err error
+			path, err = aStar.SearchPath(a.Player.GetPosition(), target.GetPosition())
+			if err != nil {
+				continue
+			}
+			if len(path) > 0 {
+				break
+			}
+		}
+
+		if len(path) == 0 {
 			return a.Player.Walk()
 		}
 
@@ -41,8 +82,5 @@ func (a *Attack) Play() Move {
 		} else {
 			return a.Player.Walk()
 		}
-
-		// TODO hindari attack range lawan
-		// TODO predict user yg kemungkinan masuk ke attack range kita di depan, kiri atau kanan.. kalau ada stop.
 	}
 }

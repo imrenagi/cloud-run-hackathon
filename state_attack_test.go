@@ -218,8 +218,7 @@ func TestAttack_Play_Explore(t *testing.T) {
 			want: TurnLeft,
 		},
 		{
-			name: "should avoid surrounding attack range",
-			skip: true,
+			name: "should avoid surrounding attack range (avoid to get shot)",
 			fields: fields{
 				Player: Player{
 					X:         1,
@@ -229,23 +228,52 @@ func TestAttack_Play_Explore(t *testing.T) {
 						Players: []PlayerState{
 							{X: 0, Y: 0, Direction: "E"},
 							{X: 1, Y: 1, Direction: "W"},
-							{X: 0, Y: 4, Direction: "N"},
+							{X: 0, Y: 3, Direction: "N"},
 						},
 						Arena: Arena{
 							Width:  7,
 							Height: 5,
 							Grid: [][]Cell{
-								{{Player: &PlayerState{X: 0, Y: 0, Direction: "E"}}, {}, {}, {}, {}, {}, {}},
+								{{Player: &PlayerState{X: 0, Y: 0, Direction: "E", WasHit: true}}, {}, {}, {}, {}, {}, {}},
 								{{}, {Player: &PlayerState{X: 1, Y: 1, Direction: "W"}}, {}, {}, {}, {}, {}},
 								{{}, {}, {}, {}, {}, {}, {}},
+								{{Player: &PlayerState{X: 0, Y: 3, Direction: "N"}}, {}, {}, {}, {}, {}, {}},
 								{{}, {}, {}, {}, {}, {}, {}},
-								{{Player: &PlayerState{X: 0, Y: 4, Direction: "N"}}, {}, {}, {}, {}, {}, {}},
 							},
 						},
 					},
 				},
 			},
 			want: TurnLeft,
+		},
+		{
+			name: "should avoid surrounding attack range (avoid to get shot)",
+			fields: fields{
+				Player: Player{
+					X:         2,
+					Y:         1,
+					Direction: "N",
+					Game: Game{
+						Players: []PlayerState{
+							{X: 0, Y: 0, Direction: "E"},
+							{X: 2, Y: 1, Direction: "N"},
+							{X: 3, Y: 0, Direction: "E"},
+						},
+						Arena: Arena{
+							Width:  7,
+							Height: 5,
+							Grid: [][]Cell{
+								{{Player: &PlayerState{X: 0, Y: 0, Direction: "E"}}, {}, {}, {Player: &PlayerState{X: 3, Y: 0, Direction: "E", WasHit: true}}, {}, {}, {}},
+								{{}, {}, {Player: &PlayerState{X: 2, Y: 1, Direction: "N"}}, {}, {}, {}, {}},
+								{{}, {}, {}, {}, {}, {}, {}},
+								{{}, {}, {}, {}, {}, {}, {}},
+								{{}, {}, {}, {}, {}, {}, {}},
+							},
+						},
+					},
+				},
+			},
+			want: TurnRight,
 		},
 		{
 			name: "if probably other player will attack us, instead of taking turn, run away from its range instead",

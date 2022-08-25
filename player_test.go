@@ -669,7 +669,7 @@ func TestPlayer_FindClosestPlayers(t *testing.T) {
 	tests := []struct {
 		name   string
 		fields fields
-		want   *Player
+		want   []Player
 	}{
 		{
 			name: "get closest player",
@@ -696,10 +696,98 @@ func TestPlayer_FindClosestPlayers(t *testing.T) {
 					},
 				},
 			},
-			want: &Player{
-				X:         0,
-				Y:         0,
-				Direction: "E",
+			want: []Player{
+				{
+					X:         0,
+					Y:         0,
+					Direction: "E",
+				},
+				{
+					X:         5,
+					Y:         3,
+					Direction: "E",
+				},
+
+			},
+		},
+		{
+			name: "get closest player",
+			fields: fields{
+				X:         1,
+				Y:         1,
+				Direction: "W",
+				Game: Game{
+					Arena: Arena{
+						Width:  7,
+						Height: 5,
+						Grid: [][]Cell{
+							{{Player: &PlayerState{X: 0, Y: 0, Direction: "E"}}, {}, {}, {}, {}, {}, {}},
+							{{}, {Player: &PlayerState{X: 1, Y: 1, Direction: "W"}}, {}, {}, {}, {}, {}},
+							{{Player: &PlayerState{X: 0, Y: 2, Direction: "E"}}, {}, {}, {}, {}, {}, {}},
+							{{}, {}, {}, {}, {}, {}, {}},
+							{{}, {}, {}, {}, {}, {}, {}},
+						},
+					},
+					Players: []PlayerState{
+						{X: 0, Y: 2, Direction: "E"},
+						{X: 0, Y: 0, Direction: "E"},
+						{X: 1, Y: 1, Direction: "W"},
+
+					},
+				},
+			},
+			want: []Player{
+				{
+					X:         0,
+					Y:         0,
+					Direction: "E",
+				},
+				{
+					X:         0,
+					Y:         2,
+					Direction: "E",
+				},
+
+			},
+		},
+		{
+			name: "get closest player",
+			fields: fields{
+				X:         1,
+				Y:         1,
+				Direction: "N",
+				Game: Game{
+					Arena: Arena{
+						Width:  7,
+						Height: 5,
+						Grid: [][]Cell{
+							{{Player: &PlayerState{X: 0, Y: 0, Direction: "E"}}, {}, {Player: &PlayerState{X: 2, Y: 0, Direction: "E"}}, {}, {}, {}, {}},
+							{{}, {Player: &PlayerState{X: 1, Y: 1, Direction: "N"}}, {}, {}, {}, {}, {}},
+							{{}, {}, {}, {}, {}, {}, {}},
+							{{}, {}, {}, {}, {}, {}, {}},
+							{{}, {}, {}, {}, {}, {}, {}},
+						},
+					},
+					Players: []PlayerState{
+						{X: 2, Y: 0, Direction: "E"},
+						{X: 0, Y: 0, Direction: "E"},
+						{X: 1, Y: 1, Direction: "W"},
+
+					},
+				},
+			},
+			want: []Player{
+				{
+					X:         0,
+					Y:         0,
+					Direction: "E",
+				},
+				{
+					X:         2,
+					Y:         0,
+					Direction: "E",
+				},
+
 			},
 		},
 		{
@@ -737,11 +825,14 @@ func TestPlayer_FindClosestPlayers(t *testing.T) {
 				Game:      tt.fields.Game,
 			}
 			got := p.FindClosestPlayers()
+			assert.Equal(t, len(tt.want), len(got))
 			if tt.want != nil {
-				assert.NotNil(t, got)
-				assert.Equal(t, tt.want.X, got.X)
-				assert.Equal(t, tt.want.Y, got.Y)
-				assert.Equal(t, tt.want.Direction, got.Direction)
+				for idx, res := range got {
+					assert.NotNil(t, got)
+					assert.Equal(t, tt.want[idx].X, res.X)
+					assert.Equal(t, tt.want[idx].Y, res.Y)
+					assert.Equal(t, tt.want[idx].Direction, res.Direction)
+				}
 			} else {
 				assert.Nil(t, got)
 			}

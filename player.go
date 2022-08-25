@@ -303,7 +303,7 @@ func (p Player) MoveToAdjacent(toPt Point) ([]Move, error) {
 	}
 }
 
-func (p Player) FindClosestPlayers() *Player {
+func (p Player) FindClosestPlayers() []Player {
 	distanceCalculator := EuclideanDistance{}
 	var dPairs []dPair
 
@@ -324,8 +324,13 @@ func (p Player) FindClosestPlayers() *Player {
 	}
 
 	sort.Sort(byDistance(dPairs))
-	closestPlayer := dPairs[0].player
-	return p.Game.GetPlayerByPosition(Point{X: closestPlayer.X, Y: closestPlayer.Y})
+	var closestPlayers []Player
+	for _, dp := range dPairs {
+		closestPlayer := dp.player
+		cp := p.Game.GetPlayerByPosition(Point{X: closestPlayer.X, Y: closestPlayer.Y})
+		closestPlayers = append(closestPlayers, *cp)
+	}
+	return closestPlayers
 }
 
 type dPair struct {
@@ -336,5 +341,15 @@ type dPair struct {
 type byDistance []dPair
 
 func (a byDistance) Len() int           { return len(a) }
-func (a byDistance) Less(i, j int) bool { return a[i].distance < a[j].distance }
+func (a byDistance) Less(i, j int) bool {
+	// TODO add test to check the tie
+	if a[i].distance != a[j].distance {
+		return a[i].distance < a[j].distance
+	}
+	if a[i].player.Y != a[j].player.Y {
+		return a[i].player.Y < a[j].player.Y
+	}
+	return a[i].player.X < a[j].player.X
+
+}
 func (a byDistance) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
