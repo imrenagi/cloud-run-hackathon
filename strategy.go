@@ -23,7 +23,16 @@ func (ns *NormalStrategy) Play() Move {
 }
 
 type ChasingStrategy struct {
+	Player *Player
+	Target *Player
+}
 
+func (cs *ChasingStrategy) Play() Move {
+	var state State
+	if cs.Player.WasHit {
+		state = &Escape{Player: cs.Player}
+	}
+	return state.Play()
 }
 
 // lol just idea if we play with swarm bot

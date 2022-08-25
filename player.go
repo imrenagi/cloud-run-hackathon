@@ -342,7 +342,6 @@ type byDistance []dPair
 
 func (a byDistance) Len() int           { return len(a) }
 func (a byDistance) Less(i, j int) bool {
-	// TODO add test to check the tie
 	if a[i].distance != a[j].distance {
 		return a[i].distance < a[j].distance
 	}

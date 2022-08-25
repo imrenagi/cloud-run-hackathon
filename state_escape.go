@@ -17,6 +17,7 @@ func (e *Escape) Play() Move {
 	left := e.Player.FindShooterOnDirection(e.Player.GetDirection().Left())
 	right := e.Player.FindShooterOnDirection(e.Player.GetDirection().Right())
 
+	// TODO hindari escape ke arah orang lagi perang
 
 	var paths []Path // list of possible path
 	validAdjacent := e.Player.Game.Arena.GetAdjacent(e.Player.GetPosition(), WithDiagonalAdjacents(), WithEmptyAdjacent())
