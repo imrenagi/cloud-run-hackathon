@@ -13,6 +13,7 @@ type ArenaUpdate struct {
 }
 
 type PlayerState struct {
+	URL       string `json:"-"`
 	X         int    `json:"x"`
 	Y         int    `json:"y"`
 	Direction string `json:"direction"`
@@ -33,26 +34,16 @@ func (p PlayerState) GetDirection() Direction {
 	}
 }
 
-const (
-	defaultAttackRange int = 3
-)
 
-type GameConfig struct {
-	AttackRange int
-}
 
 type Game struct {
 	Arena            Arena
 	PlayerStateByURL map[string]PlayerState
-	Players          []PlayerState
-	Config           GameConfig
+	LeaderBoard      LeaderBoard
 }
 
 func NewGame() Game {
 	return Game{
-		Config: GameConfig{
-			AttackRange: defaultAttackRange,
-		},
 	}
 }
 
@@ -61,15 +52,16 @@ func (g *Game) UpdateArena(a ArenaUpdate) {
 	height := a.Arena.Dimensions[1]
 	arena := NewArena(width, height)
 
-	g.Players = nil
-	for _, v := range a.Arena.State {
+	g.LeaderBoard = nil
+	for k, v := range a.Arena.State {
+		v.URL = k
 		arena.PutPlayer(v)
-		g.Players = append(g.Players, v)
+		g.LeaderBoard = append(g.LeaderBoard, v)
 	}
 
-	// sort.Sort(byScore(g.Players))
 	g.Arena = arena
 	g.PlayerStateByURL = a.Arena.State
+	g.UpdateLeaderBoard()
 }
 
 func (g Game) Player(url string) *Player {
@@ -89,6 +81,10 @@ func (g Game) Update(player *Player) {
 	player.Game = g
 }
 
+func (g *Game) UpdateLeaderBoard() {
+	g.LeaderBoard.Sort()
+}
+
 func (g Game) GetPlayerStateByPosition(p Point) (PlayerState, bool) {
 	player := g.Arena.Grid[p.Y][p.X].Player
 	if player == nil {
@@ -97,19 +93,21 @@ func (g Game) GetPlayerStateByPosition(p Point) (PlayerState, bool) {
 	return *player, true
 }
 
+// GetPlayerByRank rank starts from 0 (highest rank)
+func (g Game) GetPlayerByRank(rank int) *Player {
+	ps := g.LeaderBoard.GetPlayerByRank(rank)
+	if ps == nil {
+		return nil
+	}
+	return g.GetPlayerByPosition(Point{ps.X, ps.Y})
+}
+
 func (g Game) GetPlayerByPosition(p Point) *Player {
 	pState := g.Arena.Grid[p.Y][p.X].Player
 	if pState == nil {
 		return nil
 	}
-	player := NewPlayer(*pState)
+	player := NewPlayerWithUrl(pState.URL, *pState)
 	player.Game = g
 	return player
 }
-
-// ByAge implements sort.Interface based on the Age field.
-type byScore []PlayerState
-
-func (a byScore) Len() int           { return len(a) }
-func (a byScore) Less(i, j int) bool { return a[i].Score > a[j].Score }
-func (a byScore) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }

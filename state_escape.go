@@ -26,7 +26,8 @@ func (e *Escape) Play() Move {
 		for _, fp := range front {
 			// iterate cuma sampai lokasi player. kalau udah ketemu, lgsg break
 			for _, adj := range validAdjacent {
-				if !fp.CanAttack(adj) {
+				canAttack := fp.CanHitPoint(adj)
+				if !canAttack {
 					newAdjacent = append(newAdjacent, adj)
 				}
 			}
@@ -38,7 +39,7 @@ func (e *Escape) Play() Move {
 		for _, fp := range left {
 			// iterate cuma sampai lokasi player. kalau udah ketemu, lgsg break
 			for _, adj := range validAdjacent {
-				if !fp.CanAttack(adj) {
+				if !fp.CanHitPoint(adj) {
 					newAdjacent = append(newAdjacent, adj)
 				}
 			}
@@ -50,7 +51,7 @@ func (e *Escape) Play() Move {
 		for _, fp := range right {
 			// iterate cuma sampai lokasi player. kalau udah ketemu, lgsg break
 			for _, adj := range validAdjacent {
-				if !fp.CanAttack(adj) {
+				if !fp.CanHitPoint(adj) {
 					newAdjacent = append(newAdjacent, adj)
 				}
 			}

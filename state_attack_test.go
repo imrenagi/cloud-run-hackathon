@@ -113,9 +113,7 @@ func TestAttack_Play(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			a := Attack{
-				Player: &tt.fields.Player,
-			}
+			a := DefaultAttack(&tt.fields.Player)
 			if got := a.Play(); got != tt.want {
 				t.Errorf("Play() = %v, want %v", got, tt.want)
 			}
@@ -144,7 +142,7 @@ func TestAttack_Play_Explore(t *testing.T) {
 					WasHit:    false,
 					Score:     0,
 					Game: Game{
-						Players: []PlayerState{
+						LeaderBoard: []PlayerState{
 							{X: 3, Y: 0, Direction: "S"},
 							{X: 1, Y: 1, Direction: "E"},
 						},
@@ -172,7 +170,7 @@ func TestAttack_Play_Explore(t *testing.T) {
 					WasHit:    false,
 					Score:     0,
 					Game: Game{
-						Players: []PlayerState{
+						LeaderBoard: []PlayerState{
 							{X: 3, Y: 0, Direction: "S"},
 							{X: 2, Y: 1, Direction: "E"},
 						},
@@ -198,7 +196,7 @@ func TestAttack_Play_Explore(t *testing.T) {
 					Y:         1,
 					Direction: "E",
 					Game: Game{
-						Players: []PlayerState{
+						LeaderBoard: []PlayerState{
 							{X: 1, Y: 0, Direction: "S"},
 							{X: 0, Y: 1, Direction: "E"},
 							{X: 1, Y: 2, Direction: "N"},
@@ -225,7 +223,7 @@ func TestAttack_Play_Explore(t *testing.T) {
 					Y:         1,
 					Direction: "W",
 					Game: Game{
-						Players: []PlayerState{
+						LeaderBoard: []PlayerState{
 							{X: 0, Y: 0, Direction: "E"},
 							{X: 1, Y: 1, Direction: "W"},
 							{X: 0, Y: 3, Direction: "N"},
@@ -254,7 +252,7 @@ func TestAttack_Play_Explore(t *testing.T) {
 					Y:         1,
 					Direction: "N",
 					Game: Game{
-						Players: []PlayerState{
+						LeaderBoard: []PlayerState{
 							{X: 0, Y: 0, Direction: "E"},
 							{X: 2, Y: 1, Direction: "N"},
 							{X: 3, Y: 0, Direction: "E"},
@@ -284,7 +282,7 @@ func TestAttack_Play_Explore(t *testing.T) {
 					Y:         1,
 					Direction: "W",
 					Game: Game{
-						Players: []PlayerState{
+						LeaderBoard: []PlayerState{
 							{X: 0, Y: 0, Direction: "E"},
 							{X: 1, Y: 1, Direction: "W"},
 						},
@@ -312,9 +310,7 @@ func TestAttack_Play_Explore(t *testing.T) {
 				t.Skip()
 			}
 
-			a := Attack{
-				Player: &tt.fields.Player,
-			}
+			a := DefaultAttack(&tt.fields.Player)
 			if got := a.Play(); got != tt.want {
 				t.Errorf("Play() = %v, want %v", got, tt.want)
 			}

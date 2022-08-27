@@ -222,7 +222,7 @@ func TestEscape_Play(t *testing.T) {
 					},
 				},
 			},
-			want: WalkForward,
+			want: TurnRight,
 		},
 		{
 			name: "opponent is attacking from the bottom left right and back, player heading west, should turn right",

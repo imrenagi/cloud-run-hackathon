@@ -689,7 +689,7 @@ func TestPlayer_FindClosestPlayers(t *testing.T) {
 							{{}, {}, {}, {}, {}, {}, {}},
 						},
 					},
-					Players: []PlayerState{
+					LeaderBoard: []PlayerState{
 						{X: 0, Y: 0, Direction: "E"},
 						{X: 1, Y: 1, Direction: "E"},
 						{X: 5, Y: 3, Direction: "E"},
@@ -707,7 +707,6 @@ func TestPlayer_FindClosestPlayers(t *testing.T) {
 					Y:         3,
 					Direction: "E",
 				},
-
 			},
 		},
 		{
@@ -728,11 +727,10 @@ func TestPlayer_FindClosestPlayers(t *testing.T) {
 							{{}, {}, {}, {}, {}, {}, {}},
 						},
 					},
-					Players: []PlayerState{
+					LeaderBoard: []PlayerState{
 						{X: 0, Y: 2, Direction: "E"},
 						{X: 0, Y: 0, Direction: "E"},
 						{X: 1, Y: 1, Direction: "W"},
-
 					},
 				},
 			},
@@ -747,7 +745,6 @@ func TestPlayer_FindClosestPlayers(t *testing.T) {
 					Y:         2,
 					Direction: "E",
 				},
-
 			},
 		},
 		{
@@ -768,11 +765,10 @@ func TestPlayer_FindClosestPlayers(t *testing.T) {
 							{{}, {}, {}, {}, {}, {}, {}},
 						},
 					},
-					Players: []PlayerState{
+					LeaderBoard: []PlayerState{
 						{X: 2, Y: 0, Direction: "E"},
 						{X: 0, Y: 0, Direction: "E"},
 						{X: 1, Y: 1, Direction: "W"},
-
 					},
 				},
 			},
@@ -787,7 +783,6 @@ func TestPlayer_FindClosestPlayers(t *testing.T) {
 					Y:         0,
 					Direction: "E",
 				},
-
 			},
 		},
 		{
@@ -808,7 +803,7 @@ func TestPlayer_FindClosestPlayers(t *testing.T) {
 							{{}, {}, {}, {}, {}, {}, {}},
 						},
 					},
-					Players: []PlayerState{
+					LeaderBoard: []PlayerState{
 						{X: 1, Y: 1, Direction: "E"},
 					},
 				},
@@ -841,7 +836,7 @@ func TestPlayer_FindClosestPlayers(t *testing.T) {
 	}
 }
 
-func TestPlayer_CanAttack(t *testing.T) {
+func TestPlayer_CanAttackPoint(t *testing.T) {
 	type fields struct {
 		Name         string
 		X            int
@@ -854,7 +849,8 @@ func TestPlayer_CanAttack(t *testing.T) {
 		trappedCount int
 	}
 	type args struct {
-		pt Point
+		pt   Point
+
 	}
 	tests := []struct {
 		name   string
@@ -864,31 +860,101 @@ func TestPlayer_CanAttack(t *testing.T) {
 	}{
 		{
 			name: "can attack",
-			args: args{pt: Point{2, 1}},
+			args: args{
+				pt: Point{3, 1},
+			},
 			fields: fields{
 				X:         1,
 				Y:         1,
 				Direction: "E",
 				Game: Game{
 					Arena: Arena{
-						Width:  7,
-						Height: 5,
+						Width:  4,
+						Height: 2,
+						Grid: [][]Cell{
+							{{}, {}, {}, {}},
+							{{}, {Player: &PlayerState{X: 1, Y: 1, Direction: "E"}}, {}, {Player: &PlayerState{X: 3, Y: 1, Direction: "W"}}},
+						},
 					},
 				},
 			},
 			want: true,
 		},
 		{
-			name: "cant attack",
-			args: args{pt: Point{1, 0}},
+			name: "can attack even when there is no player",
+			args: args{pt: Point{3, 1}},
 			fields: fields{
 				X:         1,
 				Y:         1,
 				Direction: "E",
 				Game: Game{
 					Arena: Arena{
-						Width:  7,
-						Height: 5,
+						Width:  4,
+						Height: 2,
+						Grid: [][]Cell{
+							{{}, {}, {}, {}},
+							{{}, {Player: &PlayerState{X: 1, Y: 1, Direction: "E"}}, {}, {}},
+						},
+					},
+				},
+			},
+			want: true,
+		},
+		{
+			name: "cant attack because there is other player in attack range",
+			args: args{pt: Point{3, 1}},
+			fields: fields{
+				X:         1,
+				Y:         1,
+				Direction: "E",
+				Game: Game{
+					Arena: Arena{
+						Width:  4,
+						Height: 2,
+						Grid: [][]Cell{
+							{{}, {}, {}, {}},
+							{{}, {Player: &PlayerState{X: 1, Y: 1, Direction: "E"}}, {Player: &PlayerState{X: 2, Y: 1, Direction: "N"}}, {Player: &PlayerState{X: 3, Y: 1, Direction: "W"}}},
+						},
+					},
+				},
+			},
+			want: false,
+		},
+		{
+			name: "cant attack because there is other player in attack range, even when target has no player",
+			args: args{pt: Point{3, 1}},
+			fields: fields{
+				X:         1,
+				Y:         1,
+				Direction: "E",
+				Game: Game{
+					Arena: Arena{
+						Width:  4,
+						Height: 2,
+						Grid: [][]Cell{
+							{{}, {}, {}, {}},
+							{{}, {Player: &PlayerState{X: 1, Y: 1, Direction: "E"}}, {Player: &PlayerState{X: 2, Y: 1, Direction: "N"}}, {}},
+						},
+					},
+				},
+			},
+			want: false,
+		},
+		{
+			name: "cant attack because outside range",
+			args: args{pt: Point{3, 1}},
+			fields: fields{
+				X:         1,
+				Y:         1,
+				Direction: "N",
+				Game: Game{
+					Arena: Arena{
+						Width:  4,
+						Height: 2,
+						Grid: [][]Cell{
+							{{}, {}, {}, {}},
+							{{}, {Player: &PlayerState{X: 1, Y: 1, Direction: "N"}}, {}, {Player: &PlayerState{X: 3, Y: 1, Direction: "W"}}},
+						},
 					},
 				},
 			},
@@ -908,8 +974,72 @@ func TestPlayer_CanAttack(t *testing.T) {
 				Strategy:     tt.fields.Strategy,
 				trappedCount: tt.fields.trappedCount,
 			}
-			if got := p.CanAttack(tt.args.pt); got != tt.want {
-				t.Errorf("CanAttack() = %v, want %v", got, tt.want)
+			if got := p.CanHitPoint(tt.args.pt); got != tt.want {
+				t.Errorf("CanHitPoint() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestPlayer_GetRank(t *testing.T) {
+
+	type fields struct {
+		Name string
+		X    int
+		Y    int
+		Game Game
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   int
+	}{
+		{
+			name: "should get my rank",
+			fields: fields{
+				Name: "http://testing1",
+				Game: Game{
+					LeaderBoard: []PlayerState{
+						{
+							URL:       "http://testing2",
+							X:         1,
+							Y:         2,
+							Direction: "E",
+							WasHit:    false,
+							Score:     4,
+						},
+						{
+							URL:       "http://testing3",
+							X:         2,
+							Y:         2,
+							Direction: "E",
+							WasHit:    false,
+							Score:     4,
+						},
+						{
+							URL:       "http://testing1",
+							X:         3,
+							Y:         2,
+							Direction: "E",
+							WasHit:    false,
+							Score:     2,
+						},
+					},
+				},
+			},
+			want: 2,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			p := Player{
+				Name: tt.fields.Name,
+				X:    tt.fields.X,
+				Y:    tt.fields.Y,
+				Game: tt.fields.Game,
+			}
+			if got := p.GetRank(); got != tt.want {
+				t.Errorf("GetRank() = %v, want %v", got, tt.want)
 			}
 		})
 	}

@@ -98,7 +98,7 @@ func TestGame_UpdateArena(t *testing.T) {
 						Score:     10,
 					},
 				},
-				Players: []PlayerState{
+				LeaderBoard: []PlayerState{
 					{
 						X:         2,
 						Y:         2,
@@ -119,9 +119,6 @@ func TestGame_UpdateArena(t *testing.T) {
 						Score:     1,
 					},
 				},
-				Config: GameConfig{
-					AttackRange: 3,
-				},
 			},
 		},
 	}
@@ -130,6 +127,110 @@ func TestGame_UpdateArena(t *testing.T) {
 			g := NewGame()
 			g.UpdateArena(tt.args.a)
 			assert.Equal(t, tt.want, g)
+		})
+	}
+}
+
+func TestGame_GetPlayerByRank(t *testing.T) {
+	type fields struct {
+		Arena            Arena
+		PlayerStateByURL map[string]PlayerState
+		Players          LeaderBoard
+	}
+	type args struct {
+		rank int
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   *Player
+	}{
+		{
+			name: "should get correct player",
+			fields: fields{
+				Arena:            Arena{
+					Width:  5,
+					Height: 3,
+					Grid:   [][]Cell{
+						{{}, {}, {}, {}, {}},
+						{{}, {}, {}, {}, {}},
+						{{}, {Player: &PlayerState{
+							URL:       "http://testing2",
+							X:         1,
+							Y:         2,
+							Direction: "E",
+							WasHit:    false,
+							Score:     4,
+						}}, {Player: &PlayerState{
+							URL:       "http://testing3",
+							X:         2,
+							Y:         2,
+							Direction: "E",
+							WasHit:    false,
+							Score:     4,
+						}}, {Player: &PlayerState{
+							URL:       "http://testing1",
+							X:         3,
+							Y:         2,
+							Direction: "E",
+							WasHit:    false,
+							Score:     2,
+						}}, {}},
+					},
+				},
+				Players: []PlayerState{
+					{
+						URL:       "http://testing2",
+						X:         1,
+						Y:         2,
+						Direction: "E",
+						WasHit:    false,
+						Score:     4,
+					},
+					{
+						URL:       "http://testing3",
+						X:         2,
+						Y:         2,
+						Direction: "E",
+						WasHit:    false,
+						Score:     4,
+					},
+					{
+						URL:       "http://testing1",
+						X:         3,
+						Y:         2,
+						Direction: "E",
+						WasHit:    false,
+						Score:     2,
+					},
+				},
+			},
+			args: args{
+				rank: 1,
+			},
+			want: &Player{
+				Name:         "http://testing3",
+				X:            2,
+				Y:            2,
+				Direction:    "E",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			g := Game{
+				Arena:            tt.fields.Arena,
+				PlayerStateByURL: tt.fields.PlayerStateByURL,
+				LeaderBoard:      tt.fields.Players,
+			}
+			got := g.GetPlayerByRank(tt.args.rank)
+			if tt.want != nil {
+				assert.Equal(t, tt.want.Name, got.Name)
+				assert.Equal(t, tt.want.X, got.X)
+				assert.Equal(t, tt.want.Y, got.Y)
+				assert.Equal(t, tt.want.Direction, got.Direction)
+			}
 		})
 	}
 }
