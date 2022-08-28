@@ -1,5 +1,7 @@
 package main
 
+import "context"
+
 func NewBrutalChasing(target *Player) *BrutalChasingStrategy {
 	return &BrutalChasingStrategy{Target: target}
 }
@@ -10,13 +12,15 @@ type BrutalChasingStrategy struct {
 	Target *Player
 }
 
-func (cs *BrutalChasingStrategy) Play(p *Player) Move {
+func (cs *BrutalChasingStrategy) Play(ctx context.Context, p *Player) Move {
+	ctx, span := tracer.Start(ctx, "BrutalChasingStrategy.Play")
+	defer span.End()
 	p.ChangeState(&Chasing{
 		Player:              p,
 		Target:              cs.Target,
 		ExplorationStrategy: &TargetedEnemy{Target: cs.Target},
 	})
-	return p.State.Play()
+	return p.State.Play(ctx)
 }
 
 func NewSafeChasing(target *Player) *SafeChasingStrategy {
@@ -29,7 +33,9 @@ type SafeChasingStrategy struct {
 	Target *Player
 }
 
-func (cs *SafeChasingStrategy) Play(p *Player) Move {
+func (cs *SafeChasingStrategy) Play(ctx context.Context, p *Player) Move {
+	ctx, span := tracer.Start(ctx, "SafeChasingStrategy.Play")
+	defer span.End()
 	p.ChangeState(&Attack{
 		Player:              p,
 		ExplorationStrategy: &TargetedEnemy{Target: cs.Target},
@@ -37,5 +43,5 @@ func (cs *SafeChasingStrategy) Play(p *Player) Move {
 	if p.WasHit {
 		p.ChangeState(&Escape{Player: p})
 	}
-	return p.State.Play()
+	return p.State.Play(ctx)
 }

@@ -155,6 +155,8 @@ func (s Server) Healthcheck() http.HandlerFunc {
 
 func (s Server) UpdateArena() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		ctx, span := tracer.Start(r.Context(), "Server.UpdateArena")
+		defer span.End()
 		if r.Method == http.MethodGet {
 			log.Debug().Msg("Let the battle begin!")
 			fmt.Fprint(w, "Let the battle begin!")
@@ -170,21 +172,20 @@ func (s Server) UpdateArena() http.HandlerFunc {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-
-		resp := s.Play(v)
+		resp := s.Play(ctx, v)
 		fmt.Fprint(w, resp)
 	}
 }
 
-func (s *Server) Play(v ArenaUpdate) Move {
+func (s *Server) Play(ctx context.Context, v ArenaUpdate) Move {
 	s.game = NewGame()
-	s.game.UpdateArena(v)
+	s.game.UpdateArena(ctx, v)
 	if s.player == nil {
 		s.player = s.game.Player(v.Links.Self.Href)
 	} else {
 		s.game.Update(s.player)
 	}
-	return s.player.Play()
+	return s.player.Play(ctx)
 	// topRank := s.game.LeaderBoard[0]
 	// target := s.game.GetPlayerByPosition(Point{topRank.X, topRank.Y})
 	// return s.player.Chase(s.player.GetHighestRank())

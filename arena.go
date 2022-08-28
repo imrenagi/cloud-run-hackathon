@@ -1,10 +1,15 @@
 package main
 
+import "context"
+
 type Grid [][]Cell
 
 // A Utility Function to check whether the given cell is
 // blocked or not
-func (g Grid) IsUnblock(p Point) bool {
+func (g Grid) IsUnblock(ctx context.Context, p Point) bool {
+	ctx, span := tracer.Start(ctx, "Grid.IsUnblock")
+	defer span.End()
+
 	return g[p.Y][p.X].Player == nil
 }
 
@@ -45,7 +50,7 @@ func (a *Arena) GetPlayer(pt Point) *PlayerState {
 }
 
 // Traverse with BFS
-func (a Arena) Traverse(start Point) []Point {
+func (a Arena) Traverse(ctx context.Context, start Point) []Point {
 	var traversedNode []Point
 
 	visited := make([]bool, a.Width*a.Height)
@@ -60,7 +65,7 @@ func (a Arena) Traverse(start Point) []Point {
 		pt := queue[0]
 		traversedNode = append(traversedNode, pt)
 		queue = queue[1:]
-		adjancentNodes := a.GetAdjacent(pt, WithDiagonalAdjacents())
+		adjancentNodes := a.GetAdjacent(ctx, pt, WithDiagonalAdjacents())
 		for _, n := range adjancentNodes {
 			if !visited[n.Y*a.Width+n.X] {
 				visited[n.Y*a.Width+n.X] = true
@@ -91,7 +96,10 @@ func WithEmptyAdjacent() AdjacentOption {
 	}
 }
 
-func (a Arena) GetAdjacent(p Point, opts ...AdjacentOption) []Point {
+func (a Arena) GetAdjacent(ctx context.Context, p Point, opts ...AdjacentOption) []Point {
+	ctx, span := tracer.Start(ctx, "Arena.GetAdjacent")
+	defer span.End()
+
 	options := &AdjacentOptions{}
 	for _, o := range opts {
 		o(options)
@@ -110,7 +118,7 @@ func (a Arena) GetAdjacent(p Point, opts ...AdjacentOption) []Point {
 				if !p.IsInArena(a) {
 					continue
 				}
-				if options.OnlyEmptyCell && !a.Grid.IsUnblock(p) {
+				if options.OnlyEmptyCell && !a.Grid.IsUnblock(ctx, p) {
 					continue
 				}
 				adj = append(adj, p)

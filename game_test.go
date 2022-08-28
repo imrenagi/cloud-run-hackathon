@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -125,7 +126,7 @@ func TestGame_UpdateArena(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			g := NewGame()
-			g.UpdateArena(tt.args.a)
+			g.UpdateArena(context.TODO(), tt.args.a)
 			assert.Equal(t, tt.want, g)
 		})
 	}
@@ -393,7 +394,7 @@ func TestGame_ObstacleMap(t *testing.T) {
 				PlayerStateByURL: tt.fields.PlayerStateByURL,
 				LeaderBoard:      tt.fields.LeaderBoard,
 			}
-			got := g.ObstacleMap()
+			got := g.ObstacleMap(context.TODO())
 			assert.Equal(t, tt.want, got)
 		})
 	}

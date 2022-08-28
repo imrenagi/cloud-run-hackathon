@@ -1,5 +1,7 @@
 package main
 
+import "context"
+
 type Exploration interface {
-	Explore(p *Player) Move
+	Explore(ctx context.Context, p *Player) Move
 }

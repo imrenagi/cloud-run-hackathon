@@ -1,6 +1,10 @@
 package main
 
-import "github.com/rs/zerolog/log"
+import (
+	"context"
+
+	"github.com/rs/zerolog/log"
+)
 
 func NewChasing(p *Player, target *Player) State {
 	return &Chasing{
@@ -16,10 +20,13 @@ type Chasing struct {
 	ExplorationStrategy Exploration
 }
 
-func (c *Chasing) Play() Move {
-	if c.Player.CanHitPoint(c.Target.GetPosition()) {
+func (c *Chasing) Play(ctx context.Context) Move {
+	ctx, span := tracer.Start(ctx, "Chasing.Play")
+	defer span.End()
+
+	if c.Player.CanHitPoint(ctx, c.Target.GetPosition()) {
 		log.Debug().Msg("attack")
 		return Throw
 	}
-	return c.ExplorationStrategy.Explore(c.Player)
+	return c.ExplorationStrategy.Explore(ctx, c.Player)
 }

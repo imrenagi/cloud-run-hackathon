@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"reflect"
 	"testing"
 
@@ -93,7 +94,7 @@ func TestPlayerState_Walk(t *testing.T) {
 				Score:     tt.fields.Score,
 				Game:      tt.fields.Game,
 			}
-			if got := p.Walk(); got != tt.want {
+			if got := p.Walk(context.TODO()); got != tt.want {
 				t.Errorf("Walk() = %v, want %v", got, tt.want)
 			}
 		})
@@ -199,7 +200,7 @@ func TestPlayerState_GetPlayersInFront(t *testing.T) {
 				Score:     tt.fields.Score,
 				Game:      tt.fields.Game,
 			}
-			if got := p.GetPlayersInRange(tt.args.direction, 3); len(got) != tt.want {
+			if got := p.GetPlayersInRange(context.TODO(), tt.args.direction, 3); len(got) != tt.want {
 				t.Errorf("GetPlayersInRange() = %v, want %v", got, tt.want)
 			}
 		})
@@ -353,7 +354,7 @@ func TestPlayerState_FindShooterFromDirection(t *testing.T) {
 				Score:     tt.fields.Score,
 				Game:      tt.fields.Game,
 			}
-			got := p.FindShooterOnDirection(tt.args.direction)
+			got := p.FindShooterOnDirection(context.TODO(), tt.args.direction)
 			assert.Equal(t, len(tt.want), len(got))
 			for i, p := range tt.want {
 				assert.Equal(t, p.X, tt.want[i].X)
@@ -548,7 +549,7 @@ func TestPlayer_NextMove(t *testing.T) {
 				Direction: tt.fields.Direction,
 				Game:      tt.fields.Game,
 			}
-			got := p.RequiredMoves(tt.args.forPath, tt.args.opts...)
+			got := p.RequiredMoves(context.TODO(), tt.args.forPath, tt.args.opts...)
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("RequiredMoves() got = %v, want %v", got, tt.want)
 			}
@@ -819,7 +820,7 @@ func TestPlayer_FindClosestPlayers(t *testing.T) {
 				Direction: tt.fields.Direction,
 				Game:      tt.fields.Game,
 			}
-			got := p.FindClosestPlayers()
+			got := p.FindClosestPlayers(context.TODO())
 			assert.Equal(t, len(tt.want), len(got))
 			if tt.want != nil {
 				for idx, res := range got {
@@ -974,7 +975,7 @@ func TestPlayer_CanAttackPoint(t *testing.T) {
 				Strategy:     tt.fields.Strategy,
 				trappedCount: tt.fields.trappedCount,
 			}
-			if got := p.CanHitPoint(tt.args.pt); got != tt.want {
+			if got := p.CanHitPoint(context.TODO(), tt.args.pt); got != tt.want {
 				t.Errorf("CanHitPoint() = %v, want %v", got, tt.want)
 			}
 		})

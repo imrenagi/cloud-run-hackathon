@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"testing"
 )
 
@@ -114,7 +115,7 @@ func TestAttack_Play(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			a := DefaultAttack(&tt.fields.Player)
-			if got := a.Play(); got != tt.want {
+			if got := a.Play(context.TODO()); got != tt.want {
 				t.Errorf("Play() = %v, want %v", got, tt.want)
 			}
 		})
@@ -311,7 +312,7 @@ func TestAttack_Play_Explore(t *testing.T) {
 			}
 
 			a := DefaultAttack(&tt.fields.Player)
-			if got := a.Play(); got != tt.want {
+			if got := a.Play(context.TODO()); got != tt.want {
 				t.Errorf("Play() = %v, want %v", got, tt.want)
 			}
 		})
