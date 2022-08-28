@@ -1,9 +1,17 @@
 package exporter
 
 import (
-	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
+	"log"
+	"os"
+
+	texporter "github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/trace"
 )
 
-func NewGCP(endpoint string) *otlptrace.Exporter {
-	return nil
+func NewGCP() *texporter.Exporter {
+	projectID := os.Getenv("GOOGLE_CLOUD_PROJECT")
+	exporter, err := texporter.New(texporter.WithProjectID(projectID))
+	if err != nil {
+		log.Fatalf("texporter.New: %v", err)
+	}
+	return exporter
 }

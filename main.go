@@ -16,10 +16,13 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/sdk/trace"
 
 	ttrace "github.com/imrenagi/cloud-run-hackathon-go/internal/telemetry/trace"
 	"github.com/imrenagi/cloud-run-hackathon-go/internal/telemetry/trace/exporter"
 )
+
+var tracer = otel.Tracer("github.com/imrenagi/cloud-run-hackathon-go")
 
 func init() {
 	// zerolog.SetGlobalLevel(zerolog.Disabled)
@@ -188,7 +191,14 @@ func (s *Server) Play(v ArenaUpdate) Move {
 }
 
 func (s *Server) initGlobalProvider(name, endpoint string) {
-	spanExporter := exporter.NewOTLP(endpoint)
+	var spanExporter trace.SpanExporter
+	if _, isCloudRun := os.LookupEnv("K_SERVICE"); isCloudRun {
+		log.Debug().Msgf("use google exporter")
+		spanExporter = exporter.NewGCP()
+	} else {
+		log.Debug().Msgf("use otlp exporter")
+		spanExporter = exporter.NewOTLP(endpoint)
+	}
 	tracerProvider, tracerProviderCloseFn, err := ttrace.NewTraceProviderBuilder(name).
 		SetExporter(spanExporter).
 		Build()
