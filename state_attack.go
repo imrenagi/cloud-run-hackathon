@@ -1,9 +1,18 @@
 package main
 
+// DefaultAttack attack closest players
 func DefaultAttack(p *Player) State {
 	return &Attack{
 		Player:              p,
 		ExplorationStrategy: &ClosestEnemy{},
+	}
+}
+
+// TargetedAttack should attack in normal cases, but when exploring it tries to search for the target
+func TargetedAttack(p *Player) State {
+	return &Attack{
+		Player:              p,
+		ExplorationStrategy: &TargetedEnemy{},
 	}
 }
 
@@ -26,6 +35,8 @@ func (a *Attack) Play() Move {
 		// TODO check whether opponent is already targeting us
 		return TurnRight
 	} else {
+		// TODO attack should be able to use closest/targeted
 		return a.ExplorationStrategy.Explore(a.Player)
 	}
 }
+

@@ -1,23 +1,41 @@
 package main
 
-func NewChasingStrategy(target *Player) *ChasingStrategy {
-	return &ChasingStrategy{Target: target}
+func NewBrutalChasing(target *Player) *BrutalChasingStrategy {
+	return &BrutalChasingStrategy{Target: target}
 }
 
-type ChasingStrategy struct {
+// BrutalChasingStrategy chases the player and ignore any attack.
+// This fits for kroco implementation
+type BrutalChasingStrategy struct {
 	Target *Player
 }
 
-func (cs *ChasingStrategy) Play(p *Player) Move {
-
-	// TODO attacknya normal, tapi explore target.
+func (cs *BrutalChasingStrategy) Play(p *Player) Move {
 	p.ChangeState(&Chasing{
 		Player:              p,
 		Target:              cs.Target,
 		ExplorationStrategy: &TargetedEnemy{Target: cs.Target},
 	})
-	// if p.WasHit {
-	// 	p.ChangeState(&Escape{Player: p})
-	// }
+	return p.State.Play()
+}
+
+func NewSafeChasing(target *Player) *SafeChasingStrategy {
+	return &SafeChasingStrategy{Target: target}
+}
+
+// SafeChasingStategy attack normally but when exploring try to search for
+// target
+type SafeChasingStrategy struct {
+	Target *Player
+}
+
+func (cs *SafeChasingStrategy) Play(p *Player) Move {
+	p.ChangeState(&Attack{
+		Player:              p,
+		ExplorationStrategy: &TargetedEnemy{Target: cs.Target},
+	})
+	if p.WasHit {
+		p.ChangeState(&Escape{Player: p})
+	}
 	return p.State.Play()
 }

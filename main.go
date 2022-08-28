@@ -11,8 +11,16 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
+
+func init() {
+	// zerolog.SetGlobalLevel(zerolog.Disabled)
+	zerolog.LevelFieldName = "severity"
+	zerolog.TimestampFieldName = "timestamp"
+	zerolog.TimeFieldFormat = time.RFC3339Nano
+}
 
 func main() {
 	port := "8080"
@@ -54,7 +62,8 @@ func NewServer() *Server {
 }
 
 func (s *Server) routes() {
-	s.Router.Handle("/", s.UpdateArena())
+	s.Router.Handle("/", s.UpdateArena()).Methods("POST")
+	s.Router.Handle("/", s.Healthcheck()).Methods("GET")
 	s.Router.Handle("/reset", s.Reset())
 }
 
@@ -104,6 +113,16 @@ func (s Server) Reset() http.HandlerFunc {
 	}
 }
 
+func (s Server) Healthcheck() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet {
+			log.Debug().Msg("Let the battle begin!")
+			fmt.Fprint(w, "Let the battle begin!")
+			return
+		}
+	}
+}
+
 func (s Server) UpdateArena() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet {
@@ -135,8 +154,8 @@ func (s *Server) Play(v ArenaUpdate) Move {
 	} else {
 		s.game.Update(s.player)
 	}
-	// return s.player.Play()
+	return s.player.Play()
 	// topRank := s.game.LeaderBoard[0]
 	// target := s.game.GetPlayerByPosition(Point{topRank.X, topRank.Y})
-	return s.player.Chase(s.player.GetHighestRank())
+	// return s.player.Chase(s.player.GetHighestRank())
 }

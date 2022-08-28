@@ -2,6 +2,7 @@
 gcloud run deploy go-bot-tanding-01 \
   --project=cloudrun-hackathon-359002 \
   --region=us-central1 \
+  --set-env-vars=WHITELISTED_URLS=https://waterfight-staging-02-x2wnjf2lxq-uc.a.run.app \
   --allow-unauthenticated --source=.
 #
 #gcloud run deploy go-bot-tanding-06 \

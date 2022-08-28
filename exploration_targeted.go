@@ -1,5 +1,7 @@
 package main
 
+import "github.com/rs/zerolog/log"
+
 type TargetedEnemy struct {
 	Target *Player
 }
@@ -12,10 +14,14 @@ func (t *TargetedEnemy) Explore(p *Player) Move {
 		// TODO what happened when target is nil
 		return Throw
 	}
+	log.Debug().
+		Str("name", t.Target.Name).
+		Int("x", t.Target.X).
+		Int("y", t.Target.Y).
+		Msgf("target")
 
 	var path Path
 	aStar := NewAStar(p.Game.Arena,
-		// WithIsUnblockFn(ObstacleMapFn(p)),
 		WithIsUnblockFn(CheckTargetSurroundingAttackRangeFn(*t.Target)),
 	)
 	var err error

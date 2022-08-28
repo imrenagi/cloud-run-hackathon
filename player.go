@@ -63,12 +63,24 @@ func (p Player) Clone() Player {
 }
 
 func (p *Player) Play() Move {
-	s := DefaultStrategy()
-	return s.Play(p)
+	// TODO kalah latency
+	rank := p.Game.LeaderBoard.GetRank(*p)
+	if rank == 0 {
+		p.Strategy = DefaultStrategy()
+	} else if rank >= 1 && rank < 3 {
+		target := p.GetPlayerOnNextPodium()
+		// TODO new safe chasing ini jangan pakai logic Attack state.
+		// tapi sebisa mungkin cari playernya sampai ketemu
+		p.Strategy = NewSafeChasing(target)
+	} else {
+		p.Strategy = DefaultStrategy()
+	}
+
+	return p.Strategy.Play(p)
 }
 
 func (p *Player) Chase(target *Player) Move {
-	s := NewChasingStrategy(target)
+	s := NewBrutalChasing(target)
 	return s.Play(p)
 }
 
@@ -124,6 +136,15 @@ func (p Player) GetHighestRank() *Player {
 		return target
 	}
 	return nil
+}
+
+func (p Player) GetPlayerOnNextPodium() *Player {
+	myRank := p.Game.LeaderBoard.GetRank(p)
+	if myRank == 0 {
+		return nil
+	}
+	ps := p.Game.LeaderBoard.GetPlayerByRank(myRank - 1)
+	return p.Game.GetPlayerByPosition(Point{ps.X, ps.Y})
 }
 
 // FindShooterOnDirection return other players which are in attach range and heading toward the player

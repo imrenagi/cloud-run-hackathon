@@ -115,7 +115,6 @@ func (as *AStar) SearchPath(src, dest Point) (Path, error) {
 
 	// If the destination cell is the same as source cell
 	if src.Equal(dest) {
-		log.Info().Msg("We are already at the destination")
 		return nil, nil
 	}
 

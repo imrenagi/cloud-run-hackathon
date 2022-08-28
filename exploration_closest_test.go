@@ -74,6 +74,62 @@ func TestCheckTargetSurroundingAttackRangeFn(t *testing.T) {
 			want: false,
 		},
 		{
+			name: "should not be blocked if there is player but outside attack range",
+			args: args{
+				target: Player{
+					X:         1,
+					Y:         2,
+					WasHit: true,
+					Direction: "W",
+					Game: Game{
+						LeaderBoard: []PlayerState{
+							{X: 1, Y: 0, Direction: "S"},
+							{X: 1, Y: 2, Direction: "W"},
+						},
+						Arena: Arena{
+							Width:  4,
+							Height: 3,
+							Grid: [][]Cell{
+								{{}, {Player: &PlayerState{X: 1, Y: 0, Direction: "S"}}, {}, {}},
+								{{}, {}, {}, {}},
+								{{}, {Player: &PlayerState{X: 1, Y: 2, Direction: "W"}}, {}, {}},
+							},
+						},
+					},
+				},
+			},
+			fnArgs: fnArgs{p: Point{0, 1}},
+			want: true,
+		},
+		{
+			name: "should be blocked if there is player but outside attack range",
+			args: args{
+				target: Player{
+					X:         1,
+					Y:         2,
+					Direction: "W",
+					Game: Game{
+						LeaderBoard: []PlayerState{
+							{X: 0, Y: 1, Direction: "S"},
+							{X: 1, Y: 0, Direction: "S"},
+							{X: 1, Y: 2, Direction: "W"},
+						},
+						Arena: Arena{
+							Width:  4,
+							Height: 3,
+							Grid: [][]Cell{
+								{{}, {Player: &PlayerState{X: 1, Y: 0, Direction: "S"}}, {}, {}},
+								{{Player: &PlayerState{X: 0, Y: 1, Direction: "S"}}, {}, {}, {}},
+								{{}, {Player: &PlayerState{X: 1, Y: 2, Direction: "W"}}, {}, {}},
+							},
+						},
+					},
+				},
+			},
+			fnArgs: fnArgs{p: Point{0, 1}},
+			want: false,
+		},
+		{
 			name: "there is other player in left-side of the target attacking the point",
 			args: args{
 				target: Player{
