@@ -13,6 +13,12 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
+
+	ttrace "github.com/imrenagi/cloud-run-hackathon-go/internal/telemetry/trace"
+	"github.com/imrenagi/cloud-run-hackathon-go/internal/telemetry/trace/exporter"
 )
 
 func init() {
@@ -51,17 +57,29 @@ type Server struct {
 
 	game   Game
 	player *Player
+
+	traceProviderCloseFn  []ttrace.CloseFunc
 }
+
+const (
+	name = "waterfight-server"
+)
 
 func NewServer() *Server {
 	srv := &Server{
 		Router: mux.NewRouter(),
 	}
 	srv.routes()
+
+	// OTEL_RECEIVER_OTLP_ENDPOINT=localhost:4317
+	// TODO do not hardcode
+	srv.initGlobalProvider(name, "localhost:4317")
+
 	return srv
 }
 
 func (s *Server) routes() {
+	s.Router.Use(otelmux.Middleware(name))
 	s.Router.Handle("/", s.UpdateArena()).Methods("POST")
 	s.Router.Handle("/", s.Healthcheck()).Methods("GET")
 	s.Router.Handle("/reset", s.Reset())
@@ -101,6 +119,15 @@ func (s *Server) Run(ctx context.Context, port string) error {
 
 	if err == http.ErrServerClosed {
 		err = nil
+	}
+
+	for _, closeFn := range s.traceProviderCloseFn {
+		go func() {
+			err = closeFn(ctxShutDown)
+			if err != nil {
+				log.Error().Err(err).Msgf("Unable to close trace provider")
+			}
+		}()
 	}
 
 	return err
@@ -158,4 +185,19 @@ func (s *Server) Play(v ArenaUpdate) Move {
 	// topRank := s.game.LeaderBoard[0]
 	// target := s.game.GetPlayerByPosition(Point{topRank.X, topRank.Y})
 	// return s.player.Chase(s.player.GetHighestRank())
+}
+
+func (s *Server) initGlobalProvider(name, endpoint string) {
+	spanExporter := exporter.NewOTLP(endpoint)
+	tracerProvider, tracerProviderCloseFn, err := ttrace.NewTraceProviderBuilder(name).
+		SetExporter(spanExporter).
+		Build()
+	if err != nil {
+		log.Fatal().Err(err).Msgf("failed initializing the tracer provider")
+	}
+	s.traceProviderCloseFn = append(s.traceProviderCloseFn, tracerProviderCloseFn)
+
+	// set global propagator to tracecontext (the default is no-op).
+	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
+	otel.SetTracerProvider(tracerProvider)
 }
