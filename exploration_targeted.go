@@ -6,7 +6,7 @@ type TargetedEnemy struct {
 
 func (t *TargetedEnemy) Explore(p *Player) Move {
 
-	// kalau target di serang sama semua orang, cari aja target lain
+	// TODO kalau target di serang sama semua orang, cari aja target lain karena gak perlu kita serang lagi. biar orang lain.
 
 	if t.Target == nil {
 		// TODO what happened when target is nil
@@ -15,7 +15,7 @@ func (t *TargetedEnemy) Explore(p *Player) Move {
 
 	var path Path
 	aStar := NewAStar(p.Game.Arena,
-		// TODO this must try to find the safest path as possible
+		// WithIsUnblockFn(ObstacleMapFn(p)),
 		WithIsUnblockFn(CheckTargetSurroundingAttackRangeFn(*t.Target)),
 	)
 	var err error
@@ -34,5 +34,15 @@ func (t *TargetedEnemy) Explore(p *Player) Move {
 		return moves[0]
 	} else {
 		return p.Walk()
+	}
+}
+
+func ObstacleMapFn(player *Player) IsUnblockFn {
+	return func(p Point) bool {
+		if !player.Game.Arena.IsValid(p) {
+			return false
+		}
+		obstacleMap := player.Game.ObstacleMap()
+		return obstacleMap[p.Y][p.X]
 	}
 }

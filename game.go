@@ -34,13 +34,15 @@ func (p PlayerState) GetDirection() Direction {
 	}
 }
 
-
-
 type Game struct {
 	Arena            Arena
 	PlayerStateByURL map[string]PlayerState
 	LeaderBoard      LeaderBoard
 }
+
+const (
+	defaultAttackRange int = 3
+)
 
 func NewGame() Game {
 	return Game{
@@ -110,4 +112,77 @@ func (g Game) GetPlayerByPosition(p Point) *Player {
 	player := NewPlayerWithUrl(pState.URL, *pState)
 	player.Game = g
 	return player
+}
+
+// ObstacleMap return map which denotes whether a cell adalah obstacle or not
+func (g Game) ObstacleMap() [][]bool {
+	m := make([][]bool, g.Arena.Height)
+	for i, _ := range m {
+		row := make([]bool, g.Arena.Width)
+		m[i] = row
+	}
+
+	for _, ps := range g.PlayerStateByURL {
+		if !ps.WasHit {
+			m[ps.Y][ps.X] = true
+			continue
+		}
+
+		player := g.GetPlayerByPosition(Point{ps.X, ps.Y})
+		if player == nil {
+			// TODO warning
+			continue
+		}
+
+		// TODO seems like redundant code
+		left := player.FindShooterOnDirection(player.GetDirection().Left())
+		for _, l := range left {
+			npt := l.GetPosition()
+			for ctr := 0; ctr < defaultAttackRange; ctr++ {
+				npt = npt.TranslateToDirection(1, l.GetDirection())
+				if !g.Arena.IsValid(npt) {
+					break
+				}
+				m[npt.Y][npt.X] = m[npt.Y][npt.X] || l.CanHitPoint(npt)
+			}
+		}
+
+		front := player.FindShooterOnDirection(player.GetDirection())
+		for _, l := range front {
+			npt := l.GetPosition()
+			for ctr := 0; ctr < defaultAttackRange; ctr++ {
+				npt = npt.TranslateToDirection(1, l.GetDirection())
+				if !g.Arena.IsValid(npt) {
+					break
+				}
+				m[npt.Y][npt.X] = m[npt.Y][npt.X] || l.CanHitPoint(npt)
+			}
+		}
+
+		back := player.FindShooterOnDirection(player.GetDirection().Backward())
+		for _, l := range back {
+			npt := l.GetPosition()
+			for ctr := 0; ctr < defaultAttackRange; ctr++ {
+				npt = npt.TranslateToDirection(1, l.GetDirection())
+				if !g.Arena.IsValid(npt) {
+					break
+				}
+				m[npt.Y][npt.X] = m[npt.Y][npt.X] || l.CanHitPoint(npt)
+			}
+		}
+
+		right := player.FindShooterOnDirection(player.GetDirection().Right())
+		for _, l := range right {
+			npt := l.GetPosition()
+			for ctr := 0; ctr < defaultAttackRange; ctr++ {
+				npt = npt.TranslateToDirection(1, l.GetDirection())
+				if !g.Arena.IsValid(npt) {
+					break
+				}
+				m[npt.Y][npt.X] = m[npt.Y][npt.X] || l.CanHitPoint(npt)
+			}
+		}
+	}
+
+	return m
 }

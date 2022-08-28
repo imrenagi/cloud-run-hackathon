@@ -149,10 +149,10 @@ func TestGame_GetPlayerByRank(t *testing.T) {
 		{
 			name: "should get correct player",
 			fields: fields{
-				Arena:            Arena{
+				Arena: Arena{
 					Width:  5,
 					Height: 3,
-					Grid:   [][]Cell{
+					Grid: [][]Cell{
 						{{}, {}, {}, {}, {}},
 						{{}, {}, {}, {}, {}},
 						{{}, {Player: &PlayerState{
@@ -210,10 +210,10 @@ func TestGame_GetPlayerByRank(t *testing.T) {
 				rank: 1,
 			},
 			want: &Player{
-				Name:         "http://testing3",
-				X:            2,
-				Y:            2,
-				Direction:    "E",
+				Name:      "http://testing3",
+				X:         2,
+				Y:         2,
+				Direction: "E",
 			},
 		},
 	}
@@ -231,6 +231,170 @@ func TestGame_GetPlayerByRank(t *testing.T) {
 				assert.Equal(t, tt.want.Y, got.Y)
 				assert.Equal(t, tt.want.Direction, got.Direction)
 			}
+		})
+	}
+}
+
+func TestGame_ObstacleMap(t *testing.T) {
+	type fields struct {
+		Arena            Arena
+		PlayerStateByURL map[string]PlayerState
+		LeaderBoard      LeaderBoard
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   [][]bool
+	}{
+		{
+			name: "no obstacle",
+			fields: fields{
+				Arena: Arena{
+					Width:  4,
+					Height: 3,
+					Grid: [][]Cell{
+						{{}, {}, {}, {}},
+						{{}, {}, {}, {}},
+						{{}, {}, {}, {}},
+					},
+				},
+			},
+			want: [][]bool{
+				{false, false, false, false},
+				{false, false, false, false},
+				{false, false, false, false},
+			},
+		},
+		{
+			name: "there are players not attacking",
+			fields: fields{
+				Arena: Arena{
+					Width:  4,
+					Height: 3,
+					Grid: [][]Cell{
+						{{}, {Player: &PlayerState{}}, {}, {}},
+						{{}, {}, {}, {Player: &PlayerState{}}},
+						{{}, {Player: &PlayerState{}}, {}, {}},
+					},
+				},
+				PlayerStateByURL: map[string]PlayerState{
+					"1": {X: 1, Y: 0},
+					"2": {X: 1, Y: 2},
+					"3": {X: 3, Y: 1},
+				},
+			},
+			want: [][]bool{
+				{false, true, false, false},
+				{false, false, false, true},
+				{false, true, false, false},
+			},
+		},
+		{
+			name: "there are players attacking (left)",
+			fields: fields{
+				Arena: Arena{
+					Width:  4,
+					Height: 3,
+					Grid: [][]Cell{
+						{{}, {Player: &PlayerState{X: 1, Y: 0, Direction: "S"}}, {}, {}},
+						{{}, {}, {}, {Player: &PlayerState{X: 3, Y: 1, Direction: "E"}}},
+						{{}, {Player: &PlayerState{X: 1, Y: 2, Direction: "E", WasHit: true}}, {}, {}},
+					},
+				},
+				PlayerStateByURL: map[string]PlayerState{
+					"1": {X: 1, Y: 0},
+					"2": {X: 1, Y: 2, WasHit: true},
+					"3": {X: 3, Y: 1},
+				},
+			},
+			want: [][]bool{
+				{false, true, false, false},
+				{false, true, false, true},
+				{false, true, false, false},
+			},
+		},
+		{
+			name: "there are players attacking (left and front)",
+			fields: fields{
+				Arena: Arena{
+					Width:  4,
+					Height: 3,
+					Grid: [][]Cell{
+						{{}, {Player: &PlayerState{X: 1, Y: 0, Direction: "S"}}, {}, {}},
+						{{}, {}, {}, {}},
+						{{}, {Player: &PlayerState{X: 1, Y: 2, Direction: "E", WasHit: true}}, {}, {Player: &PlayerState{X: 3, Y: 2, Direction: "W"}}},
+					},
+				},
+				PlayerStateByURL: map[string]PlayerState{
+					"1": {X: 1, Y: 0},
+					"2": {X: 1, Y: 2, WasHit: true},
+					"3": {X: 3, Y: 2},
+				},
+			},
+			want: [][]bool{
+				{false, true, false, false},
+				{false, true, false, false},
+				{false, true, true, true},
+			},
+		},
+		{
+			name: "there are players attacking (back)",
+			fields: fields{
+				Arena: Arena{
+					Width:  4,
+					Height: 3,
+					Grid: [][]Cell{
+						{{}, {Player: &PlayerState{X: 1, Y: 0, Direction: "W"}}, {}, {}},
+						{{}, {}, {}, {}},
+						{{}, {Player: &PlayerState{X: 1, Y: 2, Direction: "E"}}, {}, {Player: &PlayerState{X: 3, Y: 2, Direction: "E", WasHit: true}}},
+					},
+				},
+				PlayerStateByURL: map[string]PlayerState{
+					"1": {X: 1, Y: 0},
+					"2": {X: 1, Y: 2},
+					"3": {X: 3, Y: 2, WasHit: true},
+				},
+			},
+			want: [][]bool{
+				{false, true, false, false},
+				{false, false, false, false},
+				{false, true, true, true},
+			},
+		},
+		{
+			name: "there are players attacking (right)",
+			fields: fields{
+				Arena: Arena{
+					Width:  4,
+					Height: 3,
+					Grid: [][]Cell{
+						{{}, {Player: &PlayerState{X: 1, Y: 0, Direction: "W"}}, {}, {}},
+						{{}, {}, {}, {}},
+						{{}, {Player: &PlayerState{X: 1, Y: 2, Direction: "E"}}, {}, {Player: &PlayerState{X: 3, Y: 2, Direction: "S", WasHit: true}}},
+					},
+				},
+				PlayerStateByURL: map[string]PlayerState{
+					"1": {X: 1, Y: 0},
+					"2": {X: 1, Y: 2},
+					"3": {X: 3, Y: 2, WasHit: true},
+				},
+			},
+			want: [][]bool{
+				{false, true, false, false},
+				{false, false, false, false},
+				{false, true, true, true},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			g := Game{
+				Arena:            tt.fields.Arena,
+				PlayerStateByURL: tt.fields.PlayerStateByURL,
+				LeaderBoard:      tt.fields.LeaderBoard,
+			}
+			got := g.ObstacleMap()
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }

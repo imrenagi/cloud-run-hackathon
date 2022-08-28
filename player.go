@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"sort"
+	"strings"
 )
 
 func NewPlayerWithUrl(url string, state PlayerState) *Player {
@@ -13,12 +15,20 @@ func NewPlayerWithUrl(url string, state PlayerState) *Player {
 }
 
 func NewPlayer(state PlayerState) *Player {
+
+	whitelisted := make(map[string]string)
+	urls := os.Getenv("WHITELISTED_URLS")
+	for _, url := range strings.Split(urls, ",") {
+		whitelisted[url] = url
+	}
+
 	p := &Player{
-		X:         state.X, // TODO ubah jadi location
-		Y:         state.Y,
-		Direction: state.Direction, // TODO ubah jadi direction
-		WasHit:    state.WasHit,
-		Score:     state.Score,
+		X:           state.X, // TODO ubah jadi location
+		Y:           state.Y,
+		Direction:   state.Direction, // TODO ubah jadi direction
+		WasHit:      state.WasHit,
+		Score:       state.Score,
+		Whitelisted: whitelisted,
 	}
 	p.Strategy = DefaultStrategy()
 	return p
@@ -35,6 +45,7 @@ type Player struct {
 	State        State    `json:"-"`
 	Strategy     Strategy `json:"-"`
 	trappedCount int
+	Whitelisted  map[string]string
 }
 
 func (p Player) Clone() Player {
@@ -100,6 +111,21 @@ func (p Player) Walk() Move {
 
 const attackRange = 3
 
+// GetHighestRank returned players that has highest rank, exclude whitelisted
+func (p Player) GetHighestRank() *Player {
+	for _, ps := range p.Game.LeaderBoard {
+		target := p.Game.GetPlayerByPosition(Point{ps.X, ps.Y})
+		if target == nil {
+			continue
+		}
+		if _, ok := p.Whitelisted[target.Name]; ok {
+			continue
+		}
+		return target
+	}
+	return nil
+}
+
 // FindShooterOnDirection return other players which are in attach range and heading toward the player
 func (p Player) FindShooterOnDirection(direction Direction) []Player {
 	var filtered []Player
@@ -124,7 +150,7 @@ func (p Player) CanHitPoint(pt Point) bool {
 			return true
 		}
 		pl := p.Game.GetPlayerByPosition(npt)
-		if pl != nil  {
+		if pl != nil {
 			return false
 		}
 	}

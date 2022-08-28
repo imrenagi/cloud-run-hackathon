@@ -135,8 +135,8 @@ func (s *Server) Play(v ArenaUpdate) Move {
 	} else {
 		s.game.Update(s.player)
 	}
-	return s.player.Play()
+	// return s.player.Play()
 	// topRank := s.game.LeaderBoard[0]
 	// target := s.game.GetPlayerByPosition(Point{topRank.X, topRank.Y})
-	// return s.player.Chase(target)
+	return s.player.Chase(s.player.GetHighestRank())
 }
