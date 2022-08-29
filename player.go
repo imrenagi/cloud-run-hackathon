@@ -71,13 +71,11 @@ func (p *Player) Play(ctx context.Context) Move {
 	rank := p.Game.LeaderBoard.GetRank(*p)
 	if rank == 0 {
 		p.Strategy = DefaultStrategy()
-	} else if rank >= 1 && rank < 3 {
+	} else {
 		target := p.GetPlayerOnNextPodium(ctx)
 		// TODO new safe chasing ini jangan pakai logic Attack state.
 		// tapi sebisa mungkin cari playernya sampai ketemu
 		p.Strategy = NewSafeChasing(target)
-	} else {
-		p.Strategy = DefaultStrategy()
 	}
 
 	return p.Strategy.Play(ctx, p)
@@ -131,13 +129,17 @@ func (p Player) Walk(ctx context.Context) Move {
 const attackRange = 3
 
 // GetHighestRank returned players that has highest rank, exclude whitelisted
-func (p Player) GetHighestRank() *Player {
+func (p Player) GetHighestRank(ctx context.Context) *Player {
+	ctx, span := tracer.Start(ctx, "Player.GetHighestRank")
+	defer span.End()
+
 	for _, ps := range p.Game.LeaderBoard {
 		target := p.Game.GetPlayerByPosition(Point{ps.X, ps.Y})
 		if target == nil {
 			continue
 		}
-		if _, ok := p.Whitelisted[target.Name]; ok {
+		_, ok := p.Whitelisted[ps.URL]
+		if ok {
 			continue
 		}
 		return target

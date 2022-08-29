@@ -134,8 +134,10 @@ func (g Game) ObstacleMap(ctx context.Context) [][]bool {
 	}
 
 	for _, ps := range g.PlayerStateByURL {
+		// m[ps.Y][ps.X] = true
+		m[ps.Y][ps.X] = m[ps.Y][ps.X] || true
+
 		if !ps.WasHit {
-			m[ps.Y][ps.X] = true
 			continue
 		}
 

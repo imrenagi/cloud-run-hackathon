@@ -8,9 +8,6 @@ import (
 )
 
 func TestGame_UpdateArena(t *testing.T) {
-
-	t.Skip("skipping this since we are not sorting the player based on score for now")
-
 	type args struct {
 		a ArenaUpdate
 	}
@@ -71,8 +68,8 @@ func TestGame_UpdateArena(t *testing.T) {
 					Height: 4,
 					Grid: [][]Cell{
 						{{}, {}, {}, {}, {}},
-						{{}, {Player: &PlayerState{X: 1, Y: 1, Direction: "W", Score: 4}}, {Player: &PlayerState{X: 2, Y: 1, Direction: "W", Score: 1}}, {}, {}},
-						{{}, {}, {Player: &PlayerState{X: 2, Y: 2, Direction: "W", Score: 10}}, {}, {}},
+						{{}, {Player: &PlayerState{URL: "http://testing.run", X: 1, Y: 1, Direction: "W", Score: 4}}, {Player: &PlayerState{URL: "http://testing-02.run", X: 2, Y: 1, Direction: "W", Score: 1}}, {}, {}},
+						{{}, {}, {Player: &PlayerState{URL: "http://testing-03.run", X: 2, Y: 2, Direction: "W", Score: 10}}, {}, {}},
 						{{}, {}, {}, {}, {}},
 					},
 				},
@@ -101,18 +98,21 @@ func TestGame_UpdateArena(t *testing.T) {
 				},
 				LeaderBoard: []PlayerState{
 					{
+						URL: "http://testing-03.run",
 						X:         2,
 						Y:         2,
 						Direction: "W",
 						WasHit:    false,
 						Score:     10,
 					}, {
+						URL: "http://testing.run",
 						X:         1,
 						Y:         1,
 						Direction: "W",
 						WasHit:    false,
 						Score:     4,
 					}, {
+						URL: "http://testing-02.run",
 						X:         2,
 						Y:         1,
 						Direction: "W",
