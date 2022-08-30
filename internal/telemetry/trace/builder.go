@@ -45,7 +45,7 @@ func (b *traceProviderBuilder) Build() (*trace.TracerProvider, CloseFunc, error)
 
 	bsp := trace.NewBatchSpanProcessor(b.exporter)
 	tracerProvider := trace.NewTracerProvider(
-		trace.WithSampler(trace.AlwaysSample()),
+		trace.WithSampler(trace.TraceIDRatioBased(0.3)),
 		trace.WithResource(res),
 		trace.WithSpanProcessor(bsp),
 	)
