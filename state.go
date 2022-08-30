@@ -1,6 +1,8 @@
 package main
 
+import "context"
+
 type State interface {
-	Play() Move
+	Play(ctx context.Context) Move
 }
 

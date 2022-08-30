@@ -1,6 +1,9 @@
 package main
 
-import "testing"
+import (
+	"context"
+	"testing"
+)
 
 func TestEscape_Play(t *testing.T) {
 
@@ -222,7 +225,7 @@ func TestEscape_Play(t *testing.T) {
 					},
 				},
 			},
-			want: WalkForward,
+			want: TurnRight,
 		},
 		{
 			name: "opponent is attacking from the bottom left right and back, player heading west, should turn right",
@@ -812,7 +815,7 @@ func TestEscape_Play(t *testing.T) {
 			e := Escape{
 				Player: &tt.fields.Player,
 			}
-			if got := e.Play(); got != tt.want {
+			if got := e.Play(context.TODO()); got != tt.want {
 				t.Errorf("Play() = %v, want %v", got, tt.want)
 			}
 		})

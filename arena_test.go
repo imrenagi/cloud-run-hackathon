@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"reflect"
 	"testing"
 
@@ -150,7 +151,7 @@ func TestArena_GetAdjacent(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			got := tt.arena.GetAdjacent(tt.args.p, tt.args.options...)
+			got := tt.arena.GetAdjacent(context.TODO(), tt.args.p, tt.args.options...)
 			assert.Len(t, got, len(tt.want))
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("GetAdjacent() = %v, want %v", got, tt.want)
@@ -184,7 +185,7 @@ func TestArena_Traverse(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.arena.Traverse(tt.args.start); !reflect.DeepEqual(got, tt.want) {
+			if got := tt.arena.Traverse(context.TODO(), tt.args.start); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Traverse() = %v, want %v", got, tt.want)
 			}
 		})

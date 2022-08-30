@@ -1,40 +1,52 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"os"
 	"sort"
+	"strings"
 )
 
 func NewPlayerWithUrl(url string, state PlayerState) *Player {
 	p := NewPlayer(state)
 	p.Name = url
-	p.Strategy = DefaultStrategy(p)
+	p.Strategy = DefaultStrategy()
 	return p
 }
 
 func NewPlayer(state PlayerState) *Player {
-	p := &Player{
-		X:         state.X, // TODO ubah jadi location
-		Y:         state.Y,
-		Direction: state.Direction, // TODO ubah jadi direction
-		WasHit:    state.WasHit,
-		Score:     state.Score,
+
+	whitelisted := make(map[string]string)
+	urls := os.Getenv("WHITELISTED_URLS")
+	for _, url := range strings.Split(urls, ",") {
+		whitelisted[url] = url
 	}
-	p.Strategy = DefaultStrategy(p)
+
+	p := &Player{
+		X:           state.X, // TODO ubah jadi location
+		Y:           state.Y,
+		Direction:   state.Direction, // TODO ubah jadi direction
+		WasHit:      state.WasHit,
+		Score:       state.Score,
+		Whitelisted: whitelisted,
+	}
+	p.Strategy = DefaultStrategy()
 	return p
 }
 
 type Player struct {
-	Name      string
-	X         int    `json:"x"`
-	Y         int    `json:"y"`
-	Direction string `json:"direction"`
-	WasHit    bool   `json:"wasHit"`
-	Score     int    `json:"score"`
-	Game      Game   `json:"-"`
-
+	Name         string
+	X            int      `json:"x"`
+	Y            int      `json:"y"`
+	Direction    string   `json:"direction"`
+	WasHit       bool     `json:"wasHit"`
+	Score        int      `json:"score"`
+	Game         Game     `json:"-"`
+	State        State    `json:"-"`
 	Strategy     Strategy `json:"-"`
 	trappedCount int
+	Whitelisted  map[string]string
 }
 
 func (p Player) Clone() Player {
@@ -51,8 +63,31 @@ func (p Player) Clone() Player {
 	}
 }
 
-func (p *Player) Play() Move {
-	return p.Strategy.Play()
+func (p *Player) Play(ctx context.Context) Move {
+	ctx, span := tracer.Start(ctx, "Player.Play")
+	defer span.End()
+
+	// TODO kalah latency
+	rank := p.Game.LeaderBoard.GetRank(*p)
+	if rank == 0 {
+		p.Strategy = DefaultStrategy()
+	} else {
+		target := p.GetPlayerOnNextPodium(ctx)
+		// TODO new safe chasing ini jangan pakai logic Attack state.
+		// tapi sebisa mungkin cari playernya sampai ketemu
+		p.Strategy = NewSafeChasing(target)
+	}
+
+	return p.Strategy.Play(ctx, p)
+}
+
+// func (p *Player) Chase(target *Player) Move {
+// 	s := NewBrutalChasing(target)
+// 	return s.Play(p)
+// }
+
+func (p *Player) ChangeState(s State) {
+	p.State = s
 }
 
 func (p Player) GetDirection() Direction {
@@ -75,13 +110,16 @@ func (p Player) GetPosition() Point {
 	}
 }
 
-func (p Player) Walk() Move {
+func (p Player) Walk(ctx context.Context) Move {
+	ctx, span := tracer.Start(ctx, "Player.Walk")
+	defer span.End()
+
 	destination := p.GetPosition().TranslateToDirection(1, p.GetDirection())
 	if !p.Game.Arena.IsValid(destination) {
 		return TurnRight
 	}
 	// check other player
-	players := p.GetPlayersInRange(p.GetDirection(), 1)
+	players := p.GetPlayersInRange(ctx, p.GetDirection(), 1)
 	if len(players) > 0 {
 		return TurnRight
 	}
@@ -90,89 +128,95 @@ func (p Player) Walk() Move {
 
 const attackRange = 3
 
+// GetHighestRank returned players that has highest rank, exclude whitelisted
+func (p Player) GetHighestRank(ctx context.Context) *Player {
+	ctx, span := tracer.Start(ctx, "Player.GetHighestRank")
+	defer span.End()
+
+	for _, ps := range p.Game.LeaderBoard {
+		target := p.Game.GetPlayerByPosition(Point{ps.X, ps.Y})
+		if target == nil {
+			continue
+		}
+		_, ok := p.Whitelisted[ps.URL]
+		if ok {
+			continue
+		}
+		return target
+	}
+	return nil
+}
+
+func (p Player) GetPlayerOnNextPodium(ctx context.Context) *Player {
+	ctx, span := tracer.Start(ctx, "Player.GetPlayerOnNextPodium")
+	defer span.End()
+
+	myRank := p.Game.LeaderBoard.GetRank(p)
+	if myRank == 0 {
+		return nil
+	}
+	ps := p.Game.LeaderBoard.GetPlayerByRank(myRank - 1)
+	return p.Game.GetPlayerByPosition(Point{ps.X, ps.Y})
+}
+
 // FindShooterOnDirection return other players which are in attach range and heading toward the player
-func (p Player) FindShooterOnDirection(direction Direction) []Player {
+func (p Player) FindShooterOnDirection(ctx context.Context, direction Direction) []Player {
+	ctx, span := tracer.Start(ctx, "Player.FindShooterOnDirection")
+	defer span.End()
+
 	var filtered []Player
-	opponents := p.GetPlayersInRange(direction, attackRange)
+	opponents := p.GetPlayersInRange(ctx, direction, attackRange)
 	for _, opponent := range opponents {
-		// exclude if they are not heading toward the player
-		if p.canBeAttackedBy(opponent) {
+		if opponent.CanHit(ctx, p) {
 			filtered = append(filtered, opponent)
 		}
 	}
 	return filtered
 }
 
-// CanAttack check whether can attack a player in pt
-func (p Player) CanAttack(pt Point) bool {
+// CanHitPoint check whether can attack a player in pt
+func (p Player) CanHitPoint(ctx context.Context, pt Point) bool {
+	ctx, span := tracer.Start(ctx, "Player.CanHitPoint")
+	defer span.End()
+
 	var ptA = p.GetPosition()
-	var ptB = p.GetPosition().TranslateToDirection(attackRange, p.GetDirection())
-
-	if ptB.X > p.Game.Arena.Width-1 {
-		ptB.X = p.Game.Arena.Width - 1
-	}
-	if ptB.Y > p.Game.Arena.Height-1 {
-		ptB.Y = p.Game.Arena.Height - 1
-	}
-	if ptB.X < 0 {
-		ptB.X = 0
-	}
-	if ptB.Y < 0 {
-		ptB.Y = 0
-	}
-
 	for i := 1; i < (attackRange + 1); i++ {
 		npt := ptA.TranslateToDirection(i, p.GetDirection())
 		if !p.Game.Arena.IsValid(npt) {
 			break
 		}
-
 		if npt.X == pt.X && npt.Y == pt.Y {
 			return true
 		}
-	}
-	return false
-}
-
-func (p Player) isMe(p2 Player) bool {
-	return p2.GetPosition().Equal(p.GetPosition())
-}
-
-func (p Player) canBeAttackedBy(p2 Player) bool {
-	players := p2.GetPlayersInRange(p2.GetDirection(), attackRange)
-	for i, player := range players {
-		probablyIsAttackingMe := p.isMe(player) && i == 0
-		if probablyIsAttackingMe {
-			return true
+		pl := p.Game.GetPlayerByPosition(npt)
+		if pl != nil {
+			return false
 		}
 	}
 	return false
 }
 
-func (p Player) GetPlayersInRange(direction Direction, distance int) []Player {
+func (p Player) CanHit(ctx context.Context, p2 Player) bool {
+	ctx, span := tracer.Start(ctx, "Player.CanHit")
+	defer span.End()
+	return p.CanHitPoint(ctx, p2.GetPosition())
+}
+
+func (p Player) GetRank() int {
+	return p.Game.LeaderBoard.GetRank(p)
+}
+
+func (p Player) GetPlayersInRange(ctx context.Context, direction Direction, distance int) []Player {
+	ctx, span := tracer.Start(ctx, "Player.GetPlayersInRange")
+	defer span.End()
+
 	var playersInRange []Player
 	var ptA = p.GetPosition()
-	var ptB = p.GetPosition().TranslateToDirection(distance, direction)
-
-	if ptB.X > p.Game.Arena.Width-1 {
-		ptB.X = p.Game.Arena.Width - 1
-	}
-	if ptB.Y > p.Game.Arena.Height-1 {
-		ptB.Y = p.Game.Arena.Height - 1
-	}
-	if ptB.X < 0 {
-		ptB.X = 0
-	}
-	if ptB.Y < 0 {
-		ptB.Y = 0
-	}
-
 	for i := 1; i < (distance + 1); i++ {
 		npt := ptA.TranslateToDirection(i, direction)
 		if !p.Game.Arena.IsValid(npt) {
 			break
 		}
-
 		if player := p.Game.GetPlayerByPosition(npt); player != nil {
 			playersInRange = append(playersInRange, *player)
 		}
@@ -181,11 +225,11 @@ func (p Player) GetPlayersInRange(direction Direction, distance int) []Player {
 }
 
 func (p *Player) rotateCounterClockwise() {
-	p.Direction = p.GetDirection().Left().Name
+	p.setDirection(p.GetDirection().Left())
 }
 
 func (p *Player) rotateClockwise() {
-	p.Direction = p.GetDirection().Right().Name
+	p.setDirection(p.GetDirection().Right())
 }
 
 func (p *Player) moveForward() {
@@ -217,7 +261,10 @@ func WithOnlyNextMove() MoveOption {
 }
 
 // RequiredMoves return array of moves that should be taken to follow path
-func (p Player) RequiredMoves(forPath Path, opts ...MoveOption) []Move {
+func (p Player) RequiredMoves(ctx context.Context, forPath Path, opts ...MoveOption) []Move {
+	ctx, span := tracer.Start(ctx, "Player.RequiredMoves")
+	defer span.End()
+
 	options := &MoveOptions{}
 	for _, o := range opts {
 		o(options)
@@ -303,11 +350,14 @@ func (p Player) MoveToAdjacent(toPt Point) ([]Move, error) {
 	}
 }
 
-func (p Player) FindClosestPlayers() []Player {
+func (p Player) FindClosestPlayers(ctx context.Context) []Player {
+	ctx, span := tracer.Start(ctx, "Player.FindClosestPlayers")
+	defer span.End()
+
 	distanceCalculator := EuclideanDistance{}
 	var dPairs []dPair
 
-	for _, ps := range p.Game.Players {
+	for _, ps := range p.Game.LeaderBoard {
 		otherPlayerPt := Point{ps.X, ps.Y}
 		if p.GetPosition().Equal(otherPlayerPt) {
 			continue
@@ -340,7 +390,7 @@ type dPair struct {
 
 type byDistance []dPair
 
-func (a byDistance) Len() int           { return len(a) }
+func (a byDistance) Len() int { return len(a) }
 func (a byDistance) Less(i, j int) bool {
 	if a[i].distance != a[j].distance {
 		return a[i].distance < a[j].distance
@@ -349,6 +399,5 @@ func (a byDistance) Less(i, j int) bool {
 		return a[i].player.Y < a[j].player.Y
 	}
 	return a[i].player.X < a[j].player.X
-
 }
-func (a byDistance) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a byDistance) Swap(i, j int) { a[i], a[j] = a[j], a[i] }

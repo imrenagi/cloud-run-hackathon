@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"math"
 	"sort"
 )
@@ -11,22 +12,26 @@ type Escape struct {
 
 const maxHitWhenTrapped int = 3
 
-func (e *Escape) Play() Move {
-	front := e.Player.FindShooterOnDirection(e.Player.GetDirection())
+func (e *Escape) Play(ctx context.Context) Move {
+	ctx, span := tracer.Start(ctx, "Escape.Play")
+	defer span.End()
+
+	front := e.Player.FindShooterOnDirection(ctx, e.Player.GetDirection())
 	// back := e.Player.FindShooterOnDirection(e.Player.GetDirection().Backward())
-	left := e.Player.FindShooterOnDirection(e.Player.GetDirection().Left())
-	right := e.Player.FindShooterOnDirection(e.Player.GetDirection().Right())
+	left := e.Player.FindShooterOnDirection(ctx, e.Player.GetDirection().Left())
+	right := e.Player.FindShooterOnDirection(ctx, e.Player.GetDirection().Right())
 
 	// TODO hindari escape ke arah orang lagi perang
 
 	var paths []Path // list of possible path
-	validAdjacent := e.Player.Game.Arena.GetAdjacent(e.Player.GetPosition(), WithDiagonalAdjacents(), WithEmptyAdjacent())
+	validAdjacent := e.Player.Game.Arena.GetAdjacent(ctx, e.Player.GetPosition(), WithDiagonalAdjacents(), WithEmptyAdjacent())
 	if len(front) > 0 {
 		var newAdjacent []Point
 		for _, fp := range front {
 			// iterate cuma sampai lokasi player. kalau udah ketemu, lgsg break
 			for _, adj := range validAdjacent {
-				if !fp.CanAttack(adj) {
+				canAttack := fp.CanHitPoint(ctx, adj)
+				if !canAttack {
 					newAdjacent = append(newAdjacent, adj)
 				}
 			}
@@ -38,7 +43,7 @@ func (e *Escape) Play() Move {
 		for _, fp := range left {
 			// iterate cuma sampai lokasi player. kalau udah ketemu, lgsg break
 			for _, adj := range validAdjacent {
-				if !fp.CanAttack(adj) {
+				if !fp.CanHitPoint(ctx, adj) {
 					newAdjacent = append(newAdjacent, adj)
 				}
 			}
@@ -50,7 +55,7 @@ func (e *Escape) Play() Move {
 		for _, fp := range right {
 			// iterate cuma sampai lokasi player. kalau udah ketemu, lgsg break
 			for _, adj := range validAdjacent {
-				if !fp.CanAttack(adj) {
+				if !fp.CanHitPoint(ctx, adj) {
 					newAdjacent = append(newAdjacent, adj)
 				}
 			}
@@ -59,7 +64,7 @@ func (e *Escape) Play() Move {
 	}
 	for _, adj := range validAdjacent {
 		aStar := NewAStar(e.Player.Game.Arena)
-		path, err := aStar.SearchPath(e.Player.GetPosition(), adj)
+		path, err := aStar.SearchPath(ctx, e.Player.GetPosition(), adj)
 		if err == ErrPathNotFound {
 			continue
 		}
@@ -84,7 +89,7 @@ func (e *Escape) Play() Move {
 		} else if len(right) > 0 {
 			return TurnRight
 		} else {
-			return e.Player.Walk()
+			return e.Player.Walk(ctx)
 		}
 	}
 
@@ -123,7 +128,7 @@ func (e *Escape) Play() Move {
 	}
 
 	if len(requiredMoves) == 0 {
-		return e.Player.Walk()
+		return e.Player.Walk(ctx)
 	}
 
 	mostEfficientMoves := requiredMoves[0]

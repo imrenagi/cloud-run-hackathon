@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"math"
 	"sort"
@@ -67,7 +68,7 @@ func NewAStar(a Arena, opts ...AStarOption) AStar {
 	}
 }
 
-type IsUnblockFn func(p Point) bool
+type IsUnblockFn func(ctx context.Context, p Point) bool
 
 type AStar struct {
 	distanceCalculator DistanceCalculator
@@ -92,7 +93,9 @@ type AStar struct {
 	isUnblockFn IsUnblockFn
 }
 
-func (as *AStar) SearchPath(src, dest Point) (Path, error) {
+func (as *AStar) SearchPath(ctx context.Context, src, dest Point) (Path, error) {
+	ctx, span := tracer.Start(ctx, "AStar.SearchPath")
+	defer span.End()
 
 	// If the source is out of range
 	if !as.arena.IsValid(src) {
@@ -115,7 +118,6 @@ func (as *AStar) SearchPath(src, dest Point) (Path, error) {
 
 	// If the destination cell is the same as source cell
 	if src.Equal(dest) {
-		log.Info().Msg("We are already at the destination")
 		return nil, nil
 	}
 
@@ -173,25 +175,25 @@ func (as *AStar) SearchPath(src, dest Point) (Path, error) {
 
 		// Only process this cell if this is a valid one
 		north := Point{X: currNode.X, Y: currNode.Y - 1}
-		foundDest = as.checkSuccessor(currNode, north, dest)
+		foundDest = as.checkSuccessor(ctx, currNode, north, dest)
 		if foundDest {
 			break
 		}
 
 		south := Point{X: currNode.X, Y: currNode.Y + 1}
-		foundDest = as.checkSuccessor(currNode, south, dest)
+		foundDest = as.checkSuccessor(ctx, currNode, south, dest)
 		if foundDest {
 			break
 		}
 
 		east := Point{X: currNode.X + 1, Y: currNode.Y}
-		foundDest = as.checkSuccessor(currNode, east, dest)
+		foundDest = as.checkSuccessor(ctx, currNode, east, dest)
 		if foundDest {
 			break
 		}
 
 		west := Point{X: currNode.X - 1, Y: currNode.Y}
-		foundDest = as.checkSuccessor(currNode, west, dest)
+		foundDest = as.checkSuccessor(ctx, currNode, west, dest)
 		if foundDest {
 			break
 		}
@@ -204,7 +206,7 @@ func (as *AStar) SearchPath(src, dest Point) (Path, error) {
 	return as.tracePath(as.cellDetails, dest), nil
 }
 
-func (as *AStar) checkSuccessor(currNode ppair, successor Point, dest Point) bool {
+func (as *AStar) checkSuccessor(ctx context.Context, currNode ppair, successor Point, dest Point) bool {
 
 	var gNew, hNew, fNew float64
 	// Only process this cell if this is a valid one
@@ -213,7 +215,7 @@ func (as *AStar) checkSuccessor(currNode ppair, successor Point, dest Point) boo
 			as.cellDetails[successor.Y][successor.X].ParentY = currNode.Y
 			as.cellDetails[successor.Y][successor.X].ParentX = currNode.X
 			return true
-		} else if !as.closedList[successor.Y][successor.X] && as.isUnblockFn(successor) {
+		} else if !as.closedList[successor.Y][successor.X] && as.isUnblockFn(ctx, successor) {
 			step := currNode.requiredRotation(successor)
 
 			gNew = as.cellDetails[currNode.Y][currNode.X].G + 1.0 + float64(step)
