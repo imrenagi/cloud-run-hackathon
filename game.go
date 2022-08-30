@@ -1,5 +1,7 @@
 package main
 
+import "context"
+
 type ArenaUpdate struct {
 	Links struct {
 		Self struct {
@@ -49,7 +51,10 @@ func NewGame() Game {
 	}
 }
 
-func (g *Game) UpdateArena(a ArenaUpdate) {
+func (g *Game) UpdateArena(ctx context.Context, a ArenaUpdate) {
+	ctx, span := tracer.Start(ctx, "Game.UpdateArena")
+	defer span.End()
+
 	width := a.Arena.Dimensions[0]
 	height := a.Arena.Dimensions[1]
 	arena := NewArena(width, height)
@@ -63,7 +68,7 @@ func (g *Game) UpdateArena(a ArenaUpdate) {
 
 	g.Arena = arena
 	g.PlayerStateByURL = a.Arena.State
-	g.UpdateLeaderBoard()
+	g.UpdateLeaderBoard(ctx)
 }
 
 func (g Game) Player(url string) *Player {
@@ -83,7 +88,10 @@ func (g Game) Update(player *Player) {
 	player.Game = g
 }
 
-func (g *Game) UpdateLeaderBoard() {
+func (g *Game) UpdateLeaderBoard(ctx context.Context) {
+	ctx, span := tracer.Start(ctx, "Game.UpdateLeaderBoard")
+	defer span.End()
+
 	g.LeaderBoard.Sort()
 }
 
@@ -115,7 +123,10 @@ func (g Game) GetPlayerByPosition(p Point) *Player {
 }
 
 // ObstacleMap return map which denotes whether a cell adalah obstacle or not
-func (g Game) ObstacleMap() [][]bool {
+func (g Game) ObstacleMap(ctx context.Context) [][]bool {
+	ctx, span := tracer.Start(ctx, "Game.ObstacleMap")
+	defer span.End()
+
 	m := make([][]bool, g.Arena.Height)
 	for i, _ := range m {
 		row := make([]bool, g.Arena.Width)
@@ -123,8 +134,10 @@ func (g Game) ObstacleMap() [][]bool {
 	}
 
 	for _, ps := range g.PlayerStateByURL {
+		// m[ps.Y][ps.X] = true
+		m[ps.Y][ps.X] = m[ps.Y][ps.X] || true
+
 		if !ps.WasHit {
-			m[ps.Y][ps.X] = true
 			continue
 		}
 
@@ -135,7 +148,7 @@ func (g Game) ObstacleMap() [][]bool {
 		}
 
 		// TODO seems like redundant code
-		left := player.FindShooterOnDirection(player.GetDirection().Left())
+		left := player.FindShooterOnDirection(ctx, player.GetDirection().Left())
 		for _, l := range left {
 			npt := l.GetPosition()
 			for ctr := 0; ctr < defaultAttackRange; ctr++ {
@@ -143,11 +156,11 @@ func (g Game) ObstacleMap() [][]bool {
 				if !g.Arena.IsValid(npt) {
 					break
 				}
-				m[npt.Y][npt.X] = m[npt.Y][npt.X] || l.CanHitPoint(npt)
+				m[npt.Y][npt.X] = m[npt.Y][npt.X] || l.CanHitPoint(ctx, npt)
 			}
 		}
 
-		front := player.FindShooterOnDirection(player.GetDirection())
+		front := player.FindShooterOnDirection(ctx, player.GetDirection())
 		for _, l := range front {
 			npt := l.GetPosition()
 			for ctr := 0; ctr < defaultAttackRange; ctr++ {
@@ -155,11 +168,11 @@ func (g Game) ObstacleMap() [][]bool {
 				if !g.Arena.IsValid(npt) {
 					break
 				}
-				m[npt.Y][npt.X] = m[npt.Y][npt.X] || l.CanHitPoint(npt)
+				m[npt.Y][npt.X] = m[npt.Y][npt.X] || l.CanHitPoint(ctx, npt)
 			}
 		}
 
-		back := player.FindShooterOnDirection(player.GetDirection().Backward())
+		back := player.FindShooterOnDirection(ctx, player.GetDirection().Backward())
 		for _, l := range back {
 			npt := l.GetPosition()
 			for ctr := 0; ctr < defaultAttackRange; ctr++ {
@@ -167,11 +180,11 @@ func (g Game) ObstacleMap() [][]bool {
 				if !g.Arena.IsValid(npt) {
 					break
 				}
-				m[npt.Y][npt.X] = m[npt.Y][npt.X] || l.CanHitPoint(npt)
+				m[npt.Y][npt.X] = m[npt.Y][npt.X] || l.CanHitPoint(ctx, npt)
 			}
 		}
 
-		right := player.FindShooterOnDirection(player.GetDirection().Right())
+		right := player.FindShooterOnDirection(ctx, player.GetDirection().Right())
 		for _, l := range right {
 			npt := l.GetPosition()
 			for ctr := 0; ctr < defaultAttackRange; ctr++ {
@@ -179,7 +192,7 @@ func (g Game) ObstacleMap() [][]bool {
 				if !g.Arena.IsValid(npt) {
 					break
 				}
-				m[npt.Y][npt.X] = m[npt.Y][npt.X] || l.CanHitPoint(npt)
+				m[npt.Y][npt.X] = m[npt.Y][npt.X] || l.CanHitPoint(ctx, npt)
 			}
 		}
 	}

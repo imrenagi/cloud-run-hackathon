@@ -13,10 +13,21 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/sdk/trace"
+
+	ttrace "github.com/imrenagi/cloud-run-hackathon-go/internal/telemetry/trace"
+	"github.com/imrenagi/cloud-run-hackathon-go/internal/telemetry/trace/exporter"
 )
 
+var tracer = otel.Tracer("github.com/imrenagi/cloud-run-hackathon-go")
+
 func init() {
-	// zerolog.SetGlobalLevel(zerolog.Disabled)
+	if _, isCloudRun := os.LookupEnv("K_SERVICE"); isCloudRun {
+		zerolog.SetGlobalLevel(zerolog.Disabled)
+	}
 	zerolog.LevelFieldName = "severity"
 	zerolog.TimestampFieldName = "timestamp"
 	zerolog.TimeFieldFormat = time.RFC3339Nano
@@ -51,17 +62,29 @@ type Server struct {
 
 	game   Game
 	player *Player
+
+	traceProviderCloseFn  []ttrace.CloseFunc
 }
+
+const (
+	name = "waterfight-server"
+)
 
 func NewServer() *Server {
 	srv := &Server{
 		Router: mux.NewRouter(),
 	}
 	srv.routes()
+
+	// OTEL_RECEIVER_OTLP_ENDPOINT=localhost:4317
+	// TODO do not hardcode
+	srv.initGlobalProvider(name, "localhost:4317")
+
 	return srv
 }
 
 func (s *Server) routes() {
+	s.Router.Use(otelmux.Middleware(name))
 	s.Router.Handle("/", s.UpdateArena()).Methods("POST")
 	s.Router.Handle("/", s.Healthcheck()).Methods("GET")
 	s.Router.Handle("/reset", s.Reset())
@@ -103,6 +126,15 @@ func (s *Server) Run(ctx context.Context, port string) error {
 		err = nil
 	}
 
+	for _, closeFn := range s.traceProviderCloseFn {
+		go func() {
+			err = closeFn(ctxShutDown)
+			if err != nil {
+				log.Error().Err(err).Msgf("Unable to close trace provider")
+			}
+		}()
+	}
+
 	return err
 }
 
@@ -125,6 +157,8 @@ func (s Server) Healthcheck() http.HandlerFunc {
 
 func (s Server) UpdateArena() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		ctx, span := tracer.Start(r.Context(), "Server.UpdateArena")
+		defer span.End()
 		if r.Method == http.MethodGet {
 			log.Debug().Msg("Let the battle begin!")
 			fmt.Fprint(w, "Let the battle begin!")
@@ -140,22 +174,43 @@ func (s Server) UpdateArena() http.HandlerFunc {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-
-		resp := s.Play(v)
+		resp := s.Play(ctx, v)
 		fmt.Fprint(w, resp)
 	}
 }
 
-func (s *Server) Play(v ArenaUpdate) Move {
+func (s *Server) Play(ctx context.Context, v ArenaUpdate) Move {
 	s.game = NewGame()
-	s.game.UpdateArena(v)
+	s.game.UpdateArena(ctx, v)
 	if s.player == nil {
 		s.player = s.game.Player(v.Links.Self.Href)
 	} else {
 		s.game.Update(s.player)
 	}
-	return s.player.Play()
+	return s.player.Play(ctx)
 	// topRank := s.game.LeaderBoard[0]
 	// target := s.game.GetPlayerByPosition(Point{topRank.X, topRank.Y})
 	// return s.player.Chase(s.player.GetHighestRank())
+}
+
+func (s *Server) initGlobalProvider(name, endpoint string) {
+	var spanExporter trace.SpanExporter
+	if _, isCloudRun := os.LookupEnv("K_SERVICE"); isCloudRun {
+		log.Debug().Msgf("use google exporter")
+		spanExporter = exporter.NewGCP()
+	} else {
+		log.Debug().Msgf("use otlp exporter")
+		spanExporter = exporter.NewOTLP(endpoint)
+	}
+	tracerProvider, tracerProviderCloseFn, err := ttrace.NewTraceProviderBuilder(name).
+		SetExporter(spanExporter).
+		Build()
+	if err != nil {
+		log.Fatal().Err(err).Msgf("failed initializing the tracer provider")
+	}
+	s.traceProviderCloseFn = append(s.traceProviderCloseFn, tracerProviderCloseFn)
+
+	// set global propagator to tracecontext (the default is no-op).
+	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
+	otel.SetTracerProvider(tracerProvider)
 }

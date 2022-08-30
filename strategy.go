@@ -1,7 +1,9 @@
 package main
 
+import "context"
+
 type Strategy interface {
-	Play(p *Player) Move
+	Play(ctx context.Context, p *Player) Move
 }
 
 

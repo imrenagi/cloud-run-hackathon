@@ -1,12 +1,16 @@
 package main
 
-import "github.com/rs/zerolog/log"
+import (
+	"context"
+)
 
 type TargetedEnemy struct {
 	Target *Player
 }
 
-func (t *TargetedEnemy) Explore(p *Player) Move {
+func (t *TargetedEnemy) Explore(ctx context.Context, p *Player) Move {
+	ctx, span := tracer.Start(ctx, "TargetedEnemy.Explore")
+	defer span.End()
 
 	// TODO kalau target di serang sama semua orang, cari aja target lain karena gak perlu kita serang lagi. biar orang lain.
 
@@ -14,41 +18,37 @@ func (t *TargetedEnemy) Explore(p *Player) Move {
 		// TODO what happened when target is nil
 		return Throw
 	}
-	log.Debug().
-		Str("name", t.Target.Name).
-		Int("x", t.Target.X).
-		Int("y", t.Target.Y).
-		Msgf("target")
 
 	var path Path
 	aStar := NewAStar(p.Game.Arena,
-		WithIsUnblockFn(CheckTargetSurroundingAttackRangeFn(*t.Target)),
+		// WithIsUnblockFn(CheckTargetSurroundingAttackRangeFn(*t.Target)),
+		WithIsUnblockFn(ObstacleMapFn(t.Target)),
 	)
 	var err error
-	path, err = aStar.SearchPath(p.GetPosition(), t.Target.GetPosition())
+	path, err = aStar.SearchPath(ctx, p.GetPosition(), t.Target.GetPosition())
 	if err != nil {
 		// TODO what happened when path not found
 		// continue
 	}
 
 	if len(path) == 0 {
-		return p.Walk()
+		return p.Walk(ctx)
 	}
 
-	moves := p.RequiredMoves(path, WithOnlyNextMove())
+	moves := p.RequiredMoves(ctx, path, WithOnlyNextMove())
 	if len(moves) > 0 {
 		return moves[0]
 	} else {
-		return p.Walk()
+		return p.Walk(ctx)
 	}
 }
 
 func ObstacleMapFn(player *Player) IsUnblockFn {
-	return func(p Point) bool {
+	return func(ctx context.Context, p Point) bool {
 		if !player.Game.Arena.IsValid(p) {
 			return false
 		}
-		obstacleMap := player.Game.ObstacleMap()
-		return obstacleMap[p.Y][p.X]
+		obstacleMap := player.Game.ObstacleMap(ctx)
+		return !obstacleMap[p.Y][p.X]
 	}
 }

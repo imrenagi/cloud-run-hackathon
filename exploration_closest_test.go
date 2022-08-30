@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -245,7 +246,7 @@ func TestCheckTargetSurroundingAttackRangeFn(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fn := CheckTargetSurroundingAttackRangeFn(tt.args.target)
-			assert.Equal(t, tt.want, fn(tt.fnArgs.p))
+			assert.Equal(t, tt.want, fn(context.TODO(), tt.fnArgs.p))
 		})
 	}
 }
@@ -375,7 +376,7 @@ func TestClosestEnemy_Explore(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			a := &ClosestEnemy{}
-			if got := a.Explore(tt.args.p); got != tt.want {
+			if got := a.Explore(context.TODO(), tt.args.p); got != tt.want {
 				t.Errorf("Explore() = %v, want %v", got, tt.want)
 			}
 		})

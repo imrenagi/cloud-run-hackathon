@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -307,7 +308,7 @@ func TestAStar_Search(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			as := NewAStar(tt.args.a)
-			path, err := as.SearchPath(tt.args.src, tt.args.dest)
+			path, err := as.SearchPath(context.TODO(), tt.args.src, tt.args.dest)
 			assert.Equal(t, tt.wantErr, err)
 			assert.Equal(t, tt.want, path)
 		})

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"sort"
@@ -62,27 +63,28 @@ func (p Player) Clone() Player {
 	}
 }
 
-func (p *Player) Play() Move {
+func (p *Player) Play(ctx context.Context) Move {
+	ctx, span := tracer.Start(ctx, "Player.Play")
+	defer span.End()
+
 	// TODO kalah latency
 	rank := p.Game.LeaderBoard.GetRank(*p)
 	if rank == 0 {
 		p.Strategy = DefaultStrategy()
-	} else if rank >= 1 && rank < 3 {
-		target := p.GetPlayerOnNextPodium()
+	} else {
+		target := p.GetPlayerOnNextPodium(ctx)
 		// TODO new safe chasing ini jangan pakai logic Attack state.
 		// tapi sebisa mungkin cari playernya sampai ketemu
 		p.Strategy = NewSafeChasing(target)
-	} else {
-		p.Strategy = DefaultStrategy()
 	}
 
-	return p.Strategy.Play(p)
+	return p.Strategy.Play(ctx, p)
 }
 
-func (p *Player) Chase(target *Player) Move {
-	s := NewBrutalChasing(target)
-	return s.Play(p)
-}
+// func (p *Player) Chase(target *Player) Move {
+// 	s := NewBrutalChasing(target)
+// 	return s.Play(p)
+// }
 
 func (p *Player) ChangeState(s State) {
 	p.State = s
@@ -108,13 +110,16 @@ func (p Player) GetPosition() Point {
 	}
 }
 
-func (p Player) Walk() Move {
+func (p Player) Walk(ctx context.Context) Move {
+	ctx, span := tracer.Start(ctx, "Player.Walk")
+	defer span.End()
+
 	destination := p.GetPosition().TranslateToDirection(1, p.GetDirection())
 	if !p.Game.Arena.IsValid(destination) {
 		return TurnRight
 	}
 	// check other player
-	players := p.GetPlayersInRange(p.GetDirection(), 1)
+	players := p.GetPlayersInRange(ctx, p.GetDirection(), 1)
 	if len(players) > 0 {
 		return TurnRight
 	}
@@ -124,13 +129,17 @@ func (p Player) Walk() Move {
 const attackRange = 3
 
 // GetHighestRank returned players that has highest rank, exclude whitelisted
-func (p Player) GetHighestRank() *Player {
+func (p Player) GetHighestRank(ctx context.Context) *Player {
+	ctx, span := tracer.Start(ctx, "Player.GetHighestRank")
+	defer span.End()
+
 	for _, ps := range p.Game.LeaderBoard {
 		target := p.Game.GetPlayerByPosition(Point{ps.X, ps.Y})
 		if target == nil {
 			continue
 		}
-		if _, ok := p.Whitelisted[target.Name]; ok {
+		_, ok := p.Whitelisted[ps.URL]
+		if ok {
 			continue
 		}
 		return target
@@ -138,7 +147,10 @@ func (p Player) GetHighestRank() *Player {
 	return nil
 }
 
-func (p Player) GetPlayerOnNextPodium() *Player {
+func (p Player) GetPlayerOnNextPodium(ctx context.Context) *Player {
+	ctx, span := tracer.Start(ctx, "Player.GetPlayerOnNextPodium")
+	defer span.End()
+
 	myRank := p.Game.LeaderBoard.GetRank(p)
 	if myRank == 0 {
 		return nil
@@ -148,11 +160,14 @@ func (p Player) GetPlayerOnNextPodium() *Player {
 }
 
 // FindShooterOnDirection return other players which are in attach range and heading toward the player
-func (p Player) FindShooterOnDirection(direction Direction) []Player {
+func (p Player) FindShooterOnDirection(ctx context.Context, direction Direction) []Player {
+	ctx, span := tracer.Start(ctx, "Player.FindShooterOnDirection")
+	defer span.End()
+
 	var filtered []Player
-	opponents := p.GetPlayersInRange(direction, attackRange)
+	opponents := p.GetPlayersInRange(ctx, direction, attackRange)
 	for _, opponent := range opponents {
-		if opponent.CanHit(p) {
+		if opponent.CanHit(ctx, p) {
 			filtered = append(filtered, opponent)
 		}
 	}
@@ -160,7 +175,10 @@ func (p Player) FindShooterOnDirection(direction Direction) []Player {
 }
 
 // CanHitPoint check whether can attack a player in pt
-func (p Player) CanHitPoint(pt Point) bool {
+func (p Player) CanHitPoint(ctx context.Context, pt Point) bool {
+	ctx, span := tracer.Start(ctx, "Player.CanHitPoint")
+	defer span.End()
+
 	var ptA = p.GetPosition()
 	for i := 1; i < (attackRange + 1); i++ {
 		npt := ptA.TranslateToDirection(i, p.GetDirection())
@@ -178,15 +196,20 @@ func (p Player) CanHitPoint(pt Point) bool {
 	return false
 }
 
-func (p Player) CanHit(p2 Player) bool {
-	return p.CanHitPoint(p2.GetPosition())
+func (p Player) CanHit(ctx context.Context, p2 Player) bool {
+	ctx, span := tracer.Start(ctx, "Player.CanHit")
+	defer span.End()
+	return p.CanHitPoint(ctx, p2.GetPosition())
 }
 
 func (p Player) GetRank() int {
 	return p.Game.LeaderBoard.GetRank(p)
 }
 
-func (p Player) GetPlayersInRange(direction Direction, distance int) []Player {
+func (p Player) GetPlayersInRange(ctx context.Context, direction Direction, distance int) []Player {
+	ctx, span := tracer.Start(ctx, "Player.GetPlayersInRange")
+	defer span.End()
+
 	var playersInRange []Player
 	var ptA = p.GetPosition()
 	for i := 1; i < (distance + 1); i++ {
@@ -238,7 +261,10 @@ func WithOnlyNextMove() MoveOption {
 }
 
 // RequiredMoves return array of moves that should be taken to follow path
-func (p Player) RequiredMoves(forPath Path, opts ...MoveOption) []Move {
+func (p Player) RequiredMoves(ctx context.Context, forPath Path, opts ...MoveOption) []Move {
+	ctx, span := tracer.Start(ctx, "Player.RequiredMoves")
+	defer span.End()
+
 	options := &MoveOptions{}
 	for _, o := range opts {
 		o(options)
@@ -324,7 +350,10 @@ func (p Player) MoveToAdjacent(toPt Point) ([]Move, error) {
 	}
 }
 
-func (p Player) FindClosestPlayers() []Player {
+func (p Player) FindClosestPlayers(ctx context.Context) []Player {
+	ctx, span := tracer.Start(ctx, "Player.FindClosestPlayers")
+	defer span.End()
+
 	distanceCalculator := EuclideanDistance{}
 	var dPairs []dPair
 

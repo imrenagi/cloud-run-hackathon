@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -171,7 +172,7 @@ func TestPlay(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			srv := NewServer()
-			gotResponse := srv.Play(tt.args.input);
+			gotResponse := srv.Play(context.TODO(), tt.args.input);
 			assert.Contains(t, tt.wantResponse, string(gotResponse))
 		})
 	}

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"reflect"
 	"testing"
 
@@ -93,7 +94,7 @@ func TestPlayerState_Walk(t *testing.T) {
 				Score:     tt.fields.Score,
 				Game:      tt.fields.Game,
 			}
-			if got := p.Walk(); got != tt.want {
+			if got := p.Walk(context.TODO()); got != tt.want {
 				t.Errorf("Walk() = %v, want %v", got, tt.want)
 			}
 		})
@@ -199,7 +200,7 @@ func TestPlayerState_GetPlayersInFront(t *testing.T) {
 				Score:     tt.fields.Score,
 				Game:      tt.fields.Game,
 			}
-			if got := p.GetPlayersInRange(tt.args.direction, 3); len(got) != tt.want {
+			if got := p.GetPlayersInRange(context.TODO(), tt.args.direction, 3); len(got) != tt.want {
 				t.Errorf("GetPlayersInRange() = %v, want %v", got, tt.want)
 			}
 		})
@@ -353,7 +354,7 @@ func TestPlayerState_FindShooterFromDirection(t *testing.T) {
 				Score:     tt.fields.Score,
 				Game:      tt.fields.Game,
 			}
-			got := p.FindShooterOnDirection(tt.args.direction)
+			got := p.FindShooterOnDirection(context.TODO(), tt.args.direction)
 			assert.Equal(t, len(tt.want), len(got))
 			for i, p := range tt.want {
 				assert.Equal(t, p.X, tt.want[i].X)
@@ -548,7 +549,7 @@ func TestPlayer_NextMove(t *testing.T) {
 				Direction: tt.fields.Direction,
 				Game:      tt.fields.Game,
 			}
-			got := p.RequiredMoves(tt.args.forPath, tt.args.opts...)
+			got := p.RequiredMoves(context.TODO(), tt.args.forPath, tt.args.opts...)
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("RequiredMoves() got = %v, want %v", got, tt.want)
 			}
@@ -819,7 +820,7 @@ func TestPlayer_FindClosestPlayers(t *testing.T) {
 				Direction: tt.fields.Direction,
 				Game:      tt.fields.Game,
 			}
-			got := p.FindClosestPlayers()
+			got := p.FindClosestPlayers(context.TODO())
 			assert.Equal(t, len(tt.want), len(got))
 			if tt.want != nil {
 				for idx, res := range got {
@@ -849,8 +850,7 @@ func TestPlayer_CanAttackPoint(t *testing.T) {
 		trappedCount int
 	}
 	type args struct {
-		pt   Point
-
+		pt Point
 	}
 	tests := []struct {
 		name   string
@@ -974,7 +974,7 @@ func TestPlayer_CanAttackPoint(t *testing.T) {
 				Strategy:     tt.fields.Strategy,
 				trappedCount: tt.fields.trappedCount,
 			}
-			if got := p.CanHitPoint(tt.args.pt); got != tt.want {
+			if got := p.CanHitPoint(context.TODO(), tt.args.pt); got != tt.want {
 				t.Errorf("CanHitPoint() = %v, want %v", got, tt.want)
 			}
 		})
@@ -1040,6 +1040,283 @@ func TestPlayer_GetRank(t *testing.T) {
 			}
 			if got := p.GetRank(); got != tt.want {
 				t.Errorf("GetRank() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+
+
+func TestPlayer_GetPlayerOnNextPodium(t *testing.T) {
+	type fields struct {
+		Name         string
+		X            int
+		Y            int
+		Direction    string
+		Score        int
+		Game         Game
+	}
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   *Player
+	}{
+		{
+			name: "if alone return nil",
+			fields: fields{
+				X:0, Y:0, Direction: "E",
+				Game: Game{
+					Arena: Arena{
+						Width:  2,
+						Height: 1,
+						Grid: [][]Cell{
+							{{Player: &PlayerState{X: 0, Y: 0, Direction: "E"}}, {}},
+						},
+					},
+					LeaderBoard: []PlayerState{
+						{
+							URL:   "",
+							X:     0,
+							Y:     0,
+							Direction: "E",
+							Score: 0,
+						},
+					},
+				},
+			},
+			args: args{
+				ctx: context.TODO(),
+			},
+			want: nil,
+		},
+		{
+			name: "if 3rd place, return second place",
+			fields: fields{
+				Name: "3",
+				X:0, Y:0, Direction: "E",
+				Game: Game{
+					Arena: Arena{
+						Width:  4,
+						Height: 3,
+						Grid: [][]Cell{
+							{{Player: &PlayerState{X: 0, Y: 0, Direction: "E"}}, {}, {}, {}},
+							{{Player: &PlayerState{X: 0, Y: 1, Direction: "E"}}, {}, {}, {}},
+							{{Player: &PlayerState{X: 0, Y: 2, Direction: "E"}}, {}, {}, {}},
+						},
+					},
+					LeaderBoard: []PlayerState{
+						{
+							URL:   "1",
+							X:     0,
+							Y:     1,
+							Direction: "E",
+							Score: 5,
+						},
+						{
+							URL:   "2",
+							X:     0,
+							Y:     2,
+							Direction: "E",
+							Score: 4,
+						},
+						{
+							URL:   "3",
+							X:     0,
+							Y:     0,
+							Direction: "E",
+							Score: 3,
+						},
+					},
+				},
+			},
+			args: args{
+				ctx: context.TODO(),
+			},
+			want: &Player{
+				X: 0,
+				Y: 2,
+				Direction: "E",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			p := Player{
+				Name:         tt.fields.Name,
+				X:            tt.fields.X,
+				Y:            tt.fields.Y,
+				Direction:    tt.fields.Direction,
+				Score:        tt.fields.Score,
+				Game:         tt.fields.Game,
+			}
+
+			got := p.GetPlayerOnNextPodium(tt.args.ctx);
+			if tt.want == nil {
+				assert.Nil(t, got)
+			} else {
+				assert.Equal(t, tt.want.X, got.X)
+				assert.Equal(t, tt.want.Y, got.Y)
+				assert.Equal(t, tt.want.Direction, got.Direction)
+			}
+
+		})
+	}
+}
+
+func TestPlayer_GetHighestRank(t *testing.T) {
+	type fields struct {
+		Name         string
+		X            int
+		Y            int
+		Direction    string
+		WasHit       bool
+		Score        int
+		Game         Game
+		State        State
+		Strategy     Strategy
+		trappedCount int
+		Whitelisted  map[string]string
+	}
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   *Player
+	}{
+		{
+			name: "return highest rank",
+			fields: fields{
+				Name: "3",
+				X:0, Y:0, Direction: "E",
+				Game: Game{
+					Arena: Arena{
+						Width:  4,
+						Height: 3,
+						Grid: [][]Cell{
+							{{Player: &PlayerState{X: 0, Y: 0, Direction: "E"}}, {}, {}, {}},
+							{{Player: &PlayerState{X: 0, Y: 1, Direction: "E"}}, {}, {}, {}},
+							{{Player: &PlayerState{X: 0, Y: 2, Direction: "E"}}, {}, {}, {}},
+						},
+					},
+					LeaderBoard: []PlayerState{
+						{
+							URL:   "1",
+							X:     0,
+							Y:     1,
+							Direction: "E",
+							Score: 5,
+						},
+						{
+							URL:   "2",
+							X:     0,
+							Y:     2,
+							Direction: "E",
+							Score: 4,
+						},
+						{
+							URL:   "3",
+							X:     0,
+							Y:     0,
+							Direction: "E",
+							Score: 3,
+						},
+					},
+				},
+			},
+			args: args{
+				ctx: context.TODO(),
+			},
+			want: &Player{
+				X: 0,
+				Y: 1,
+				Direction: "E",
+			},
+
+		},
+		{
+			name: "return highest rank, skip whitelisted player",
+			fields: fields{
+				Whitelisted: map[string]string{
+					"1": "1",
+				},
+				Name: "3",
+				X:0, Y:0, Direction: "E",
+				Game: Game{
+					Arena: Arena{
+						Width:  4,
+						Height: 3,
+						Grid: [][]Cell{
+							{{Player: &PlayerState{URL: "3" ,X: 0, Y: 0, Direction: "E"}}, {}, {}, {}},
+							{{Player: &PlayerState{URL: "1" ,X: 0, Y: 1, Direction: "E"}}, {}, {}, {}},
+							{{Player: &PlayerState{URL: "2" ,X: 0, Y: 2, Direction: "E"}}, {}, {}, {}},
+						},
+					},
+					LeaderBoard: []PlayerState{
+						{
+							URL:   "1",
+							X:     0,
+							Y:     1,
+							Direction: "E",
+							Score: 5,
+						},
+						{
+							URL:   "2",
+							X:     0,
+							Y:     2,
+							Direction: "E",
+							Score: 4,
+						},
+						{
+							URL:   "3",
+							X:     0,
+							Y:     0,
+							Direction: "E",
+							Score: 3,
+						},
+					},
+				},
+			},
+			args: args{
+				ctx: context.TODO(),
+			},
+			want: &Player{
+				X: 0,
+				Y: 2,
+				Direction: "E",
+			},
+
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			p := Player{
+				Name:         tt.fields.Name,
+				X:            tt.fields.X,
+				Y:            tt.fields.Y,
+				Direction:    tt.fields.Direction,
+				WasHit:       tt.fields.WasHit,
+				Score:        tt.fields.Score,
+				Game:         tt.fields.Game,
+				State:        tt.fields.State,
+				Strategy:     tt.fields.Strategy,
+				trappedCount: tt.fields.trappedCount,
+				Whitelisted:  tt.fields.Whitelisted,
+			}
+
+			got := p.GetHighestRank(tt.args.ctx);
+			if tt.want == nil {
+				assert.Nil(t, got)
+			} else {
+				assert.Equal(t, tt.want.X, got.X)
+				assert.Equal(t, tt.want.Y, got.Y)
+				assert.Equal(t, tt.want.Direction, got.Direction)
 			}
 		})
 	}

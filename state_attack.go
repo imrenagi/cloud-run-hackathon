@@ -1,5 +1,7 @@
 package main
 
+import "context"
+
 // DefaultAttack attack closest players
 func DefaultAttack(p *Player) State {
 	return &Attack{
@@ -21,10 +23,13 @@ type Attack struct {
 	ExplorationStrategy Exploration
 }
 
-func (a *Attack) Play() Move {
-	playersInFront := a.Player.GetPlayersInRange(a.Player.GetDirection(), 3)
-	playersInLeft := a.Player.GetPlayersInRange(a.Player.GetDirection().Left(), 3)
-	playersInRight := a.Player.GetPlayersInRange(a.Player.GetDirection().Right(), 3)
+func (a *Attack) Play(ctx context.Context) Move {
+	ctx, span := tracer.Start(ctx, "Attack.Play")
+	defer span.End()
+
+	playersInFront := a.Player.GetPlayersInRange(ctx, a.Player.GetDirection(), 3)
+	playersInLeft := a.Player.GetPlayersInRange(ctx, a.Player.GetDirection().Left(), 3)
+	playersInRight := a.Player.GetPlayersInRange(ctx, a.Player.GetDirection().Right(), 3)
 
 	if len(playersInFront) > 0 {
 		return Throw
@@ -36,7 +41,7 @@ func (a *Attack) Play() Move {
 		return TurnRight
 	} else {
 		// TODO attack should be able to use closest/targeted
-		return a.ExplorationStrategy.Explore(a.Player)
+		return a.ExplorationStrategy.Explore(ctx, a.Player)
 	}
 }
 
