@@ -25,7 +25,7 @@ import (
 var tracer = otel.Tracer("github.com/imrenagi/cloud-run-hackathon-go")
 
 func init() {
-	if _, isCloudRun := os.LookupEnv("K_SERVICE"); isCloudRun {
+	if _, logLevel := os.LookupEnv("LOG_LEVEL"); !logLevel {
 		zerolog.SetGlobalLevel(zerolog.Disabled)
 	}
 	zerolog.LevelFieldName = "severity"
@@ -63,7 +63,7 @@ type Server struct {
 	game   Game
 	player *Player
 
-	traceProviderCloseFn  []ttrace.CloseFunc
+	traceProviderCloseFn []ttrace.CloseFunc
 }
 
 const (
