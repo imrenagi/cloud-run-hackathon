@@ -1,0 +1,24 @@
+[Unit]
+Description=Waterfight for competing in cloud run hackathon
+After=network.target
+
+[Service]
+Type=simple
+
+User=imre.nagi
+Group=imre.nagi
+
+WorkingDirectory=/opt/app/cloud-run-hackathon
+ExecStart=/opt/app/cloud-run-hackathon/bin/app
+
+Environment="GOOGLE_CLOUD_PROJECT={{ google_cloud_project }}"
+Environment="K_SERVICE=dummy-app"
+
+Restart=on-failure
+RestartSec=10
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=appgoservice
+
+[Install]
+WantedBy=multi-user.target

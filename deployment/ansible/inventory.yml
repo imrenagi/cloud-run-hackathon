@@ -1,0 +1,19 @@
+all:
+  hosts: {}
+  children:
+    cd_runner:
+      hosts:
+        waterfight:
+          ansible_host: 35.226.97.121
+      vars:
+        ansible_python_interpreter: /usr/bin/python3
+        ansible_port: 22
+        ansible_user: imre.nagi
+        ansible_ssh_private_key_file: ~/.ssh/google_compute_engine
+
+  vars:
+    google_cloud_project: cloudrun-hackathon-359002
+    git_branch: main
+    web_url: "testing-certbot.imrenagi.com"
+    envoy_apt_release_channel: main
+    envoy_apt_arch: amd64

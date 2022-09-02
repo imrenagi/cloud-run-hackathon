@@ -1,0 +1,137 @@
+- hosts: all
+  become: yes
+  tasks:
+  - name: Apt | Installing Envoy
+    block:
+      - name: Apt Envoy | Get gpg key
+        ansible.builtin.get_url:
+          url: https://deb.dl.getenvoy.io/public/gpg.8115BA8E629CC074.key
+          dest: /usr/share/keyrings/getenvoy-keyring.asc
+          mode: '0644'
+          force: true
+
+      - name: Apt Envoy | Add envoy apt repository
+        apt_repository:      
+          repo: deb [arch={{ envoy_apt_arch }} signed-by=/usr/share/keyrings/getenvoy-keyring.asc] https://deb.dl.getenvoy.io/public/deb/ubuntu {{ ansible_distribution_release }} {{ envoy_apt_release_channel }}        
+          filename: envoy
+          update_cache: true
+          state: present
+      - name: Apt | Install dependencies
+        apt:
+          update_cache: yes
+          name:
+            - apt-transport-https 
+            - gnupg2
+            - curl
+            - lsb-release
+            - getenvoy-envoy
+            - git
+          state: present  
+
+- hosts: all
+  tasks:
+  - import_role:
+      name: abdennour.golang
+    become: yes
+    vars:
+      golang_version: "1.19"
+
+- hosts: all  
+  tasks:
+  - name: Create a directory if it does not exist
+    become: yes
+    file:
+      path: /opt/app
+      state: directory
+      mode: '0755'    
+
+  - name: Recursively change ownership of a directory
+    become: yes
+    file:
+      path: /opt/app
+      state: directory
+      recurse: yes
+      owner: imre.nagi
+      group: imre.nagi
+
+  - name: Clone repository
+    git:
+      repo: git@github.com:imrenagi/cloud-run-hackathon.git
+      dest: /opt/app/cloud-run-hackathon      
+      update: yes
+      version: "{{ git_branch }}"
+  
+  - name: Change the working directory to somedir/ before executing the command
+    ansible.builtin.shell: /usr/local/share/go/bin/go build -o bin/app
+    args:
+      chdir: /opt/app/cloud-run-hackathon
+
+  - name: Generate waterfight service unit file
+    become: yes
+    template:
+      src: waterfight.service.j2
+      dest: /etc/systemd/system/waterfight.service
+      owner: root
+      group: root
+      mode: '0644'
+
+  - name: Run waterfight service
+    become: yes
+    systemd:
+      daemon_reload: yes      
+      state: started
+      name: waterfight
+
+- hosts: all
+  tasks:
+  - import_role:
+      name: geerlingguy.certbot
+    become: yes
+    vars: 
+      certbot_admin_email: imre.nagi2812@gmail.com
+      certbot_create_if_missing: true
+      certbot_create_standalone_stop_services: []
+      certbot_certs:
+        - domains:
+            - "{{ web_url }}"
+
+- hosts: all
+  become: yes
+  tasks:
+  - name: Ensure Envoy package is installed
+    apt:
+      name: getenvoy-envoy
+      state: present
+
+  - name: "Create envoy directory"
+    file:
+      path: /etc/envoy/
+      state: directory
+      owner: root
+      group: root
+      mode: "0777"
+
+  - name: Copy templates
+    template:
+      src: "{{ item.src }}"
+      dest: "{{ item.dest }}"
+      owner: root
+      group: root
+      mode: "0777"
+    loop:      
+      - { src: envoy.yaml.j2, dest: /etc/envoy/envoy.yaml }    
+
+  - name: Generate envoy service unit file
+    template:
+      src: envoy.service.j2
+      dest: /etc/systemd/system/envoy.service
+      owner: root
+      group: root
+      mode: '0644'
+
+  - name: Run waterfight service
+    become: yes
+    systemd:
+      daemon_reload: yes      
+      state: started
+      name: envoy      

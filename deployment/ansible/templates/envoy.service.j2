@@ -1,0 +1,17 @@
+[Unit]
+Description=Envoy reseverse proxy
+After=network.target
+
+[Service]
+Type=simple
+
+ExecStart=/usr/bin/envoy -c /etc/envoy/envoy.yaml
+
+Restart=on-failure
+RestartSec=10
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=appgoservice
+
+[Install]
+WantedBy=multi-user.target
