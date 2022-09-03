@@ -4,7 +4,7 @@ all:
     cd_runner:
       hosts:
         waterfight:
-          ansible_host: 34.121.224.243
+          ansible_host: 34.136.247.132
       vars:
         ansible_python_interpreter: /usr/bin/python3
         ansible_port: 22
