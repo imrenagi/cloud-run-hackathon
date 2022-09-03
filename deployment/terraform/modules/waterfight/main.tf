@@ -27,13 +27,23 @@ resource "aws_route53_record" "eatn_route53_record" {
 
 resource "google_compute_instance" "waterfight_vm" {
   name         = "${var.app_name}-waterfight"
-  machine_type = "g1-small"
+  machine_type = "n1-standard-1"
   zone         = var.zone
 
   scheduling {
-    preemptible = true    
-    on_host_maintenance = "TERMINATE"
-    automatic_restart = false
+    # provisioning_model = "SPOT"
+    # preemptible = true    
+    # on_host_maintenance = "TERMINATE"
+    # automatic_restart = false
+    # provisioning_model = "STANDARD"
+    # preemptible = false
+    # on_host_maintenance = "MIGRATE"
+    # automatic_restart = true
+
+    provisioning_model        = var.spot ? "SPOT" : "STANDARD"
+    preemptible               = var.spot ? true : false
+    on_host_maintenance       = var.spot ? "TERMINATE" : "MIGRATE"
+    automatic_restart         = var.spot ? false : true
   }
   
   boot_disk {

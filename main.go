@@ -27,7 +27,19 @@ var tracer = otel.Tracer("github.com/imrenagi/cloud-run-hackathon-go")
 func init() {
 	if _, logLevel := os.LookupEnv("LOG_LEVEL"); !logLevel {
 		zerolog.SetGlobalLevel(zerolog.Disabled)
+	} else {
+		switch os.Getenv("LOG_LEVEL") {
+		case "DEBUG":
+			zerolog.SetGlobalLevel(zerolog.DebugLevel)
+		case "INFO":
+			zerolog.SetGlobalLevel(zerolog.InfoLevel)
+		case "ERROR":
+			zerolog.SetGlobalLevel(zerolog.ErrorLevel)
+		default:
+			zerolog.SetGlobalLevel(zerolog.Disabled)
+		}
 	}
+
 	zerolog.LevelFieldName = "severity"
 	zerolog.TimestampFieldName = "timestamp"
 	zerolog.TimeFieldFormat = time.RFC3339Nano
