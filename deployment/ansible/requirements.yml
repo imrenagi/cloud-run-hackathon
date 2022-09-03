@@ -1,0 +1,5 @@
+roles:
+  - name: abdennour.golang
+    version: v1.0.12
+  - name: geerlingguy.certbot
+    version: "5.0.1"
