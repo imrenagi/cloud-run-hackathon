@@ -2,7 +2,7 @@ all:
   hosts:
     waterfight:
       ansible_host: 34.136.247.132
-      log_level: DEBUG
+      log_level: INFO
       git_branch: cd
       web_url: "staging.waterfight.imrenagi.com"
   vars:

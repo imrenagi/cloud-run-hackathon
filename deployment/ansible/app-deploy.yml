@@ -1,21 +1,5 @@
 - hosts: all  
   tasks:
-  - name: Create a directory if it does not exist
-    become: yes
-    file:
-      path: /opt/app
-      state: directory
-      mode: '0755'    
-
-  - name: Recursively change ownership of a directory
-    become: yes
-    file:
-      path: /opt/app
-      state: directory
-      recurse: yes
-      owner: imre.nagi
-      group: imre.nagi
-
   - name: Clone repository
     git:
       repo: git@github.com:imrenagi/cloud-run-hackathon.git
