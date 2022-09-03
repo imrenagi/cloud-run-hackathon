@@ -60,6 +60,7 @@
       dest: /opt/app/cloud-run-hackathon      
       update: yes
       version: "{{ git_branch }}"
+      accept_hostkey: yes
   
   - name: Change the working directory to somedir/ before executing the command
     ansible.builtin.shell: /usr/local/share/go/bin/go build -o bin/app

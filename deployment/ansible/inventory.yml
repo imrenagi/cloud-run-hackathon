@@ -4,7 +4,7 @@ all:
     cd_runner:
       hosts:
         waterfight:
-          ansible_host: 35.226.97.121
+          ansible_host: 34.121.224.243
       vars:
         ansible_python_interpreter: /usr/bin/python3
         ansible_port: 22
@@ -14,6 +14,6 @@ all:
   vars:
     google_cloud_project: cloudrun-hackathon-359002
     git_branch: main
-    web_url: "testing-certbot.imrenagi.com"
+    web_url: "staging.waterfight.imrenagi.com"
     envoy_apt_release_channel: main
     envoy_apt_arch: amd64
