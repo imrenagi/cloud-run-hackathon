@@ -1,0 +1,47 @@
+- hosts: all  
+  tasks:
+  - name: Create a directory if it does not exist
+    become: yes
+    file:
+      path: /opt/app
+      state: directory
+      mode: '0755'    
+
+  - name: Recursively change ownership of a directory
+    become: yes
+    file:
+      path: /opt/app
+      state: directory
+      recurse: yes
+      owner: imre.nagi
+      group: imre.nagi
+
+  - name: Clone repository
+    git:
+      repo: git@github.com:imrenagi/cloud-run-hackathon.git
+      dest: /opt/app/cloud-run-hackathon      
+      update: yes
+      version: "{{ git_branch }}"
+      accept_hostkey: yes
+  
+  - name: Change the working directory to somedir/ before executing the command
+    ansible.builtin.shell: /usr/local/share/go/bin/go build -o bin/app
+    args:
+      chdir: /opt/app/cloud-run-hackathon
+
+  - name: Generate waterfight service unit file
+    become: yes
+    template:
+      src: waterfight.service.j2
+      dest: /etc/systemd/system/waterfight.service
+      owner: root
+      group: root
+      mode: '0644'
+
+  - name: Restart waterfight service
+    become: yes
+    systemd:
+      daemon_reload: yes      
+      state: restarted
+      name: waterfight
+  
