@@ -21,3 +21,8 @@ variable "route53_hosted_zone" {
 variable "app_name" {
   type = string
 }
+
+variable "spot" {
+  type    = bool
+  default = false
+}

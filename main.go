@@ -36,7 +36,7 @@ func init() {
 		case "ERROR":
 			zerolog.SetGlobalLevel(zerolog.ErrorLevel)
 		default:
-			zerolog.SetGlobalLevel(zerolog.InfoLevel)
+			zerolog.SetGlobalLevel(zerolog.Disabled)
 		}
 	}
 
