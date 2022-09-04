@@ -13,5 +13,3 @@ steps:
         '--project=$PROJECT_ID', '--region=us-central1',
         '--set-env-vars=GOOGLE_CLOUD_PROJECT=$PROJECT_ID',
         '--platform=managed', '--max-instances=1', '--allow-unauthenticated', 'waterfight-production-02']
-images:
-  - gcr.io/$PROJECT_ID/waterfight:$COMMIT_SHA
