@@ -14,6 +14,7 @@ ExecStart=/opt/app/cloud-run-hackathon/bin/app
 Environment="GOOGLE_CLOUD_PROJECT={{ google_cloud_project }}"
 Environment="K_SERVICE=dummy-app"
 Environment="LOG_LEVEL={{ log_level }}"
+Environment="PLAYER_MODE={{ player_mode }}"
 
 Restart=on-failure
 RestartSec=10

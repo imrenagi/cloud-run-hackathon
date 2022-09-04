@@ -11,7 +11,7 @@ import (
 func NewPlayerWithUrl(url string, state PlayerState) *Player {
 	p := NewPlayer(state)
 	p.Name = url
-	p.Strategy = DefaultStrategy()
+	p.Strategy = NewNormalStrategy()
 	return p
 }
 
@@ -31,7 +31,7 @@ func NewPlayer(state PlayerState) *Player {
 		Score:       state.Score,
 		Whitelisted: whitelisted,
 	}
-	p.Strategy = DefaultStrategy()
+	p.Strategy = NewNormalStrategy()
 	return p
 }
 
@@ -80,7 +80,7 @@ func (p *Player) Play(ctx context.Context) Move {
 	case AggressiveMode:
 		rank := p.Game.LeaderBoard.GetRank(*p)
 		if rank == 0 {
-			p.Strategy = DefaultStrategy()
+			p.Strategy = NewNormalStrategy()
 		} else {
 			target := p.GetPlayerOnNextPodium(ctx)
 			// TODO new safe chasing ini jangan pakai logic Attack state.
@@ -88,9 +88,9 @@ func (p *Player) Play(ctx context.Context) Move {
 			p.Strategy = NewSafeChasing(target)
 		}
 	case BraveMode:
-		p.Strategy = DefaultStrategy()
+		p.Strategy = NewBraveStrategy()
 	default:
-		p.Strategy = DefaultStrategy()
+		p.Strategy = NewNormalStrategy()
 	}
 	return p.Strategy.Play(ctx, p)
 }
@@ -186,6 +186,7 @@ func (p Player) FindShooterOnDirection(ctx context.Context, direction Direction)
 	return shooter
 }
 
+// TODO butuh CanHitPoint where we ignore all players in attack range.
 // CanHitPoint check whether can attack a player in pt
 func (p Player) CanHitPoint(ctx context.Context, pt Point) bool {
 	ctx, span := tracer.Start(ctx, "Player.CanHitPoint")

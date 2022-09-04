@@ -21,33 +21,8 @@ func (e *Escape) Play(ctx context.Context) Move {
 	left := e.Player.FindShooterOnDirection(ctx, e.Player.GetDirection().Left())
 	right := e.Player.FindShooterOnDirection(ctx, e.Player.GetDirection().Right())
 
-	// totalShoots := 0
-	//
-	// // TODO escape state (brave mode) tapi kalau cuma ada satu orang yg nembak, arahin ke dia terus tembak balik
-	// if len(front) > 0 {
-	// 	totalShoots++
-	// }
-	// if len(back) > 0 {
-	// 	totalShoots++
-	// }
-	// if len(left) > 0 {
-	// 	totalShoots++
-	// }
-	// if len(right) > 0 {
-	// 	totalShoots++
-	// }
-	//
-	// if totalShoots <= 1 {
-	// 	// escape
-	// 	// TODO redirect to the enemy
-	// 	// if already facing, shot
-	// }
-	//
-	// TODO hindari escape ke arah orang lagi perang
-
 	var paths []Path // list of possible path
 	validAdjacent := e.Player.Game.Arena.GetAdjacent(ctx, e.Player.GetPosition(), WithDiagonalAdjacents(), WithEmptyAdjacent())
-
 	if front != nil {
 		var newAdjacent []Point
 		for _, adj := range validAdjacent {
@@ -75,6 +50,7 @@ func (e *Escape) Play(ctx context.Context) Move {
 		}
 		validAdjacent = newAdjacent
 	}
+	// TODO remove invalid adjacent caused by the attack from the back
 	for _, adj := range validAdjacent {
 		aStar := NewAStar(e.Player.Game.Arena)
 		path, err := aStar.SearchPath(ctx, e.Player.GetPosition(), adj)
@@ -83,6 +59,8 @@ func (e *Escape) Play(ctx context.Context) Move {
 		}
 		paths = append(paths, path)
 	}
+
+	// TODO hindari escape ke arah orang lagi perang
 
 	// when there is no escape route
 	if len(paths) == 0 {
@@ -148,8 +126,71 @@ func (e *Escape) Play(ctx context.Context) Move {
 	return mostEfficientMoves[0]
 }
 
+func (e Escape) GetPlayer() *Player {
+	return e.Player
+}
+
 type byPathLength []Path
 
 func (a byPathLength) Len() int           { return len(a) }
 func (a byPathLength) Less(i, j int) bool { return len(a[i]) < len(a[j]) }
 func (a byPathLength) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+
+type PlayerRetriever interface {
+	GetPlayer() *Player
+}
+
+type Escaper interface {
+	State
+	PlayerRetriever
+}
+
+// BraveEscapeDecorator use escape logic. But it should be able to attack other component in case of
+// only one opponent is attacking
+type BraveEscapeDecorator struct {
+	Escaper Escaper
+}
+
+func (e *BraveEscapeDecorator) Play(ctx context.Context) Move {
+	ctx, span := tracer.Start(ctx, "BraveEscapeDecorator.Play")
+	defer span.End()
+
+	player := e.Escaper.GetPlayer()
+
+	front := player.FindShooterOnDirection(ctx, player.GetDirection())
+	back := player.FindShooterOnDirection(ctx, player.GetDirection().Backward())
+	left := player.FindShooterOnDirection(ctx, player.GetDirection().Left())
+	right := player.FindShooterOnDirection(ctx, player.GetDirection().Right())
+
+	totalShoots := 0
+
+	// TODO escape state (brave mode) tapi kalau cuma ada satu orang yg nembak, arahin ke dia terus tembak balik
+	if front != nil{
+		totalShoots++
+	}
+	if left != nil {
+		totalShoots++
+	}
+	if right != nil {
+		totalShoots++
+	}
+	if back != nil {
+		totalShoots++
+	}
+
+	if (totalShoots == 1 && back != nil) || totalShoots > 1 {
+		return e.Escaper.Play(ctx)
+	}
+
+	if front != nil {
+		return Throw
+	} else if left != nil {
+		return TurnLeft
+	} else if right != nil {
+		return TurnRight
+	} else {
+		// TODO test this?
+		return player.Walk(ctx)
+	}
+}
+

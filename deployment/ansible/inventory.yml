@@ -5,6 +5,7 @@ all:
       log_level: DEBUG
       git_branch: develop
       web_url: "staging.waterfight.imrenagi.com"
+      player_mode: "brave"
     # prod-qualification:
     #   ansible_host: 34.67.95.6  
     #   web_url: "production-qualification.waterfight.imrenagi.com"
@@ -19,5 +20,6 @@ all:
     google_cloud_project: cloudrun-hackathon-359002
     git_branch: main
     log_level: DISABLED
+    player_mode: normal
     envoy_apt_release_channel: main
     envoy_apt_arch: amd64

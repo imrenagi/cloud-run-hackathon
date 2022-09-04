@@ -406,7 +406,6 @@ func TestPlayerState_FindShooterFromDirection(t *testing.T) {
 				assert.Nil(t, got)
 			}
 
-
 		})
 	}
 }
@@ -903,6 +902,7 @@ func TestPlayer_CanAttackPoint(t *testing.T) {
 		name   string
 		fields fields
 		args   args
+		skip   bool
 		want   bool
 	}{
 		{
@@ -968,6 +968,30 @@ func TestPlayer_CanAttackPoint(t *testing.T) {
 			want: false,
 		},
 		{
+			name: "can attack even if there is other player in attack range because we enable the option to ignore players",
+			skip: true,
+			args: args{
+				// TODO add options
+				pt: Point{3, 1},
+			},
+			fields: fields{
+				X:         1,
+				Y:         1,
+				Direction: "E",
+				Game: Game{
+					Arena: Arena{
+						Width:  4,
+						Height: 2,
+						Grid: [][]Cell{
+							{{}, {}, {}, {}},
+							{{}, {Player: &PlayerState{X: 1, Y: 1, Direction: "E"}}, {Player: &PlayerState{X: 2, Y: 1, Direction: "N"}}, {}},
+						},
+					},
+				},
+			},
+			want: true,
+		},
+		{
 			name: "cant attack because there is other player in attack range, even when target has no player",
 			args: args{pt: Point{3, 1}},
 			fields: fields{
@@ -1010,6 +1034,11 @@ func TestPlayer_CanAttackPoint(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+
+			if tt.skip {
+				t.Skip()
+			}
+
 			p := Player{
 				Name:         tt.fields.Name,
 				X:            tt.fields.X,
