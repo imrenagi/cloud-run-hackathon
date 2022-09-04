@@ -31,15 +31,6 @@ resource "google_compute_instance" "waterfight_vm" {
   zone         = var.zone
 
   scheduling {
-    # provisioning_model = "SPOT"
-    # preemptible = true    
-    # on_host_maintenance = "TERMINATE"
-    # automatic_restart = false
-    # provisioning_model = "STANDARD"
-    # preemptible = false
-    # on_host_maintenance = "MIGRATE"
-    # automatic_restart = true
-
     provisioning_model        = var.spot ? "SPOT" : "STANDARD"
     preemptible               = var.spot ? true : false
     on_host_maintenance       = var.spot ? "TERMINATE" : "MIGRATE"

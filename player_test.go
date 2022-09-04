@@ -343,6 +343,36 @@ func TestPlayerState_FindShooterFromDirection(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "multiple shooters facing from front",
+			fields: fields{
+				X:         2,
+				Y:         1,
+				Direction: "W",
+				Game: Game{
+					Arena: Arena{
+						Width:  4,
+						Height: 3,
+						Grid: [][]Cell{
+							{{}, {}, {}, {}},
+							{{Player: &PlayerState{X: 0, Y: 1, Direction: "E"}}, {Player: &PlayerState{X: 1, Y: 1, Direction: "E"}}, {Player: &PlayerState{X: 2, Y: 1, Direction: "W"}}, {}},
+							{{}, {}, {}, {}},
+						},
+					},
+				},
+			},
+			args: args{
+
+				direction: West,
+			},
+			want: []Player{
+				{
+					X:         1,
+					Y:         1,
+					Direction: "E",
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

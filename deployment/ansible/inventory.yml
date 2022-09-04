@@ -18,6 +18,6 @@ all:
     ansible_ssh_private_key_file: ~/.ssh/google_compute_engine
     google_cloud_project: cloudrun-hackathon-359002
     git_branch: main
-    log_level: DISABLED    
+    log_level: DISABLED
     envoy_apt_release_channel: main
     envoy_apt_arch: amd64

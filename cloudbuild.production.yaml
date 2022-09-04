@@ -1,4 +1,11 @@
 steps:  
+  # Build the container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/waterfight:$COMMIT_SHA', '.']
+  # Push the container image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/waterfight:$COMMIT_SHA']
+  # Deploy container image to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args: [
@@ -13,3 +20,5 @@ steps:
         '--project=$PROJECT_ID', '--region=us-central1',
         '--set-env-vars=GOOGLE_CLOUD_PROJECT=$PROJECT_ID',
         '--platform=managed', '--max-instances=1', '--allow-unauthenticated', 'waterfight-production-02']
+images:
+  - gcr.io/$PROJECT_ID/waterfight:$COMMIT_SHA        

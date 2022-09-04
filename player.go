@@ -63,28 +63,39 @@ func (p Player) Clone() Player {
 	}
 }
 
+type Mode string
+
+const (
+	NormalMode     Mode = "normal"
+	BraveMode      Mode = "brave"
+	AggressiveMode Mode = "aggressive"
+)
+
 func (p *Player) Play(ctx context.Context) Move {
 	ctx, span := tracer.Start(ctx, "Player.Play")
 	defer span.End()
 
-	// TODO kalah latency
-	rank := p.Game.LeaderBoard.GetRank(*p)
-	if rank == 0 {
+	// TODO dua mode game. Mode normal -> Default Strategy aja.
+	// 1: Always Default Strategy
+	mode := os.Getenv("PLAYER_MODE")
+	switch Mode(mode) {
+	case AggressiveMode:
+		rank := p.Game.LeaderBoard.GetRank(*p)
+		if rank == 0 {
+			p.Strategy = DefaultStrategy()
+		} else {
+			target := p.GetPlayerOnNextPodium(ctx)
+			// TODO new safe chasing ini jangan pakai logic Attack state.
+			// tapi sebisa mungkin cari playernya sampai ketemu
+			p.Strategy = NewSafeChasing(target)
+		}
+	case BraveMode:
 		p.Strategy = DefaultStrategy()
-	} else {
-		target := p.GetPlayerOnNextPodium(ctx)
-		// TODO new safe chasing ini jangan pakai logic Attack state.
-		// tapi sebisa mungkin cari playernya sampai ketemu
-		p.Strategy = NewSafeChasing(target)
+	default:
+		p.Strategy = DefaultStrategy()
 	}
-
 	return p.Strategy.Play(ctx, p)
 }
-
-// func (p *Player) Chase(target *Player) Move {
-// 	s := NewBrutalChasing(target)
-// 	return s.Play(p)
-// }
 
 func (p *Player) ChangeState(s State) {
 	p.State = s
