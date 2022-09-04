@@ -45,39 +45,32 @@ func (e *Escape) Play(ctx context.Context) Move {
 	//
 	// TODO hindari escape ke arah orang lagi perang
 
-
 	var paths []Path // list of possible path
 	validAdjacent := e.Player.Game.Arena.GetAdjacent(ctx, e.Player.GetPosition(), WithDiagonalAdjacents(), WithEmptyAdjacent())
-	if len(front) > 0 {
+
+	if front != nil {
 		var newAdjacent []Point
-		for _, fp := range front {
-			for _, adj := range validAdjacent {
-				canAttack := fp.CanHitPoint(ctx, adj)
-				if !canAttack {
-					newAdjacent = append(newAdjacent, adj)
-				}
+		for _, adj := range validAdjacent {
+			if !front.CanHitPoint(ctx, adj) {
+				newAdjacent = append(newAdjacent, adj)
 			}
 		}
 		validAdjacent = newAdjacent
 	}
-	if len(left) > 0 {
+	if left != nil {
 		var newAdjacent []Point
-		for _, fp := range left {
-			for _, adj := range validAdjacent {
-				if !fp.CanHitPoint(ctx, adj) {
-					newAdjacent = append(newAdjacent, adj)
-				}
+		for _, adj := range validAdjacent {
+			if !left.CanHitPoint(ctx, adj) {
+				newAdjacent = append(newAdjacent, adj)
 			}
 		}
 		validAdjacent = newAdjacent
 	}
-	if len(right) > 0 {
+	if right != nil {
 		var newAdjacent []Point
-		for _, fp := range right {
-			for _, adj := range validAdjacent {
-				if !fp.CanHitPoint(ctx, adj) {
-					newAdjacent = append(newAdjacent, adj)
-				}
+		for _, adj := range validAdjacent {
+			if !right.CanHitPoint(ctx, adj) {
+				newAdjacent = append(newAdjacent, adj)
 			}
 		}
 		validAdjacent = newAdjacent
@@ -93,21 +86,21 @@ func (e *Escape) Play(ctx context.Context) Move {
 
 	// when there is no escape route
 	if len(paths) == 0 {
-		if len(front) > 0 {
+		if front != nil {
 			e.Player.trappedCount++
 			if e.Player.trappedCount > maxHitWhenTrapped {
 				e.Player.trappedCount = 0
-				if len(left) > 0 {
+				if left != nil {
 					return TurnLeft
 				}
-				if len(right) > 0 {
+				if right != nil {
 					return TurnRight
 				}
 			}
 			return Throw
-		} else if len(left) > 0 {
+		} else if left != nil {
 			return TurnLeft
-		} else if len(right) > 0 {
+		} else if right != nil {
 			return TurnRight
 		} else {
 			return e.Player.Walk(ctx)

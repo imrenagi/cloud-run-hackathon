@@ -56,27 +56,23 @@ func CheckTargetSurroundingAttackRangeFn(target Player) IsUnblockFn {
 		}
 
 		right := target.FindShooterOnDirection(ctx, target.GetDirection().Right())
-		if len(right) > 0 {
-			rp := right[0]
-			canHit = canHit || rp.CanHitPoint(ctx, p)
+		if right != nil {
+			canHit = canHit || right.CanHitPoint(ctx, p)
 		}
 
 		back := target.FindShooterOnDirection(ctx, target.GetDirection().Backward())
-		if len(back) > 0 {
-			bp := back[0]
-			canHit = canHit || bp.CanHitPoint(ctx, p)
+		if back != nil {
+			canHit = canHit || back.CanHitPoint(ctx, p)
 		}
 
 		front := target.FindShooterOnDirection(ctx, target.GetDirection())
-		if len(front) > 0 {
-			fp := front[0]
-			canHit = canHit || fp.CanHitPoint(ctx, p)
+		if front != nil {
+			canHit = canHit || front.CanHitPoint(ctx, p)
 		}
 
 		left := target.FindShooterOnDirection(ctx, target.GetDirection().Left())
-		if len(left) > 0 {
-			lp := left[0]
-			canHit = canHit || lp.CanHitPoint(ctx, p)
+		if left != nil {
+			canHit = canHit || left.CanHitPoint(ctx, p)
 		}
 		return !canHit
 	}

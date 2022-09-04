@@ -24,9 +24,9 @@ func NewPlayer(state PlayerState) *Player {
 	}
 
 	p := &Player{
-		X:           state.X, // TODO ubah jadi location
+		X:           state.X,
 		Y:           state.Y,
-		Direction:   state.Direction, // TODO ubah jadi direction
+		Direction:   state.Direction,
 		WasHit:      state.WasHit,
 		Score:       state.Score,
 		Whitelisted: whitelisted,
@@ -75,8 +75,6 @@ func (p *Player) Play(ctx context.Context) Move {
 	ctx, span := tracer.Start(ctx, "Player.Play")
 	defer span.End()
 
-	// TODO dua mode game. Mode normal -> Default Strategy aja.
-	// 1: Always Default Strategy
 	mode := os.Getenv("PLAYER_MODE")
 	switch Mode(mode) {
 	case AggressiveMode:
@@ -171,18 +169,21 @@ func (p Player) GetPlayerOnNextPodium(ctx context.Context) *Player {
 }
 
 // FindShooterOnDirection return other players which are in attach range and heading toward the player
-func (p Player) FindShooterOnDirection(ctx context.Context, direction Direction) []Player {
+func (p Player) FindShooterOnDirection(ctx context.Context, direction Direction) *Player {
 	ctx, span := tracer.Start(ctx, "Player.FindShooterOnDirection")
 	defer span.End()
 
-	var filtered []Player
+	var shooter *Player
 	opponents := p.GetPlayersInRange(ctx, direction, attackRange)
 	for _, opponent := range opponents {
+		// assumming the first opponent is the closest one
 		if opponent.CanHit(ctx, p) {
-			filtered = append(filtered, opponent)
+			// filtered = append(filtered, opponent)
+			shooter = &opponent
+			break
 		}
 	}
-	return filtered
+	return shooter
 }
 
 // CanHitPoint check whether can attack a player in pt
