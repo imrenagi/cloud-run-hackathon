@@ -27,9 +27,9 @@ func (a *Attack) Play(ctx context.Context) Move {
 	ctx, span := tracer.Start(ctx, "Attack.Play")
 	defer span.End()
 
-	playersInFront := a.Player.GetPlayersInRange(ctx, a.Player.GetDirection(), 3)
-	playersInLeft := a.Player.GetPlayersInRange(ctx, a.Player.GetDirection().Left(), 3)
-	playersInRight := a.Player.GetPlayersInRange(ctx, a.Player.GetDirection().Right(), 3)
+	playersInFront := a.Player.GetPlayersInRange(ctx, a.Player.GetDirection(), attackRange)
+	playersInLeft := a.Player.GetPlayersInRange(ctx, a.Player.GetDirection().Left(), attackRange)
+	playersInRight := a.Player.GetPlayersInRange(ctx, a.Player.GetDirection().Right(), attackRange)
 
 	if len(playersInFront) > 0 {
 		return Throw
@@ -43,5 +43,5 @@ func (a *Attack) Play(ctx context.Context) Move {
 		// TODO attack should be able to use closest/targeted
 		return a.ExplorationStrategy.Explore(ctx, a.Player)
 	}
+	// TODO attack sambil maju satu langkah
 }
-

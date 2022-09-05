@@ -219,6 +219,15 @@ func (p Player) GetRank() int {
 	return p.Game.LeaderBoard.GetRank(p)
 }
 
+func (p Player) FindTargetOnDirection(ctx context.Context, direction Direction) *Player {
+	players := p.GetPlayersInRange(ctx, direction, attackRange)
+	if len(players) == 0 {
+		return nil
+	}
+	target := players[0]
+	return &target
+}
+
 func (p Player) GetPlayersInRange(ctx context.Context, direction Direction, distance int) []Player {
 	ctx, span := tracer.Start(ctx, "Player.GetPlayersInRange")
 	defer span.End()
@@ -363,6 +372,7 @@ func (p Player) MoveToAdjacent(toPt Point) ([]Move, error) {
 	}
 }
 
+// TODO jangan pakai distance. pakai require move
 func (p Player) FindClosestPlayers(ctx context.Context) []Player {
 	ctx, span := tracer.Start(ctx, "Player.FindClosestPlayers")
 	defer span.End()

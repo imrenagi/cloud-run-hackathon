@@ -4,7 +4,7 @@ module "waterfight_staging_01" {
   zone                  = "us-central1-a"
   network               = "default"
   subnet                = "default"
-  app_name              = "staging"
+  app_name              = "staging-01"
   route53_hosted_zone   = "imrenagi.com"
   spot                  = true
 }

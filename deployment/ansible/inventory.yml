@@ -1,11 +1,11 @@
 all:
   hosts:
     staging-waterfight:
-      ansible_host: 34.136.247.132
+      ansible_host: 34.170.5.135
       log_level: DEBUG
       git_branch: develop
-      web_url: "staging.waterfight.imrenagi.com"
-      player_mode: "brave"
+      web_url: "staging-01.waterfight.imrenagi.com"
+      player_mode: brave
     # prod-qualification:
     #   ansible_host: 34.67.95.6  
     #   web_url: "production-qualification.waterfight.imrenagi.com"
