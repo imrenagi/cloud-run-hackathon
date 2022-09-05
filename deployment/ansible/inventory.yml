@@ -6,6 +6,7 @@ all:
       git_branch: develop
       web_url: "staging-01.waterfight.imrenagi.com"
       player_mode: brave
+      tracing_mode: google_cloud_trace
     # prod-qualification:
     #   ansible_host: 34.67.95.6  
     #   web_url: "production-qualification.waterfight.imrenagi.com"
@@ -23,3 +24,4 @@ all:
     player_mode: normal
     envoy_apt_release_channel: main
     envoy_apt_arch: amd64
+    tracing_mode:
