@@ -821,3 +821,156 @@ func TestEscape_Play(t *testing.T) {
 		})
 	}
 }
+
+func TestBraveEscapeDecorator_Play(t *testing.T) {
+	type fields struct {
+		Escaper Escaper
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   Move
+	}{
+		{
+			name: "only one opponent is attacking from the front, attack back",
+			fields: fields{
+				Escaper: &mockEscaper{
+					p: &Player{
+						X:         1,
+						Y:         1,
+						Direction: "E",
+						WasHit:    true,
+						Score:     0,
+						Game: Game{
+							Arena: Arena{Width: 4, Height: 3,
+								Grid: [][]Cell{
+									{{}, {}, {}, {}},
+									{{}, {Player: &PlayerState{X: 1, Y: 1, Direction: "E", WasHit: true}}, {}, {Player: &PlayerState{X: 3, Y: 1, Direction: "W"}}},
+									{{}, {}, {}, {}},
+								},
+							},
+						},
+					},
+				},
+			},
+			want: Throw,
+		},
+		{
+			name: "only one opponent is attacking from the right, turn right",
+			fields: fields{
+				Escaper: &mockEscaper{
+					p: &Player{
+						X:         1,
+						Y:         1,
+						Direction: "E",
+						WasHit:    true,
+						Score:     0,
+						Game: Game{
+							Arena: Arena{Width: 4, Height: 3,
+								Grid: [][]Cell{
+									{{}, {}, {}, {}},
+									{{}, {Player: &PlayerState{X: 1, Y: 1, Direction: "E", WasHit: true}}, {}, {}},
+									{{}, {Player: &PlayerState{X: 1, Y: 2, Direction: "N"}}, {}, {}},
+								},
+							},
+						},
+					},
+				},
+			},
+			want: TurnRight,
+		},
+		{
+			name: "only one opponent is attacking from the left, turn left",
+			fields: fields{
+				Escaper: &mockEscaper{
+					p: &Player{
+						X:         1,
+						Y:         1,
+						Direction: "E",
+						WasHit:    true,
+						Score:     0,
+						Game: Game{
+							Arena: Arena{Width: 4, Height: 3,
+								Grid: [][]Cell{
+									{{}, {Player: &PlayerState{X: 1, Y: 0, Direction: "S"}}, {}, {}},
+									{{}, {Player: &PlayerState{X: 1, Y: 1, Direction: "E", WasHit: true}}, {}, {}},
+									{{}, {}, {}, {}},
+								},
+							},
+						},
+					},
+				},
+			},
+			want: TurnLeft,
+		},
+		{
+			name: "only one opponent is attacking from the back, escape",
+			fields: fields{
+				Escaper: &mockEscaper{
+					p: &Player{
+						X:         1,
+						Y:         1,
+						Direction: "E",
+						WasHit:    true,
+						Score:     0,
+						Game: Game{
+							Arena: Arena{Width: 4, Height: 3,
+								Grid: [][]Cell{
+									{{}, {}, {}, {}},
+									{{Player: &PlayerState{X: 0, Y: 1, Direction: "E"}}, {Player: &PlayerState{X: 1, Y: 1, Direction: "E", WasHit: true}}, {}, {}},
+									{{}, {}, {}, {}},
+								},
+							},
+						},
+					},
+				},
+			},
+			want: "MOCK",
+		},
+		{
+			name: "more than one opponent is attacking, escape",
+			fields: fields{
+				Escaper: &mockEscaper{
+					p: &Player{
+						X:         1,
+						Y:         1,
+						Direction: "E",
+						WasHit:    true,
+						Score:     0,
+						Game: Game{
+							Arena: Arena{Width: 4, Height: 2,
+								Grid: [][]Cell{
+									{{}, {}, {}, {}},
+									{{Player: &PlayerState{X: 0, Y: 1, Direction: "E"}}, {Player: &PlayerState{X: 1, Y: 1, Direction: "E", WasHit: true}}, {}, {Player: &PlayerState{X: 3, Y: 1, Direction: "W"}}},
+								},
+							},
+						},
+					},
+				},
+			},
+			want: "MOCK",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			e := &BraveEscapeDecorator{
+				Escaper: tt.fields.Escaper,
+			}
+			if got := e.Play(context.TODO()); got != tt.want {
+				t.Errorf("Play() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+type mockEscaper struct {
+	p *Player
+}
+
+func (m mockEscaper) Play(ctx context.Context) Move {
+	return "MOCK"
+}
+
+func (m mockEscaper) GetPlayer() *Player {
+	return m.p
+}

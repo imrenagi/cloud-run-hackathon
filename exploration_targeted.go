@@ -15,7 +15,6 @@ func (t *TargetedEnemy) Explore(ctx context.Context, p *Player) Move {
 	// TODO kalau target di serang sama semua orang, cari aja target lain karena gak perlu kita serang lagi. biar orang lain.
 
 	if t.Target == nil {
-		// TODO what happened when target is nil
 		return Throw
 	}
 

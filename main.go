@@ -194,15 +194,13 @@ func (s Server) UpdateArena() http.HandlerFunc {
 func (s *Server) Play(ctx context.Context, v ArenaUpdate) Move {
 	s.game = NewGame()
 	s.game.UpdateArena(ctx, v)
-	if s.player == nil {
+	if s.player == nil {	
 		s.player = s.game.Player(v.Links.Self.Href)
 	} else {
+		// TODO kalau URLnya ganti, ignore
 		s.game.Update(s.player)
 	}
 	return s.player.Play(ctx)
-	// topRank := s.game.LeaderBoard[0]
-	// target := s.game.GetPlayerByPosition(Point{topRank.X, topRank.Y})
-	// return s.player.Chase(s.player.GetHighestRank())
 }
 
 func (s *Server) initGlobalProvider(name, endpoint string) {

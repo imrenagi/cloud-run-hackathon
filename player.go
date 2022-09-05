@@ -11,7 +11,7 @@ import (
 func NewPlayerWithUrl(url string, state PlayerState) *Player {
 	p := NewPlayer(state)
 	p.Name = url
-	p.Strategy = DefaultStrategy()
+	p.Strategy = NewNormalStrategy()
 	return p
 }
 
@@ -24,14 +24,14 @@ func NewPlayer(state PlayerState) *Player {
 	}
 
 	p := &Player{
-		X:           state.X, // TODO ubah jadi location
+		X:           state.X,
 		Y:           state.Y,
-		Direction:   state.Direction, // TODO ubah jadi direction
+		Direction:   state.Direction,
 		WasHit:      state.WasHit,
 		Score:       state.Score,
 		Whitelisted: whitelisted,
 	}
-	p.Strategy = DefaultStrategy()
+	p.Strategy = NewNormalStrategy()
 	return p
 }
 
@@ -63,28 +63,37 @@ func (p Player) Clone() Player {
 	}
 }
 
+type Mode string
+
+const (
+	NormalMode     Mode = "normal"
+	BraveMode      Mode = "brave"
+	AggressiveMode Mode = "aggressive"
+)
+
 func (p *Player) Play(ctx context.Context) Move {
 	ctx, span := tracer.Start(ctx, "Player.Play")
 	defer span.End()
 
-	// TODO kalah latency
-	rank := p.Game.LeaderBoard.GetRank(*p)
-	if rank == 0 {
-		p.Strategy = DefaultStrategy()
-	} else {
-		target := p.GetPlayerOnNextPodium(ctx)
-		// TODO new safe chasing ini jangan pakai logic Attack state.
-		// tapi sebisa mungkin cari playernya sampai ketemu
-		p.Strategy = NewSafeChasing(target)
+	mode := os.Getenv("PLAYER_MODE")
+	switch Mode(mode) {
+	case AggressiveMode:
+		rank := p.Game.LeaderBoard.GetRank(*p)
+		if rank == 0 {
+			p.Strategy = NewNormalStrategy()
+		} else {
+			target := p.GetPlayerOnNextPodium(ctx)
+			// TODO new safe chasing ini jangan pakai logic Attack state.
+			// tapi sebisa mungkin cari playernya sampai ketemu
+			p.Strategy = NewSafeChasing(target)
+		}
+	case BraveMode:
+		p.Strategy = NewBraveStrategy()
+	default:
+		p.Strategy = NewNormalStrategy()
 	}
-
 	return p.Strategy.Play(ctx, p)
 }
-
-// func (p *Player) Chase(target *Player) Move {
-// 	s := NewBrutalChasing(target)
-// 	return s.Play(p)
-// }
 
 func (p *Player) ChangeState(s State) {
 	p.State = s
@@ -160,20 +169,24 @@ func (p Player) GetPlayerOnNextPodium(ctx context.Context) *Player {
 }
 
 // FindShooterOnDirection return other players which are in attach range and heading toward the player
-func (p Player) FindShooterOnDirection(ctx context.Context, direction Direction) []Player {
+func (p Player) FindShooterOnDirection(ctx context.Context, direction Direction) *Player {
 	ctx, span := tracer.Start(ctx, "Player.FindShooterOnDirection")
 	defer span.End()
 
-	var filtered []Player
+	var shooter *Player
 	opponents := p.GetPlayersInRange(ctx, direction, attackRange)
 	for _, opponent := range opponents {
+		// assumming the first opponent is the closest one
 		if opponent.CanHit(ctx, p) {
-			filtered = append(filtered, opponent)
+			// filtered = append(filtered, opponent)
+			shooter = &opponent
+			break
 		}
 	}
-	return filtered
+	return shooter
 }
 
+// TODO butuh CanHitPoint where we ignore all players in attack range.
 // CanHitPoint check whether can attack a player in pt
 func (p Player) CanHitPoint(ctx context.Context, pt Point) bool {
 	ctx, span := tracer.Start(ctx, "Player.CanHitPoint")
@@ -204,6 +217,15 @@ func (p Player) CanHit(ctx context.Context, p2 Player) bool {
 
 func (p Player) GetRank() int {
 	return p.Game.LeaderBoard.GetRank(p)
+}
+
+func (p Player) FindTargetOnDirection(ctx context.Context, direction Direction) *Player {
+	players := p.GetPlayersInRange(ctx, direction, attackRange)
+	if len(players) == 0 {
+		return nil
+	}
+	target := players[0]
+	return &target
 }
 
 func (p Player) GetPlayersInRange(ctx context.Context, direction Direction, distance int) []Player {
@@ -350,6 +372,7 @@ func (p Player) MoveToAdjacent(toPt Point) ([]Move, error) {
 	}
 }
 
+// TODO jangan pakai distance. pakai require move
 func (p Player) FindClosestPlayers(ctx context.Context) []Player {
 	ctx, span := tracer.Start(ctx, "Player.FindClosestPlayers")
 	defer span.End()

@@ -1,10 +1,11 @@
 all:
   hosts:
     staging-waterfight:
-      ansible_host: 34.136.247.132
+      ansible_host: 34.170.5.135
       log_level: DEBUG
       git_branch: develop
-      web_url: "staging.waterfight.imrenagi.com"
+      web_url: "staging-01.waterfight.imrenagi.com"
+      player_mode: brave
     # prod-qualification:
     #   ansible_host: 34.67.95.6  
     #   web_url: "production-qualification.waterfight.imrenagi.com"
@@ -18,6 +19,7 @@ all:
     ansible_ssh_private_key_file: ~/.ssh/google_compute_engine
     google_cloud_project: cloudrun-hackathon-359002
     git_branch: main
-    log_level: DISABLED    
+    log_level: DISABLED
+    player_mode: normal
     envoy_apt_release_channel: main
     envoy_apt_arch: amd64

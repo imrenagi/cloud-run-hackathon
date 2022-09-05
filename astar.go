@@ -109,13 +109,6 @@ func (as *AStar) SearchPath(ctx context.Context, src, dest Point) (Path, error) 
 		return nil, ErrDestinationInvalid
 	}
 
-	// Either the source or the destination is blocked
-	// TODO need to update this logic since the destination will be blocked because the player is the target
-	// if !as.arena.Grid.IsUnblock(src) || !as.arena.Grid.IsUnblock(dest) {
-	// 	log.Warn().Msg("Source or the destination is blocked")
-	// 	return nil, fmt.Errorf("source or destination is blocked")
-	// }
-
 	// If the destination cell is the same as source cell
 	if src.Equal(dest) {
 		return nil, nil

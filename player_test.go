@@ -223,8 +223,31 @@ func TestPlayerState_FindShooterFromDirection(t *testing.T) {
 		name   string
 		fields fields
 		args   args
-		want   []Player
+		want   *Player
 	}{
+		{
+			name: "no shooter",
+			fields: fields{
+				X:         1,
+				Y:         1,
+				Direction: "W",
+				Game: Game{
+					Arena: Arena{
+						Width:  4,
+						Height: 3,
+						Grid: [][]Cell{
+							{{}, {}, {}, {}},
+							{{}, {Player: &PlayerState{X: 1, Y: 1, Direction: "W"}}, {}, {}},
+							{{}, {}, {}, {}},
+						},
+					},
+				},
+			},
+			args: args{
+				direction: North,
+			},
+			want: nil,
+		},
 		{
 			name: "shooter from right",
 			fields: fields{
@@ -246,12 +269,10 @@ func TestPlayerState_FindShooterFromDirection(t *testing.T) {
 			args: args{
 				direction: North,
 			},
-			want: []Player{
-				{
-					X:         1,
-					Y:         0,
-					Direction: "S",
-				},
+			want: &Player{
+				X:         1,
+				Y:         0,
+				Direction: "S",
 			},
 		},
 		{
@@ -275,12 +296,10 @@ func TestPlayerState_FindShooterFromDirection(t *testing.T) {
 			args: args{
 				direction: East,
 			},
-			want: []Player{
-				{
-					X:         3,
-					Y:         1,
-					Direction: "W",
-				},
+			want: &Player{
+				X:         3,
+				Y:         1,
+				Direction: "W",
 			},
 		},
 		{
@@ -305,12 +324,10 @@ func TestPlayerState_FindShooterFromDirection(t *testing.T) {
 			args: args{
 				direction: South,
 			},
-			want: []Player{
-				{
-					X:         1,
-					Y:         2,
-					Direction: "N",
-				},
+			want: &Player{
+				X:         1,
+				Y:         2,
+				Direction: "N",
 			},
 		},
 		{
@@ -335,12 +352,38 @@ func TestPlayerState_FindShooterFromDirection(t *testing.T) {
 
 				direction: West,
 			},
-			want: []Player{
-				{
-					X:         0,
-					Y:         1,
-					Direction: "E",
+			want: &Player{
+				X:         0,
+				Y:         1,
+				Direction: "E",
+			},
+		},
+		{
+			name: "multiple shooters facing from front",
+			fields: fields{
+				X:         2,
+				Y:         1,
+				Direction: "W",
+				Game: Game{
+					Arena: Arena{
+						Width:  4,
+						Height: 3,
+						Grid: [][]Cell{
+							{{}, {}, {}, {}},
+							{{Player: &PlayerState{X: 0, Y: 1, Direction: "E"}}, {Player: &PlayerState{X: 1, Y: 1, Direction: "E"}}, {Player: &PlayerState{X: 2, Y: 1, Direction: "W"}}, {}},
+							{{}, {}, {}, {}},
+						},
+					},
 				},
+			},
+			args: args{
+
+				direction: West,
+			},
+			want: &Player{
+				X:         1,
+				Y:         1,
+				Direction: "E",
 			},
 		},
 	}
@@ -355,11 +398,14 @@ func TestPlayerState_FindShooterFromDirection(t *testing.T) {
 				Game:      tt.fields.Game,
 			}
 			got := p.FindShooterOnDirection(context.TODO(), tt.args.direction)
-			assert.Equal(t, len(tt.want), len(got))
-			for i, p := range tt.want {
-				assert.Equal(t, p.X, tt.want[i].X)
-				assert.Equal(t, p.Y, tt.want[i].Y)
+			if tt.want != nil {
+				assert.Equal(t, tt.want.Direction, got.Direction)
+				assert.Equal(t, tt.want.X, got.X)
+				assert.Equal(t, tt.want.Y, got.Y)
+			} else {
+				assert.Nil(t, got)
 			}
+
 		})
 	}
 }
@@ -856,6 +902,7 @@ func TestPlayer_CanAttackPoint(t *testing.T) {
 		name   string
 		fields fields
 		args   args
+		skip   bool
 		want   bool
 	}{
 		{
@@ -921,6 +968,30 @@ func TestPlayer_CanAttackPoint(t *testing.T) {
 			want: false,
 		},
 		{
+			name: "can attack even if there is other player in attack range because we enable the option to ignore players",
+			skip: true,
+			args: args{
+				// TODO add options
+				pt: Point{3, 1},
+			},
+			fields: fields{
+				X:         1,
+				Y:         1,
+				Direction: "E",
+				Game: Game{
+					Arena: Arena{
+						Width:  4,
+						Height: 2,
+						Grid: [][]Cell{
+							{{}, {}, {}, {}},
+							{{}, {Player: &PlayerState{X: 1, Y: 1, Direction: "E"}}, {Player: &PlayerState{X: 2, Y: 1, Direction: "N"}}, {}},
+						},
+					},
+				},
+			},
+			want: true,
+		},
+		{
 			name: "cant attack because there is other player in attack range, even when target has no player",
 			args: args{pt: Point{3, 1}},
 			fields: fields{
@@ -963,6 +1034,11 @@ func TestPlayer_CanAttackPoint(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+
+			if tt.skip {
+				t.Skip()
+			}
+
 			p := Player{
 				Name:         tt.fields.Name,
 				X:            tt.fields.X,
@@ -1045,16 +1121,14 @@ func TestPlayer_GetRank(t *testing.T) {
 	}
 }
 
-
-
 func TestPlayer_GetPlayerOnNextPodium(t *testing.T) {
 	type fields struct {
-		Name         string
-		X            int
-		Y            int
-		Direction    string
-		Score        int
-		Game         Game
+		Name      string
+		X         int
+		Y         int
+		Direction string
+		Score     int
+		Game      Game
 	}
 	type args struct {
 		ctx context.Context
@@ -1068,7 +1142,7 @@ func TestPlayer_GetPlayerOnNextPodium(t *testing.T) {
 		{
 			name: "if alone return nil",
 			fields: fields{
-				X:0, Y:0, Direction: "E",
+				X: 0, Y: 0, Direction: "E",
 				Game: Game{
 					Arena: Arena{
 						Width:  2,
@@ -1079,11 +1153,11 @@ func TestPlayer_GetPlayerOnNextPodium(t *testing.T) {
 					},
 					LeaderBoard: []PlayerState{
 						{
-							URL:   "",
-							X:     0,
-							Y:     0,
+							URL:       "",
+							X:         0,
+							Y:         0,
 							Direction: "E",
-							Score: 0,
+							Score:     0,
 						},
 					},
 				},
@@ -1097,7 +1171,7 @@ func TestPlayer_GetPlayerOnNextPodium(t *testing.T) {
 			name: "if 3rd place, return second place",
 			fields: fields{
 				Name: "3",
-				X:0, Y:0, Direction: "E",
+				X:    0, Y: 0, Direction: "E",
 				Game: Game{
 					Arena: Arena{
 						Width:  4,
@@ -1110,25 +1184,25 @@ func TestPlayer_GetPlayerOnNextPodium(t *testing.T) {
 					},
 					LeaderBoard: []PlayerState{
 						{
-							URL:   "1",
-							X:     0,
-							Y:     1,
+							URL:       "1",
+							X:         0,
+							Y:         1,
 							Direction: "E",
-							Score: 5,
+							Score:     5,
 						},
 						{
-							URL:   "2",
-							X:     0,
-							Y:     2,
+							URL:       "2",
+							X:         0,
+							Y:         2,
 							Direction: "E",
-							Score: 4,
+							Score:     4,
 						},
 						{
-							URL:   "3",
-							X:     0,
-							Y:     0,
+							URL:       "3",
+							X:         0,
+							Y:         0,
 							Direction: "E",
-							Score: 3,
+							Score:     3,
 						},
 					},
 				},
@@ -1137,8 +1211,8 @@ func TestPlayer_GetPlayerOnNextPodium(t *testing.T) {
 				ctx: context.TODO(),
 			},
 			want: &Player{
-				X: 0,
-				Y: 2,
+				X:         0,
+				Y:         2,
 				Direction: "E",
 			},
 		},
@@ -1146,15 +1220,15 @@ func TestPlayer_GetPlayerOnNextPodium(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			p := Player{
-				Name:         tt.fields.Name,
-				X:            tt.fields.X,
-				Y:            tt.fields.Y,
-				Direction:    tt.fields.Direction,
-				Score:        tt.fields.Score,
-				Game:         tt.fields.Game,
+				Name:      tt.fields.Name,
+				X:         tt.fields.X,
+				Y:         tt.fields.Y,
+				Direction: tt.fields.Direction,
+				Score:     tt.fields.Score,
+				Game:      tt.fields.Game,
 			}
 
-			got := p.GetPlayerOnNextPodium(tt.args.ctx);
+			got := p.GetPlayerOnNextPodium(tt.args.ctx)
 			if tt.want == nil {
 				assert.Nil(t, got)
 			} else {
@@ -1194,7 +1268,7 @@ func TestPlayer_GetHighestRank(t *testing.T) {
 			name: "return highest rank",
 			fields: fields{
 				Name: "3",
-				X:0, Y:0, Direction: "E",
+				X:    0, Y: 0, Direction: "E",
 				Game: Game{
 					Arena: Arena{
 						Width:  4,
@@ -1207,25 +1281,25 @@ func TestPlayer_GetHighestRank(t *testing.T) {
 					},
 					LeaderBoard: []PlayerState{
 						{
-							URL:   "1",
-							X:     0,
-							Y:     1,
+							URL:       "1",
+							X:         0,
+							Y:         1,
 							Direction: "E",
-							Score: 5,
+							Score:     5,
 						},
 						{
-							URL:   "2",
-							X:     0,
-							Y:     2,
+							URL:       "2",
+							X:         0,
+							Y:         2,
 							Direction: "E",
-							Score: 4,
+							Score:     4,
 						},
 						{
-							URL:   "3",
-							X:     0,
-							Y:     0,
+							URL:       "3",
+							X:         0,
+							Y:         0,
 							Direction: "E",
-							Score: 3,
+							Score:     3,
 						},
 					},
 				},
@@ -1234,11 +1308,10 @@ func TestPlayer_GetHighestRank(t *testing.T) {
 				ctx: context.TODO(),
 			},
 			want: &Player{
-				X: 0,
-				Y: 1,
+				X:         0,
+				Y:         1,
 				Direction: "E",
 			},
-
 		},
 		{
 			name: "return highest rank, skip whitelisted player",
@@ -1247,38 +1320,38 @@ func TestPlayer_GetHighestRank(t *testing.T) {
 					"1": "1",
 				},
 				Name: "3",
-				X:0, Y:0, Direction: "E",
+				X:    0, Y: 0, Direction: "E",
 				Game: Game{
 					Arena: Arena{
 						Width:  4,
 						Height: 3,
 						Grid: [][]Cell{
-							{{Player: &PlayerState{URL: "3" ,X: 0, Y: 0, Direction: "E"}}, {}, {}, {}},
-							{{Player: &PlayerState{URL: "1" ,X: 0, Y: 1, Direction: "E"}}, {}, {}, {}},
-							{{Player: &PlayerState{URL: "2" ,X: 0, Y: 2, Direction: "E"}}, {}, {}, {}},
+							{{Player: &PlayerState{URL: "3", X: 0, Y: 0, Direction: "E"}}, {}, {}, {}},
+							{{Player: &PlayerState{URL: "1", X: 0, Y: 1, Direction: "E"}}, {}, {}, {}},
+							{{Player: &PlayerState{URL: "2", X: 0, Y: 2, Direction: "E"}}, {}, {}, {}},
 						},
 					},
 					LeaderBoard: []PlayerState{
 						{
-							URL:   "1",
-							X:     0,
-							Y:     1,
+							URL:       "1",
+							X:         0,
+							Y:         1,
 							Direction: "E",
-							Score: 5,
+							Score:     5,
 						},
 						{
-							URL:   "2",
-							X:     0,
-							Y:     2,
+							URL:       "2",
+							X:         0,
+							Y:         2,
 							Direction: "E",
-							Score: 4,
+							Score:     4,
 						},
 						{
-							URL:   "3",
-							X:     0,
-							Y:     0,
+							URL:       "3",
+							X:         0,
+							Y:         0,
 							Direction: "E",
-							Score: 3,
+							Score:     3,
 						},
 					},
 				},
@@ -1287,11 +1360,10 @@ func TestPlayer_GetHighestRank(t *testing.T) {
 				ctx: context.TODO(),
 			},
 			want: &Player{
-				X: 0,
-				Y: 2,
+				X:         0,
+				Y:         2,
 				Direction: "E",
 			},
-
 		},
 	}
 	for _, tt := range tests {
@@ -1310,7 +1382,7 @@ func TestPlayer_GetHighestRank(t *testing.T) {
 				Whitelisted:  tt.fields.Whitelisted,
 			}
 
-			got := p.GetHighestRank(tt.args.ctx);
+			got := p.GetHighestRank(tt.args.ctx)
 			if tt.want == nil {
 				assert.Nil(t, got)
 			} else {
