@@ -87,10 +87,7 @@ func NewServer() *Server {
 		Router: mux.NewRouter(),
 	}
 	srv.routes()
-
-	// OTEL_RECEIVER_OTLP_ENDPOINT=localhost:4317
-	// TODO do not hardcode
-	srv.initGlobalProvider(name, "localhost:4317")
+	srv.initTracingProvider(name)
 
 	return srv
 }
@@ -194,7 +191,7 @@ func (s Server) UpdateArena() http.HandlerFunc {
 func (s *Server) Play(ctx context.Context, v ArenaUpdate) Move {
 	s.game = NewGame()
 	s.game.UpdateArena(ctx, v)
-	if s.player == nil {	
+	if s.player == nil {
 		s.player = s.game.Player(v.Links.Self.Href)
 	} else {
 		// TODO kalau URLnya ganti, ignore
@@ -203,15 +200,33 @@ func (s *Server) Play(ctx context.Context, v ArenaUpdate) Move {
 	return s.player.Play(ctx)
 }
 
-func (s *Server) initGlobalProvider(name, endpoint string) {
+func (s *Server) initTracingProvider(name string) {
 	var spanExporter trace.SpanExporter
-	if _, isCloudRun := os.LookupEnv("K_SERVICE"); isCloudRun {
-		log.Debug().Msgf("use google exporter")
-		spanExporter = exporter.NewGCP()
-	} else {
-		log.Debug().Msgf("use otlp exporter")
-		spanExporter = exporter.NewOTLP(endpoint)
+
+	if _, ok := os.LookupEnv("TRACING_MODE"); !ok {
+		log.Warn().Msgf("TRACING_MODE is not provided. disabling the tracing")
+		return
 	}
+
+	switch os.Getenv("TRACING_MODE") {
+	case "otlp":
+		endpoint, ok := os.LookupEnv("OTLP_RECEIVER_ENDPOINT")
+		if !ok {
+			log.Fatal().Msgf("OTLP_RECEIVER_ENDPOINT must be provided when enabling otlp trace")
+		}
+		spanExporter = exporter.NewOTLP(endpoint)
+		log.Info().Msgf("using otlp trace exporter")
+	case "google_cloud_trace":
+		spanExporter = exporter.NewGCP()
+		log.Info().Msgf("using google cloud trace exporter")
+	case "default":
+		log.Warn().Msgf("disabling the tracing")
+	}
+
+	if spanExporter == nil {
+		return
+	}
+
 	tracerProvider, tracerProviderCloseFn, err := ttrace.NewTraceProviderBuilder(name).
 		SetExporter(spanExporter).
 		Build()

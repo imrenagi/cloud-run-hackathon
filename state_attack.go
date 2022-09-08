@@ -43,5 +43,5 @@ func (a *Attack) Play(ctx context.Context) Move {
 		// TODO attack should be able to use closest/targeted
 		return a.ExplorationStrategy.Explore(ctx, a.Player)
 	}
-	// TODO attack sambil maju satu langkah
+	// TODO attack sambil maju satu langkah biar lawan terjepit
 }

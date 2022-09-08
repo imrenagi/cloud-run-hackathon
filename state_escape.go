@@ -164,7 +164,7 @@ func (e *BraveEscapeDecorator) Play(ctx context.Context) Move {
 
 	totalShoots := 0
 
-	// TODO escape state (brave mode) tapi kalau cuma ada satu orang yg nembak, arahin ke dia terus tembak balik
+	// TODO kalau gak brave2 bgt, escape setelah 3 kali tembak
 	if front != nil{
 		totalShoots++
 	}
