@@ -67,6 +67,8 @@ type Mode string
 
 const (
 	NormalMode     Mode = "normal"
+	GuardMode      Mode = "guard"
+	ZombieMode     Mode = "zombie"
 	BraveMode      Mode = "brave"
 	AggressiveMode Mode = "aggressive"
 )
@@ -77,6 +79,12 @@ func (p *Player) Play(ctx context.Context) Move {
 
 	mode := os.Getenv("PLAYER_MODE")
 	switch Mode(mode) {
+	case ZombieMode:
+		target := p.GetLowestRank(ctx)
+		p.Strategy = NewSemiBrutalChasing(target)
+	case GuardMode:
+		target := p.GetHighestRank(ctx)
+		p.Strategy = NewBrutalChasing(target)
 	case AggressiveMode:
 		rank := p.Game.LeaderBoard.GetRank(*p)
 		if rank == 0 {
@@ -136,6 +144,38 @@ func (p Player) Walk(ctx context.Context) Move {
 }
 
 const attackRange = 3
+
+// GetLowestRank returned players that has lowest rank, exclude whitelisted
+func (p Player) GetLowestRank(ctx context.Context) *Player {
+	ctx, span := tracer.Start(ctx, "Player.GetHighestRank")
+	defer span.End()
+
+	for idx := len(p.Game.LeaderBoard) - 1; idx >= 0; idx-- {
+		ps := p.Game.LeaderBoard[idx]
+
+		target := p.Game.GetPlayerByPosition(Point{ps.X, ps.Y})
+		if target == nil {
+			continue
+		}
+		_, ok := p.Whitelisted[ps.URL]
+		if ok {
+			continue
+		}
+
+		if p.IsMe(target) {
+			continue
+		}
+
+		if target != nil {
+			return target
+		}
+	}
+	return nil
+}
+
+func (p Player) IsMe(ap *Player) bool {
+	return p.Name == ap.Name
+}
 
 // GetHighestRank returned players that has highest rank, exclude whitelisted
 func (p Player) GetHighestRank(ctx context.Context) *Player {
@@ -372,8 +412,7 @@ func (p Player) MoveToAdjacent(toPt Point) ([]Move, error) {
 	}
 }
 
-// TODO jangan pakai distance. pakai require move
-func (p Player) FindClosestPlayers(ctx context.Context) []Player {
+func (p Player) FindClosestPlayers2(ctx context.Context) []Player {
 	ctx, span := tracer.Start(ctx, "Player.FindClosestPlayers")
 	defer span.End()
 
@@ -389,6 +428,47 @@ func (p Player) FindClosestPlayers(ctx context.Context) []Player {
 		d := distanceCalculator.Distance(p.GetPosition(), otherPlayerPt)
 		dPairs = append(dPairs, dPair{
 			distance: d,
+			player:   ps,
+		})
+	}
+	if len(dPairs) == 0 {
+		return nil
+	}
+
+	sort.Sort(byDistance(dPairs))
+	var closestPlayers []Player
+	for _, dp := range dPairs {
+		closestPlayer := dp.player
+		cp := p.Game.GetPlayerByPosition(Point{X: closestPlayer.X, Y: closestPlayer.Y})
+		closestPlayers = append(closestPlayers, *cp)
+	}
+	return closestPlayers
+}
+
+func (p Player) FindClosestPlayers(ctx context.Context) []Player {
+	ctx, span := tracer.Start(ctx, "Player.FindClosestPlayers2")
+	defer span.End()
+
+	// distanceCalculator := EuclideanDistance{}
+	var dPairs []dPair
+
+	for _, ps := range p.Game.LeaderBoard {
+		otherPlayerPt := Point{ps.X, ps.Y}
+		if p.GetPosition().Equal(otherPlayerPt) {
+			continue
+		}
+
+		aStar := NewAStar(p.Game.Arena)
+		path, err := aStar.SearchPath(ctx, p.GetPosition(), otherPlayerPt)
+		if err != nil {
+			// TODO what to do when no path
+			continue
+		}
+		moves := p.RequiredMoves(ctx, path)
+
+		// d := distanceCalculator.Distance(p.GetPosition(), otherPlayerPt)
+		dPairs = append(dPairs, dPair{
+			distance: float64(len(moves)),
 			player:   ps,
 		})
 	}

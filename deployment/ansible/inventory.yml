@@ -7,21 +7,23 @@ all:
       web_url: "staging-01.waterfight.imrenagi.com"
       player_mode: brave
       tracing_mode: google_cloud_trace
-    # prod-qualification:
-    #   ansible_host: 34.67.95.6  
-    #   web_url: "production-qualification.waterfight.imrenagi.com"
-    # prod-final:
-    #   ansible_host: 34.67.95.6
-    #   web_url: "production-final.waterfight.imrenagi.com"
+    prod-qualification:
+      ansible_host: 34.121.214.254
+      web_url: "production-qualification.waterfight.imrenagi.com"
+    prod-final:
+      ansible_host: 34.123.34.105
+      web_url: "production-final.waterfight.imrenagi.com"
+
   vars:
     ansible_python_interpreter: /usr/bin/python3
     ansible_port: 22
     ansible_user: imre.nagi
     ansible_ssh_private_key_file: ~/.ssh/google_compute_engine
+
     google_cloud_project: cloudrun-hackathon-359002
     git_branch: main
     log_level: DISABLED
-    player_mode: normal
+    player_mode: brave
     envoy_apt_release_channel: main
     envoy_apt_arch: amd64
     tracing_mode:
