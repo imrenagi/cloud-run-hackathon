@@ -67,6 +67,7 @@ type Mode string
 
 const (
 	NormalMode     Mode = "normal"
+	GuardMode      Mode = "guard"
 	BraveMode      Mode = "brave"
 	AggressiveMode Mode = "aggressive"
 )
@@ -77,6 +78,9 @@ func (p *Player) Play(ctx context.Context) Move {
 
 	mode := os.Getenv("PLAYER_MODE")
 	switch Mode(mode) {
+	case GuardMode:
+		target := p.GetHighestRank(ctx)
+		p.Strategy = NewBrutalChasing(target)
 	case AggressiveMode:
 		rank := p.Game.LeaderBoard.GetRank(*p)
 		if rank == 0 {
@@ -372,8 +376,7 @@ func (p Player) MoveToAdjacent(toPt Point) ([]Move, error) {
 	}
 }
 
-// TODO jangan pakai distance. pakai require move
-func (p Player) FindClosestPlayers(ctx context.Context) []Player {
+func (p Player) FindClosestPlayers2(ctx context.Context) []Player {
 	ctx, span := tracer.Start(ctx, "Player.FindClosestPlayers")
 	defer span.End()
 
@@ -389,6 +392,47 @@ func (p Player) FindClosestPlayers(ctx context.Context) []Player {
 		d := distanceCalculator.Distance(p.GetPosition(), otherPlayerPt)
 		dPairs = append(dPairs, dPair{
 			distance: d,
+			player:   ps,
+		})
+	}
+	if len(dPairs) == 0 {
+		return nil
+	}
+
+	sort.Sort(byDistance(dPairs))
+	var closestPlayers []Player
+	for _, dp := range dPairs {
+		closestPlayer := dp.player
+		cp := p.Game.GetPlayerByPosition(Point{X: closestPlayer.X, Y: closestPlayer.Y})
+		closestPlayers = append(closestPlayers, *cp)
+	}
+	return closestPlayers
+}
+
+func (p Player) FindClosestPlayers(ctx context.Context) []Player {
+	ctx, span := tracer.Start(ctx, "Player.FindClosestPlayers2")
+	defer span.End()
+
+	// distanceCalculator := EuclideanDistance{}
+	var dPairs []dPair
+
+	for _, ps := range p.Game.LeaderBoard {
+		otherPlayerPt := Point{ps.X, ps.Y}
+		if p.GetPosition().Equal(otherPlayerPt) {
+			continue
+		}
+
+		aStar := NewAStar(p.Game.Arena)
+		path, err := aStar.SearchPath(ctx, p.GetPosition(), otherPlayerPt)
+		if err != nil {
+			// TODO what to do when no path
+			continue
+		}
+		moves := p.RequiredMoves(ctx, path)
+
+		// d := distanceCalculator.Distance(p.GetPosition(), otherPlayerPt)
+		dPairs = append(dPairs, dPair{
+			distance: float64(len(moves)),
 			player:   ps,
 		})
 	}
