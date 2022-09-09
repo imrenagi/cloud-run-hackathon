@@ -20,8 +20,8 @@ func (t *TargetedEnemy) Explore(ctx context.Context, p *Player) Move {
 
 	var path Path
 	aStar := NewAStar(p.Game.Arena,
-		// WithIsUnblockFn(CheckTargetSurroundingAttackRangeFn(*t.Target)),
-		WithIsUnblockFn(ObstacleMapFn(t.Target)),
+		WithIsUnblockFn(CheckTargetSurroundingAttackRangeFn(*t.Target)),
+		// WithIsUnblockFn(ObstacleMapFn(t.Target)),
 	)
 	var err error
 	path, err = aStar.SearchPath(ctx, p.GetPosition(), t.Target.GetPosition())
