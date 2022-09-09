@@ -13,13 +13,14 @@ type SemiBrutalChasingStrategy struct {
 }
 
 func (cs *SemiBrutalChasingStrategy) Play(ctx context.Context, p *Player) Move {
-	ctx, span := tracer.Start(ctx, "BrutalChasingStrategy.Play")
+	ctx, span := tracer.Start(ctx, "SemiBrutalChasingStrategy.Play")
 	defer span.End()
 	p.ChangeState(&Chasing{
 		Player:              p,
 		Target:              cs.Target,
 		ExplorationStrategy: &TargetedEnemy{Target: cs.Target},
 	})
+	// TODO check why it is not trying to escape with it is trapped and hit multiple times
 	if p.WasHit {
 		p.ChangeState(&Escape{Player: p})
 	}
