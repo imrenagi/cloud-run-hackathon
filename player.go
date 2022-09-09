@@ -81,7 +81,7 @@ func (p *Player) Play(ctx context.Context) Move {
 	switch Mode(mode) {
 	case ZombieMode:
 		target := p.GetLowestRank(ctx)
-		p.Strategy = NewSafeChasing(target)
+		p.Strategy = NewSemiBrutalChasing(target)
 	case GuardMode:
 		target := p.GetHighestRank(ctx)
 		p.Strategy = NewBrutalChasing(target)
