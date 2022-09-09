@@ -20,6 +20,9 @@ func (cs *SemiBrutalChasingStrategy) Play(ctx context.Context, p *Player) Move {
 		Target:              cs.Target,
 		ExplorationStrategy: &TargetedEnemy{Target: cs.Target},
 	})
+	if p.WasHit {
+		p.ChangeState(&Escape{Player: p})
+	}
 	return p.State.Play(ctx)
 }
 
