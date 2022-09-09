@@ -68,6 +68,7 @@ type Mode string
 const (
 	NormalMode     Mode = "normal"
 	GuardMode      Mode = "guard"
+	ZombieMode     Mode = "zombie"
 	BraveMode      Mode = "brave"
 	AggressiveMode Mode = "aggressive"
 )
@@ -78,6 +79,9 @@ func (p *Player) Play(ctx context.Context) Move {
 
 	mode := os.Getenv("PLAYER_MODE")
 	switch Mode(mode) {
+	case ZombieMode:
+		target := p.GetLowestRank(ctx)
+		p.Strategy = NewSafeChasing(target)
 	case GuardMode:
 		target := p.GetHighestRank(ctx)
 		p.Strategy = NewBrutalChasing(target)
@@ -140,6 +144,38 @@ func (p Player) Walk(ctx context.Context) Move {
 }
 
 const attackRange = 3
+
+// GetLowestRank returned players that has lowest rank, exclude whitelisted
+func (p Player) GetLowestRank(ctx context.Context) *Player {
+	ctx, span := tracer.Start(ctx, "Player.GetHighestRank")
+	defer span.End()
+
+	for idx := len(p.Game.LeaderBoard) - 1; idx >= 0; idx-- {
+		ps := p.Game.LeaderBoard[idx]
+
+		target := p.Game.GetPlayerByPosition(Point{ps.X, ps.Y})
+		if target == nil {
+			continue
+		}
+		_, ok := p.Whitelisted[ps.URL]
+		if ok {
+			continue
+		}
+
+		if p.IsMe(target) {
+			continue
+		}
+
+		if target != nil {
+			return target
+		}
+	}
+	return nil
+}
+
+func (p Player) IsMe(ap *Player) bool {
+	return p.Name == ap.Name
+}
 
 // GetHighestRank returned players that has highest rank, exclude whitelisted
 func (p Player) GetHighestRank(ctx context.Context) *Player {
