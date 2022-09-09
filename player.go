@@ -63,22 +63,13 @@ func (p Player) Clone() Player {
 	}
 }
 
-type Mode string
 
-const (
-	NormalMode     Mode = "normal"
-	GuardMode      Mode = "guard"
-	ZombieMode     Mode = "zombie"
-	BraveMode      Mode = "brave"
-	AggressiveMode Mode = "aggressive"
-)
 
 func (p *Player) Play(ctx context.Context) Move {
 	ctx, span := tracer.Start(ctx, "Player.Play")
 	defer span.End()
 
-	mode := os.Getenv("PLAYER_MODE")
-	switch Mode(mode) {
+	switch p.Game.Mode {
 	case ZombieMode:
 		target := p.GetLowestRank(ctx)
 		p.Strategy = NewSemiBrutalChasing(target)

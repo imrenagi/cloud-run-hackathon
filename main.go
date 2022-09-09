@@ -189,7 +189,11 @@ func (s Server) UpdateArena() http.HandlerFunc {
 }
 
 func (s *Server) Play(ctx context.Context, v ArenaUpdate) Move {
-	s.game = NewGame()
+	var opts []GameOption
+	if val, ok := os.LookupEnv("PLAYER_MODE"); ok {
+		opts = append(opts, WithGameMode(Mode(val)))
+	}
+	s.game = NewGame(opts...)
 	s.game.UpdateArena(ctx, v)
 	if s.player == nil {
 		s.player = s.game.Player(v.Links.Self.Href)

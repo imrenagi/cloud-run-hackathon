@@ -1,6 +1,8 @@
 package main
 
-import "context"
+import (
+	"context"
+)
 
 type ArenaUpdate struct {
 	Links struct {
@@ -36,18 +38,53 @@ func (p PlayerState) GetDirection() Direction {
 	}
 }
 
+type Mode string
+
+func (m Mode) NeedLeaderboard() bool {
+	return m == GuardMode || m == ZombieMode || m == AggressiveMode
+}
+
+const (
+	NormalMode     Mode = "normal"
+	GuardMode      Mode = "guard"
+	ZombieMode     Mode = "zombie"
+	BraveMode      Mode = "brave"
+	AggressiveMode Mode = "aggressive"
+)
+
 type Game struct {
 	Arena            Arena
 	PlayerStateByURL map[string]PlayerState
 	LeaderBoard      LeaderBoard
+	Mode             Mode
 }
 
 const (
 	defaultAttackRange int = 3
 )
 
-func NewGame() Game {
+type GameOption func(*GameOptions)
+
+type GameOptions struct {
+	Mode Mode
+}
+
+func WithGameMode(m Mode) GameOption {
+	return func(options *GameOptions) {
+		options.Mode = m
+	}
+}
+
+func NewGame(opts ...GameOption) Game {
+	o := &GameOptions{
+		Mode: NormalMode,
+	}
+	for _, opt := range opts {
+		opt(o)
+	}
+
 	return Game{
+		Mode: o.Mode,
 	}
 }
 
@@ -68,7 +105,9 @@ func (g *Game) UpdateArena(ctx context.Context, a ArenaUpdate) {
 
 	g.Arena = arena
 	g.PlayerStateByURL = a.Arena.State
-	g.UpdateLeaderBoard(ctx)
+	if g.Mode.NeedLeaderboard() {
+		g.UpdateLeaderBoard(ctx)
+	}
 }
 
 func (g Game) Player(url string) *Player {
