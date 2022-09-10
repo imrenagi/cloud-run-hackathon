@@ -34,12 +34,20 @@ func (a *Attack) Play(ctx context.Context) Move {
 	}
 
 	left := a.Player.FindTargetOnDirection(ctx, a.Player.GetDirection().Left())
+	right := a.Player.FindTargetOnDirection(ctx, a.Player.GetDirection().Right())
+	if left != nil && right != nil {
+		if left.Score > right.Score {
+			return TurnLeft
+		} else {
+			return TurnRight
+		}
+	}
+
 	if left != nil {
 		// TODO check whether opponent is already targeting us
 		return TurnLeft
 	}
 
-	right := a.Player.FindTargetOnDirection(ctx, a.Player.GetDirection().Right())
 	if right != nil {
 		// TODO check whether opponent is already targeting us
 		return TurnRight

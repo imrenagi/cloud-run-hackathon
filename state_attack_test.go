@@ -88,6 +88,33 @@ func TestAttack_Play(t *testing.T) {
 			want: TurnRight,
 		},
 		{
+			name: "if there are two player on left and right, turn to the player whose higher score",
+			fields: fields{
+				Player: Player{
+					X:         1,
+					Y:         1,
+					Direction: "N",
+					WasHit:    false,
+					Score:     0,
+					Game: Game{
+						Arena: Arena{
+							Width:  4,
+							Height: 3,
+							Grid: [][]Cell{
+								{{}, {}, {}, {}},
+								{{Player: &PlayerState{X: 0, Y: 1, Direction: "W", Score: 8}},
+									{Player: &PlayerState{X: 1, Y: 1, Direction: "N"}},
+									{Player: &PlayerState{X: 2, Y: 1, Direction: "E", Score: 9}},
+									{}},
+								{{}, {}, {}, {}},
+							},
+						},
+					},
+				},
+			},
+			want: TurnRight,
+		},
+		{
 			name: "should just move forward when none is observed",
 			fields: fields{
 				Player: Player{
@@ -116,7 +143,7 @@ func TestAttack_Play(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			a := DefaultAttack(&tt.fields.Player)
 			if got := a.Play(context.TODO()); got != tt.want {
-				t.Errorf("Play() = %v, wantAnyOf %v", got, tt.want)
+				t.Errorf("Play() = %v, want %v", got, tt.want)
 			}
 		})
 	}

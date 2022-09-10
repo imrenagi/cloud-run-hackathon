@@ -42,7 +42,6 @@ func (a *ClosestEnemy) Explore(ctx context.Context, p *Player) Move {
 	}
 }
 
-
 // CheckTargetSurroundingAttackRangeFn checks whether a target and its facing opponent can hit p
 func CheckTargetSurroundingAttackRangeFn(target Player) IsUnblockFn {
 	return func(ctx context.Context, p Point) bool {
