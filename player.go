@@ -6,6 +6,7 @@ import (
 	"os"
 	"sort"
 	"strings"
+	"sync"
 )
 
 func NewPlayerWithUrl(url string, state PlayerState) *Player {
@@ -439,30 +440,39 @@ func (p Player) FindClosestPlayers(ctx context.Context) []Player {
 	ctx, span := tracer.Start(ctx, "Player.FindClosestPlayers2")
 	defer span.End()
 
-	// distanceCalculator := EuclideanDistance{}
-	var dPairs []dPair
+	var wg sync.WaitGroup
+	pairChan := make(chan dPair, len(p.Game.LeaderBoard))
 
-	// TODO (PENTING) fix this astar
 	for _, ps := range p.Game.LeaderBoard {
-		otherPlayerPt := Point{ps.X, ps.Y}
-		if p.GetPosition().Equal(otherPlayerPt) {
-			continue
-		}
+		wg.Add(1)
 
-		aStar := NewAStar(p.Game.Arena)
-		path, err := aStar.SearchPath(ctx, p.GetPosition(), otherPlayerPt)
-		if err != nil {
-			// TODO what to do when no path
-			continue
-		}
-		moves := p.RequiredMoves(ctx, path)
+		go func(ps PlayerState) {
+			defer wg.Done()
+			otherPlayerPt := Point{ps.X, ps.Y}
+			if p.GetPosition().Equal(otherPlayerPt) {
+				return
+			}
+			aStar := NewAStar(p.Game.Arena)
+			path, err := aStar.SearchPath(ctx, p.GetPosition(), otherPlayerPt)
+			if err != nil {
+				return
+			}
+			moves := p.RequiredMoves(ctx, path)
 
-		// d := distanceCalculator.Distance(p.GetPosition(), otherPlayerPt)
-		dPairs = append(dPairs, dPair{
-			distance: float64(len(moves)),
-			player:   ps,
-		})
+			pairChan <- dPair{
+				distance: float64(len(moves)),
+				player:   ps,
+			}
+		}(ps)
 	}
+	wg.Wait()
+	close(pairChan)
+
+	var dPairs []dPair
+	for elem := range pairChan {
+		dPairs = append(dPairs, elem)
+	}
+
 	if len(dPairs) == 0 {
 		return nil
 	}
