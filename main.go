@@ -177,6 +177,7 @@ func (s Server) UpdateArena() http.HandlerFunc {
 			return
 		}
 
+		span.AddEvent("parsing json")
 		var v ArenaUpdate
 		defer r.Body.Close()
 		d := json.NewDecoder(r.Body)
@@ -186,6 +187,7 @@ func (s Server) UpdateArena() http.HandlerFunc {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
+		span.AddEvent("parsing json completed")
 		resp := s.Play(ctx, v)
 		fmt.Fprint(w, resp)
 	}

@@ -404,7 +404,7 @@ func (p Player) MoveToAdjacent(toPt Point) ([]Move, error) {
 }
 
 func (p Player) FindClosestPlayers2(ctx context.Context) []Player {
-	ctx, span := tracer.Start(ctx, "Player.FindClosestPlayers")
+	ctx, span := tracer.Start(ctx, "Player.FindClosestPlayers2")
 	defer span.End()
 
 	distanceCalculator := EuclideanDistance{}
@@ -437,12 +437,13 @@ func (p Player) FindClosestPlayers2(ctx context.Context) []Player {
 }
 
 func (p Player) FindClosestPlayers(ctx context.Context) []Player {
-	ctx, span := tracer.Start(ctx, "Player.FindClosestPlayers2")
+	ctx, span := tracer.Start(ctx, "Player.FindClosestPlayers")
 	defer span.End()
 
 	var wg sync.WaitGroup
 	pairChan := make(chan dPair, len(p.Game.LeaderBoard))
 
+	// TODO Instead of iterating over all players, use bfs??
 	for _, ps := range p.Game.LeaderBoard {
 		wg.Add(1)
 

@@ -16,7 +16,6 @@ func (a *ClosestEnemy) Explore(ctx context.Context, p *Player) Move {
 	}
 
 	var path Path
-	// TODO make this run in parallel
 	for _, target := range targets {
 		aStar := NewAStar(p.Game.Arena,
 			WithIsUnblockFn(CheckTargetSurroundingAttackRangeFn(target)),
