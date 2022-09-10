@@ -101,7 +101,7 @@ func TestPlayerState_Walk(t *testing.T) {
 	}
 }
 
-func TestPlayerState_GetPlayersInFront(t *testing.T) {
+func TestPlayer_GetPlayersInRange(t *testing.T) {
 	type fields struct {
 		X         int
 		Y         int
@@ -207,7 +207,7 @@ func TestPlayerState_GetPlayersInFront(t *testing.T) {
 	}
 }
 
-func TestPlayerState_FindShooterFromDirection(t *testing.T) {
+func TestPlayer_FindShooterOnDirection(t *testing.T) {
 	type fields struct {
 		X         int
 		Y         int
@@ -410,7 +410,7 @@ func TestPlayerState_FindShooterFromDirection(t *testing.T) {
 	}
 }
 
-func TestPlayerState_GetShortestRotation(t *testing.T) {
+func TestPlayer_MoveToAdjacent(t *testing.T) {
 	type fields struct {
 		X         int
 		Y         int
@@ -883,7 +883,7 @@ func TestPlayer_FindClosestPlayers(t *testing.T) {
 	}
 }
 
-func TestPlayer_CanAttackPoint(t *testing.T) {
+func TestPlayer_CanHitPoint(t *testing.T) {
 	type fields struct {
 		Name         string
 		X            int
@@ -897,6 +897,7 @@ func TestPlayer_CanAttackPoint(t *testing.T) {
 	}
 	type args struct {
 		pt Point
+		opts []HitOption
 	}
 	tests := []struct {
 		name   string
@@ -969,9 +970,8 @@ func TestPlayer_CanAttackPoint(t *testing.T) {
 		},
 		{
 			name: "can attack even if there is other player in attack range because we enable the option to ignore players",
-			skip: true,
 			args: args{
-				// TODO add options
+				opts: []HitOption{WithIgnorePlayer(true)},
 				pt: Point{3, 1},
 			},
 			fields: fields{
@@ -1050,7 +1050,7 @@ func TestPlayer_CanAttackPoint(t *testing.T) {
 				Strategy:     tt.fields.Strategy,
 				trappedCount: tt.fields.trappedCount,
 			}
-			if got := p.CanHitPoint(context.TODO(), tt.args.pt); got != tt.want {
+			if got := p.CanHitPoint(context.TODO(), tt.args.pt, tt.args.opts...); got != tt.want {
 				t.Errorf("CanHitPoint() = %v, want %v", got, tt.want)
 			}
 		})
@@ -1393,7 +1393,6 @@ func TestPlayer_GetHighestRank(t *testing.T) {
 		})
 	}
 }
-
 
 func TestPlayer_GetLowestRank(t *testing.T) {
 	type fields struct {

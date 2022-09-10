@@ -50,9 +50,12 @@ func (e *Escape) Play(ctx context.Context) Move {
 		}
 		validAdjacent = newAdjacent
 	}
-	// TODO remove invalid adjacent caused by the attack from the back
+	// TODO (PENTING) remove invalid adjacent caused by the attack from the back
+
 	for _, adj := range validAdjacent {
+		// TODO (PENTING) hindari escape ke arah orang lagi perang
 		aStar := NewAStar(e.Player.Game.Arena)
+
 		path, err := aStar.SearchPath(ctx, e.Player.GetPosition(), adj)
 		if err == ErrPathNotFound {
 			continue
@@ -60,7 +63,7 @@ func (e *Escape) Play(ctx context.Context) Move {
 		paths = append(paths, path)
 	}
 
-	// TODO hindari escape ke arah orang lagi perang
+
 
 	// when there is no escape route
 	if len(paths) == 0 {
