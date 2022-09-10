@@ -201,6 +201,9 @@ func (s *Server) Play(ctx context.Context, v ArenaUpdate) Move {
 		// TODO kalau URLnya ganti, ignore
 		s.game.Update(s.player)
 	}
+
+	s.player.UpdateHitCount()
+
 	return s.player.Play(ctx)
 }
 

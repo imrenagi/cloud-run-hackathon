@@ -133,11 +133,6 @@ func (g Game) Update(player *Player) {
 	player.WasHit = updatedPlayer.WasHit
 	player.Score = updatedPlayer.Score
 	player.Game = g
-	if updatedPlayer.WasHit {
-		player.consecutiveHitCount++
-	} else {
-		player.consecutiveHitCount = 0
-	}
 }
 
 func (g *Game) UpdateLeaderBoard(ctx context.Context) {

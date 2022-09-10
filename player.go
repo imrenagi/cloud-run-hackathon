@@ -456,6 +456,14 @@ func (p Player) FindClosestPlayers(ctx context.Context) []Player {
 	return closestPlayers
 }
 
+func (p *Player) UpdateHitCount() {
+	if p.WasHit {
+		p.consecutiveHitCount++
+	} else {
+		p.consecutiveHitCount = 0
+	}
+}
+
 type dPair struct {
 	distance float64
 	player   PlayerState
