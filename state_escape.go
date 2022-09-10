@@ -157,6 +157,7 @@ func (e *BraveEscapeDecorator) Play(ctx context.Context) Move {
 
 	player := e.Escaper.GetPlayer()
 
+	// TODO latency akan tinggi disini karena harus ngitungin semua direction
 	front := player.FindShooterOnDirection(ctx, player.GetDirection())
 	back := player.FindShooterOnDirection(ctx, player.GetDirection().Backward())
 	left := player.FindShooterOnDirection(ctx, player.GetDirection().Left())
@@ -189,7 +190,6 @@ func (e *BraveEscapeDecorator) Play(ctx context.Context) Move {
 	} else if right != nil {
 		return TurnRight
 	} else {
-		// TODO test this?
 		return player.Walk(ctx)
 	}
 }

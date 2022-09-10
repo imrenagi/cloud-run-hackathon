@@ -14,6 +14,7 @@ func DefaultAttack(p *Player) State {
 func TargetedAttack(p *Player) State {
 	return &Attack{
 		Player:              p,
+
 		ExplorationStrategy: &TargetedEnemy{},
 	}
 }
@@ -27,21 +28,24 @@ func (a *Attack) Play(ctx context.Context) Move {
 	ctx, span := tracer.Start(ctx, "Attack.Play")
 	defer span.End()
 
-	playersInFront := a.Player.GetPlayersInRange(ctx, a.Player.GetDirection(), attackRange)
-	playersInLeft := a.Player.GetPlayersInRange(ctx, a.Player.GetDirection().Left(), attackRange)
-	playersInRight := a.Player.GetPlayersInRange(ctx, a.Player.GetDirection().Right(), attackRange)
-
-	if len(playersInFront) > 0 {
+	front := a.Player.FindTargetOnDirection(ctx, a.Player.GetDirection())
+	if front != nil {
 		return Throw
-	} else if len(playersInLeft) > 0 {
+	}
+
+	left := a.Player.FindTargetOnDirection(ctx, a.Player.GetDirection().Left())
+	if left != nil {
 		// TODO check whether opponent is already targeting us
 		return TurnLeft
-	} else if len(playersInRight) > 0 {
+	}
+
+	right := a.Player.FindTargetOnDirection(ctx, a.Player.GetDirection().Right())
+	if right != nil {
 		// TODO check whether opponent is already targeting us
 		return TurnRight
-	} else {
-		// TODO attack should be able to use closest/targeted
-		return a.ExplorationStrategy.Explore(ctx, a.Player)
 	}
+
+	// TODO attack should be able to use closest/targeted
 	// TODO attack sambil maju satu langkah biar lawan terjepit
+	return a.ExplorationStrategy.Explore(ctx, a.Player)
 }

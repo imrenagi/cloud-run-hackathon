@@ -107,7 +107,7 @@ func (s *Server) Run(ctx context.Context, port string) error {
 		Handler: s.Router,
 	}
 
-	log.Info().Msgf("server serving on port %s ", port)
+	log.Info().Msgf("server serving on port %s", port)
 
 	go func() {
 		if err := httpS.ListenAndServe(); err != nil && err != http.ErrServerClosed {

@@ -5,6 +5,8 @@
     <envs>
       <env name="GOOGLE_CLOUD_PROJECT" value="cloudrun-hackathon-359002" />
       <env name="WHITELISTED_URLS" value="" />
+      <env name="TRACING_MODE" value="" />
+      <env name="LOG_LEVEL" value="DEBUG" />
     </envs>
     <kind value="DIRECTORY" />
     <filePath value="$PROJECT_DIR$/main.go" />

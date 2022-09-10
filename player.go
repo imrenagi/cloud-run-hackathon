@@ -63,34 +63,10 @@ func (p Player) Clone() Player {
 	}
 }
 
-
-
 func (p *Player) Play(ctx context.Context) Move {
+	// TODO Calculate priority whether to attack or to chase
 	ctx, span := tracer.Start(ctx, "Player.Play")
 	defer span.End()
-
-	switch p.Game.Mode {
-	case ZombieMode:
-		target := p.GetLowestRank(ctx)
-		p.Strategy = NewSemiBrutalChasing(target)
-	case GuardMode:
-		target := p.GetHighestRank(ctx)
-		p.Strategy = NewBrutalChasing(target)
-	case AggressiveMode:
-		rank := p.Game.LeaderBoard.GetRank(*p)
-		if rank == 0 {
-			p.Strategy = NewNormalStrategy()
-		} else {
-			target := p.GetPlayerOnNextPodium(ctx)
-			// TODO new safe chasing ini jangan pakai logic Attack state.
-			// tapi sebisa mungkin cari playernya sampai ketemu
-			p.Strategy = NewSafeChasing(target)
-		}
-	case BraveMode:
-		p.Strategy = NewBraveStrategy()
-	default:
-		p.Strategy = NewNormalStrategy()
-	}
 	return p.Strategy.Play(ctx, p)
 }
 
