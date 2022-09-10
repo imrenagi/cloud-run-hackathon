@@ -95,7 +95,7 @@ func TestPlayerState_Walk(t *testing.T) {
 				Game:      tt.fields.Game,
 			}
 			if got := p.Walk(context.TODO()); got != tt.want {
-				t.Errorf("Walk() = %v, want %v", got, tt.want)
+				t.Errorf("Walk() = %v, wantAnyOf %v", got, tt.want)
 			}
 		})
 	}
@@ -201,7 +201,7 @@ func TestPlayer_GetPlayersInRange(t *testing.T) {
 				Game:      tt.fields.Game,
 			}
 			if got := p.GetPlayersInRange(context.TODO(), tt.args.direction, 3); len(got) != tt.want {
-				t.Errorf("GetPlayersInRange() = %v, want %v", got, tt.want)
+				t.Errorf("GetPlayersInRange() = %v, wantAnyOf %v", got, tt.want)
 			}
 		})
 	}
@@ -597,7 +597,7 @@ func TestPlayer_NextMove(t *testing.T) {
 			}
 			got := p.RequiredMoves(context.TODO(), tt.args.forPath, tt.args.opts...)
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("RequiredMoves() got = %v, want %v", got, tt.want)
+				t.Errorf("RequiredMoves() got = %v, wantAnyOf %v", got, tt.want)
 			}
 		})
 	}
@@ -1051,7 +1051,7 @@ func TestPlayer_CanHitPoint(t *testing.T) {
 				trappedCount: tt.fields.trappedCount,
 			}
 			if got := p.CanHitPoint(context.TODO(), tt.args.pt, tt.args.opts...); got != tt.want {
-				t.Errorf("CanHitPoint() = %v, want %v", got, tt.want)
+				t.Errorf("CanHitPoint() = %v, wantAnyOf %v", got, tt.want)
 			}
 		})
 	}
@@ -1115,7 +1115,7 @@ func TestPlayer_GetRank(t *testing.T) {
 				Game: tt.fields.Game,
 			}
 			if got := p.GetRank(); got != tt.want {
-				t.Errorf("GetRank() = %v, want %v", got, tt.want)
+				t.Errorf("GetRank() = %v, wantAnyOf %v", got, tt.want)
 			}
 		})
 	}

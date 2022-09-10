@@ -116,7 +116,7 @@ func TestAttack_Play(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			a := DefaultAttack(&tt.fields.Player)
 			if got := a.Play(context.TODO()); got != tt.want {
-				t.Errorf("Play() = %v, want %v", got, tt.want)
+				t.Errorf("Play() = %v, wantAnyOf %v", got, tt.want)
 			}
 		})
 	}
@@ -313,7 +313,7 @@ func TestAttack_Play_Explore(t *testing.T) {
 
 			a := DefaultAttack(&tt.fields.Player)
 			if got := a.Play(context.TODO()); got != tt.want {
-				t.Errorf("Play() = %v, want %v", got, tt.want)
+				t.Errorf("Play() = %v, wantAnyOf %v", got, tt.want)
 			}
 		})
 	}

@@ -377,7 +377,7 @@ func TestClosestEnemy_Explore(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			a := &ClosestEnemy{}
 			if got := a.Explore(context.TODO(), tt.args.p); got != tt.want {
-				t.Errorf("Explore() = %v, want %v", got, tt.want)
+				t.Errorf("Explore() = %v, wantAnyOf %v", got, tt.want)
 			}
 		})
 	}

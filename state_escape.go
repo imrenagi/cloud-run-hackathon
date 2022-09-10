@@ -4,6 +4,7 @@ import (
 	"context"
 	"math"
 	"sort"
+	"sync"
 )
 
 type Escape struct {
@@ -41,32 +42,47 @@ func (e *Escape) Play(ctx context.Context) Move {
 		nil, //we are not using attacker from the back
 	}
 
-	var paths []Path // list of possible path
-	// TODO make it as goroutine
-	for _, adj := range e.Player.Game.Arena.GetAdjacent(ctx, e.Player.GetPosition(), WithDiagonalAdjacents(), WithEmptyAdjacent()) {
-		var canHit bool
-		for _, opponent := range opponents {
-			if opponent == nil {
-				continue
-			}
-			if opponent.CanHitPoint(ctx, adj) {
-				canHit = true
-				break
-			}
-		}
-		if canHit == true {
-			continue
-		}
+	adjacents := e.Player.Game.Arena.GetAdjacent(ctx, e.Player.GetPosition(), WithDiagonalAdjacents(), WithEmptyAdjacent())
 
-		// TODO (PENTING) hindari escape ke arah orang lagi perang
-		aStar := NewAStar(e.Player.Game.Arena)
+	var wg sync.WaitGroup
+	pathChan := make(chan Path, len(adjacents))
 
-		// TODO run this in parallel
-		path, err := aStar.SearchPath(ctx, e.Player.GetPosition(), adj)
-		if err == ErrPathNotFound {
-			continue
-		}
-		paths = append(paths, path)
+	for _, adjx := range adjacents {
+		wg.Add(1)
+
+		go func(adj Point, opponents []*Player) {
+			defer wg.Done()
+
+			var canHit bool
+			for _, opponent := range opponents {
+				if opponent == nil {
+					continue
+				}
+				if opponent.CanHitPoint(ctx, adj) {
+					canHit = true
+					break
+				}
+			}
+			if canHit == true {
+				return
+			}
+
+			// TODO (PENTING) hindari escape ke arah orang lagi perang
+			aStar := NewAStar(e.Player.Game.Arena)
+
+			path, err := aStar.SearchPath(ctx, e.Player.GetPosition(), adj)
+			if err == ErrPathNotFound {
+				return
+			}
+			pathChan <- path
+		}(adjx, opponents)
+	}
+	wg.Wait()
+	close(pathChan)
+
+	var paths []Path
+	for elem := range pathChan {
+		paths = append(paths, elem)
 	}
 
 	// when there is no escape route

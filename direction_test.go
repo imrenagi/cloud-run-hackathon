@@ -55,7 +55,7 @@ func TestDirection_Opposite(t *testing.T) {
 				Degree: tt.fields.Degree,
 			}
 			if got := d.Backward(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Backward() = %v, want %v", got, tt.want)
+				t.Errorf("Backward() = %v, wantAnyOf %v", got, tt.want)
 			}
 		})
 	}
