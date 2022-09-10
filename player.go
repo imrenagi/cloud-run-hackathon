@@ -196,11 +196,27 @@ func (p Player) FindShooterOnDirection(ctx context.Context, direction Direction)
 	return shooter
 }
 
-// TODO butuh CanHitPoint where we ignore all players in attack range.
+type HitOption func(*HitOptions)
+
+type HitOptions struct {
+	IgnorePlayer bool
+}
+
+func WithIgnorePlayer() HitOption {
+	return func(options *HitOptions) {
+		options.IgnorePlayer = true
+	}
+}
+
 // CanHitPoint check whether can attack a player in pt
-func (p Player) CanHitPoint(ctx context.Context, pt Point) bool {
+func (p Player) CanHitPoint(ctx context.Context, pt Point, opts ...HitOption) bool {
 	ctx, span := tracer.Start(ctx, "Player.CanHitPoint")
 	defer span.End()
+
+	options := &HitOptions{}
+	for _, o := range opts {
+		o(options)
+	}
 
 	var ptA = p.GetPosition()
 	for i := 1; i < (attackRange + 1); i++ {
@@ -211,18 +227,22 @@ func (p Player) CanHitPoint(ctx context.Context, pt Point) bool {
 		if npt.X == pt.X && npt.Y == pt.Y {
 			return true
 		}
-		pl := p.Game.GetPlayerByPosition(npt)
-		if pl != nil {
-			return false
+
+		if !options.IgnorePlayer {
+			pl := p.Game.GetPlayerByPosition(npt)
+			if pl != nil {
+				return false
+			}
 		}
+
 	}
 	return false
 }
 
-func (p Player) CanHit(ctx context.Context, p2 Player) bool {
+func (p Player) CanHit(ctx context.Context, p2 Player, opts ...HitOption) bool {
 	ctx, span := tracer.Start(ctx, "Player.CanHit")
 	defer span.End()
-	return p.CanHitPoint(ctx, p2.GetPosition())
+	return p.CanHitPoint(ctx, p2.GetPosition(), opts...)
 }
 
 func (p Player) GetRank() int {
@@ -422,6 +442,7 @@ func (p Player) FindClosestPlayers(ctx context.Context) []Player {
 	// distanceCalculator := EuclideanDistance{}
 	var dPairs []dPair
 
+	// TODO (PENTING) fix this astar
 	for _, ps := range p.Game.LeaderBoard {
 		otherPlayerPt := Point{ps.X, ps.Y}
 		if p.GetPosition().Equal(otherPlayerPt) {

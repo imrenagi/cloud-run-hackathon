@@ -12,47 +12,56 @@ type Escape struct {
 
 const maxHitWhenTrapped int = 3
 
+type attackers []*Player
+
+func (a attackers) Front() *Player {
+	return a[0]
+}
+
+func (a attackers) Left() *Player {
+	return a[1]
+}
+
+func (a attackers) Right() *Player {
+	return a[2]
+}
+
+func (a attackers) Back() *Player {
+	return a[3]
+}
+
 func (e *Escape) Play(ctx context.Context) Move {
 	ctx, span := tracer.Start(ctx, "Escape.Play")
 	defer span.End()
 
-	front := e.Player.FindShooterOnDirection(ctx, e.Player.GetDirection())
-	// back := e.Player.FindShooterOnDirection(ctx, e.Player.GetDirection().Backward())
-	left := e.Player.FindShooterOnDirection(ctx, e.Player.GetDirection().Left())
-	right := e.Player.FindShooterOnDirection(ctx, e.Player.GetDirection().Right())
+	opponents := attackers{
+		e.Player.FindShooterOnDirection(ctx, e.Player.GetDirection()),
+		e.Player.FindShooterOnDirection(ctx, e.Player.GetDirection().Left()),
+		e.Player.FindShooterOnDirection(ctx, e.Player.GetDirection().Right()),
+		nil, //we are not using attacker from the back
+	}
 
 	var paths []Path // list of possible path
-	validAdjacent := e.Player.Game.Arena.GetAdjacent(ctx, e.Player.GetPosition(), WithDiagonalAdjacents(), WithEmptyAdjacent())
-	if front != nil {
-		var newAdjacent []Point
-		for _, adj := range validAdjacent {
-			if !front.CanHitPoint(ctx, adj) {
-				newAdjacent = append(newAdjacent, adj)
+	// TODO make it as goroutine
+	for _, adj := range e.Player.Game.Arena.GetAdjacent(ctx, e.Player.GetPosition(), WithDiagonalAdjacents(), WithEmptyAdjacent()) {
+		var canHit bool
+		for _, opponent := range opponents {
+			if opponent == nil {
+				continue
+			}
+			if opponent.CanHitPoint(ctx, adj) {
+				canHit = true
+				break
 			}
 		}
-		validAdjacent = newAdjacent
-	}
-	if left != nil {
-		var newAdjacent []Point
-		for _, adj := range validAdjacent {
-			if !left.CanHitPoint(ctx, adj) {
-				newAdjacent = append(newAdjacent, adj)
-			}
+		if canHit == true {
+			continue
 		}
-		validAdjacent = newAdjacent
-	}
-	if right != nil {
-		var newAdjacent []Point
-		for _, adj := range validAdjacent {
-			if !right.CanHitPoint(ctx, adj) {
-				newAdjacent = append(newAdjacent, adj)
-			}
-		}
-		validAdjacent = newAdjacent
-	}
-	// TODO remove invalid adjacent caused by the attack from the back
-	for _, adj := range validAdjacent {
+
+		// TODO (PENTING) hindari escape ke arah orang lagi perang
 		aStar := NewAStar(e.Player.Game.Arena)
+
+		// TODO run this in parallel
 		path, err := aStar.SearchPath(ctx, e.Player.GetPosition(), adj)
 		if err == ErrPathNotFound {
 			continue
@@ -60,25 +69,23 @@ func (e *Escape) Play(ctx context.Context) Move {
 		paths = append(paths, path)
 	}
 
-	// TODO hindari escape ke arah orang lagi perang
-
 	// when there is no escape route
 	if len(paths) == 0 {
-		if front != nil {
+		if opponents.Front() != nil {
 			e.Player.trappedCount++
 			if e.Player.trappedCount > maxHitWhenTrapped {
 				e.Player.trappedCount = 0
-				if left != nil {
+				if opponents.Left() != nil {
 					return TurnLeft
 				}
-				if right != nil {
+				if opponents.Right() != nil {
 					return TurnRight
 				}
 			}
 			return Throw
-		} else if left != nil {
+		} else if opponents.Left() != nil {
 			return TurnLeft
-		} else if right != nil {
+		} else if opponents.Right() != nil {
 			return TurnRight
 		} else {
 			return e.Player.Walk(ctx)
