@@ -971,7 +971,7 @@ func TestPlayer_CanHitPoint(t *testing.T) {
 		{
 			name: "can attack even if there is other player in attack range because we enable the option to ignore players",
 			args: args{
-				opts: []HitOption{WithIgnorePlayer(true)},
+				opts: []HitOption{WithIgnorePlayer()},
 				pt: Point{3, 1},
 			},
 			fields: fields{

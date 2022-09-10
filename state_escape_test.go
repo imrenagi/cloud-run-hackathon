@@ -586,29 +586,6 @@ func TestEscape_Play(t *testing.T) {
 			want: TurnLeft,
 		},
 		{
-			name: "opponent is attacking from the back, should immediately turn when get attack",
-			skip: true, // skip because when we are hit, we expect to run away as far as possible
-			fields: fields{
-				Player: Player{
-					X:         1,
-					Y:         1,
-					Direction: "W",
-					WasHit:    true,
-					Score:     0,
-					Game: Game{
-						Arena: Arena{Width: 4, Height: 3,
-							Grid: [][]Cell{
-								{{}, {}, {}, {}},
-								{{}, {Player: &PlayerState{X: 1, Y: 1, Direction: "W"}}, {}, {Player: &PlayerState{X: 3, Y: 1, Direction: "W"}}},
-								{{}, {}, {}, {}},
-							},
-						},
-					},
-				},
-			},
-			want: TurnLeft,
-		},
-		{
 			name: "opponent is attacking from the left",
 			fields: fields{
 				Player: Player{

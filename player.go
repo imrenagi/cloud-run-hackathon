@@ -202,9 +202,9 @@ type HitOptions struct {
 	IgnorePlayer bool
 }
 
-func WithIgnorePlayer(ignore bool) HitOption {
+func WithIgnorePlayer() HitOption {
 	return func(options *HitOptions) {
-		options.IgnorePlayer = ignore
+		options.IgnorePlayer = true
 	}
 }
 
@@ -442,6 +442,7 @@ func (p Player) FindClosestPlayers(ctx context.Context) []Player {
 	// distanceCalculator := EuclideanDistance{}
 	var dPairs []dPair
 
+	// TODO (PENTING) fix this astar
 	for _, ps := range p.Game.LeaderBoard {
 		otherPlayerPt := Point{ps.X, ps.Y}
 		if p.GetPosition().Equal(otherPlayerPt) {
