@@ -93,7 +93,10 @@ func NewServer() *Server {
 }
 
 func (s *Server) routes() {
-	s.Router.Use(otelmux.Middleware(name))
+
+	if _, ok := os.LookupEnv("TRACING_MODE"); ok {
+		s.Router.Use(otelmux.Middleware(name))
+	}
 	s.Router.Handle("/", s.UpdateArena()).Methods("POST")
 	s.Router.Handle("/", s.Healthcheck()).Methods("GET")
 	s.Router.Handle("/reset", s.Reset())
