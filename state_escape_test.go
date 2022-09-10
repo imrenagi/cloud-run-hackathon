@@ -950,6 +950,30 @@ func TestBraveEscapeDecorator_Play(t *testing.T) {
 			},
 			want: "MOCK",
 		},
+		{
+			name: "consecutive hit is greater than 3, escape",
+			fields: fields{
+				Escaper: &mockEscaper{
+					p: &Player{
+						X:         1,
+						Y:         1,
+						Direction: "E",
+						WasHit:    true,
+						Score:     0,
+						consecutiveHitCount: 4,
+						Game: Game{
+							Arena: Arena{Width: 4, Height: 2,
+								Grid: [][]Cell{
+									{{}, {}, {}, {}},
+									{{Player: &PlayerState{X: 0, Y: 1, Direction: "E"}}, {Player: &PlayerState{X: 1, Y: 1, Direction: "E", WasHit: true}}, {}, {Player: &PlayerState{X: 3, Y: 1, Direction: "W"}}},
+								},
+							},
+						},
+					},
+				},
+			},
+			want: "MOCK",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

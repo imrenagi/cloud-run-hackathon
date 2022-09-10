@@ -151,11 +151,17 @@ type BraveEscapeDecorator struct {
 	Escaper Escaper
 }
 
+const maxConsecutiveHitToEscape = 3
+
 func (e *BraveEscapeDecorator) Play(ctx context.Context) Move {
 	ctx, span := tracer.Start(ctx, "BraveEscapeDecorator.Play")
 	defer span.End()
 
 	player := e.Escaper.GetPlayer()
+
+	if player.consecutiveHitCount > maxConsecutiveHitToEscape {
+		return e.Escaper.Play(ctx)
+	}
 
 	// TODO latency akan tinggi disini karena harus ngitungin semua direction
 	front := player.FindShooterOnDirection(ctx, player.GetDirection())

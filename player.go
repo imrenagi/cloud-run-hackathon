@@ -36,17 +36,19 @@ func NewPlayer(state PlayerState) *Player {
 }
 
 type Player struct {
-	Name         string
-	X            int      `json:"x"`
-	Y            int      `json:"y"`
-	Direction    string   `json:"direction"`
-	WasHit       bool     `json:"wasHit"`
-	Score        int      `json:"score"`
-	Game         Game     `json:"-"`
-	State        State    `json:"-"`
-	Strategy     Strategy `json:"-"`
-	trappedCount int
-	Whitelisted  map[string]string
+	Name        string
+	X           int      `json:"x"`
+	Y           int      `json:"y"`
+	Direction   string   `json:"direction"`
+	WasHit      bool     `json:"wasHit"`
+	Score       int      `json:"score"`
+	Game        Game     `json:"-"`
+	State       State    `json:"-"`
+	Strategy    Strategy `json:"-"`
+	Whitelisted map[string]string
+
+	trappedCount        int
+	consecutiveHitCount int
 }
 
 func (p Player) Clone() Player {
@@ -64,9 +66,10 @@ func (p Player) Clone() Player {
 }
 
 func (p *Player) Play(ctx context.Context) Move {
-	// TODO Calculate priority whether to attack or to chase
 	ctx, span := tracer.Start(ctx, "Player.Play")
 	defer span.End()
+
+	// TODO Calculate priority whether to attack or to chase
 	return p.Strategy.Play(ctx, p)
 }
 

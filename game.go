@@ -45,10 +45,10 @@ func (m Mode) NeedLeaderboard() bool {
 }
 
 const (
-	NormalMode     Mode = "normal"
-	BraveMode      Mode = "brave"
+	NormalMode Mode = "normal"
+	BraveMode  Mode = "brave"
 	// ZombieMode tries to attack player with lowest rank
-	ZombieMode     Mode = "zombie"
+	ZombieMode Mode = "zombie"
 	// AggressiveMode tries to climbing up the leaderboard
 	AggressiveMode Mode = "aggressive"
 )
@@ -115,20 +115,8 @@ func (g Game) Player(url string) *Player {
 	pState := g.PlayerStateByURL[url]
 	player := NewPlayerWithUrl(url, pState)
 	player.Game = g
-	// TODO set player strategy
 
 	switch g.Mode {
-	// case ZombieMode:
-	// 	player.Strategy = NewChaseLowestRankStrategy()
-	// case AggressiveMode:
-		// rank := g.LeaderBoard.GetRank(*p)
-		// if rank == 0 {
-		// 	p.Strategy = NewNormalStrategy()
-		// } else {
-		// 	target := p.GetPlayerOnNextPodium(ctx)
-		// 	p.Strategy = NewSafeChasing(target)
-		// }
-		// player.Strategy = NewNormalStrategy()
 	case BraveMode:
 		player.Strategy = NewBraveStrategy()
 	default:
@@ -145,6 +133,11 @@ func (g Game) Update(player *Player) {
 	player.WasHit = updatedPlayer.WasHit
 	player.Score = updatedPlayer.Score
 	player.Game = g
+	if updatedPlayer.WasHit {
+		player.consecutiveHitCount++
+	} else {
+		player.consecutiveHitCount = 0
+	}
 }
 
 func (g *Game) UpdateLeaderBoard(ctx context.Context) {
