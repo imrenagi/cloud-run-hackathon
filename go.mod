@@ -1,7 +1,7 @@
 // +heroku goVersion 1.14
 module github.com/imrenagi/cloud-run-hackathon-go
 
-go 1.18
+go 1.19
 
 require (
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/trace v1.8.6

@@ -37,7 +37,7 @@ func (ns *BraveStrategy) Play(ctx context.Context, p *Player) Move {
 	if p.WasHit {
 		p.ChangeState(&BraveEscapeDecorator{Escaper: &Escape{Player: p}})
 	} else {
-		p.ChangeState(DefaultAttack(p))
+		p.ChangeState(ExploratoryAttack(p))
 	}
 	return p.State.Play(ctx)
 }

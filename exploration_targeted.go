@@ -21,7 +21,6 @@ func (t *TargetedEnemy) Explore(ctx context.Context, p *Player) Move {
 	var path Path
 	aStar := NewAStar(p.Game.Arena,
 		WithIsUnblockFn(CheckTargetSurroundingAttackRangeFn(*t.Target)),
-		// WithIsUnblockFn(ObstacleMapFn(t.Target)),
 	)
 	var err error
 	path, err = aStar.SearchPath(ctx, p.GetPosition(), t.Target.GetPosition())
@@ -39,15 +38,5 @@ func (t *TargetedEnemy) Explore(ctx context.Context, p *Player) Move {
 		return moves[0]
 	} else {
 		return p.Walk(ctx)
-	}
-}
-
-func ObstacleMapFn(player *Player) IsUnblockFn {
-	return func(ctx context.Context, p Point) bool {
-		if !player.Game.Arena.IsValid(p) {
-			return false
-		}
-		obstacleMap := player.Game.ObstacleMap(ctx)
-		return !obstacleMap[p.Y][p.X]
 	}
 }

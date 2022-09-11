@@ -124,6 +124,9 @@ func TestAttack_Play(t *testing.T) {
 					WasHit:    false,
 					Score:     0,
 					Game: Game{
+						LeaderBoard: []PlayerState{
+							{X: 1, Y: 1, Direction: "N"},
+						},
 						Arena: Arena{
 							Width:  4,
 							Height: 3,

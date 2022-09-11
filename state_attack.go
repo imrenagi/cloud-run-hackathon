@@ -6,7 +6,15 @@ import "context"
 func DefaultAttack(p *Player) State {
 	return &Attack{
 		Player:              p,
-		ExplorationStrategy: &ClosestEnemy{},
+		ExplorationStrategy: NewClosestDistanceExploration(p),
+	}
+}
+
+// ExploratoryAttack ...
+func ExploratoryAttack(p *Player) State {
+	return &Attack{
+		Player:              p,
+		ExplorationStrategy: NewWeightedExploration(p),
 	}
 }
 
@@ -21,7 +29,7 @@ func TargetedAttack(p *Player) State {
 
 type Attack struct {
 	Player              *Player
-	ExplorationStrategy Exploration
+	ExplorationStrategy Explorer
 }
 
 func (a *Attack) Play(ctx context.Context) Move {
