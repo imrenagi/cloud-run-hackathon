@@ -17,7 +17,7 @@ func (ns *NormalStrategy) Play(ctx context.Context, p *Player) Move {
 	if p.WasHit {
 		p.ChangeState(&Escape{Player: p})
 	} else {
-		p.ChangeState(DefaultAttack(p))
+		p.ChangeState(ExploratoryAttack(p))
 	}
 	return p.State.Play(ctx)
 }
