@@ -6,6 +6,7 @@ import (
 	"os"
 	"sort"
 	"strings"
+	"sync"
 )
 
 func NewPlayerWithUrl(url string, state PlayerState) *Player {
@@ -36,17 +37,19 @@ func NewPlayer(state PlayerState) *Player {
 }
 
 type Player struct {
-	Name         string
-	X            int      `json:"x"`
-	Y            int      `json:"y"`
-	Direction    string   `json:"direction"`
-	WasHit       bool     `json:"wasHit"`
-	Score        int      `json:"score"`
-	Game         Game     `json:"-"`
-	State        State    `json:"-"`
-	Strategy     Strategy `json:"-"`
-	trappedCount int
-	Whitelisted  map[string]string
+	Name        string
+	X           int      `json:"x"`
+	Y           int      `json:"y"`
+	Direction   string   `json:"direction"`
+	WasHit      bool     `json:"wasHit"`
+	Score       int      `json:"score"`
+	Game        Game     `json:"-"`
+	State       State    `json:"-"`
+	Strategy    Strategy `json:"-"`
+	Whitelisted map[string]string
+
+	trappedCount        int
+	consecutiveHitCount int
 }
 
 func (p Player) Clone() Player {
@@ -63,43 +66,11 @@ func (p Player) Clone() Player {
 	}
 }
 
-type Mode string
-
-const (
-	NormalMode     Mode = "normal"
-	GuardMode      Mode = "guard"
-	ZombieMode     Mode = "zombie"
-	BraveMode      Mode = "brave"
-	AggressiveMode Mode = "aggressive"
-)
-
 func (p *Player) Play(ctx context.Context) Move {
 	ctx, span := tracer.Start(ctx, "Player.Play")
 	defer span.End()
 
-	mode := os.Getenv("PLAYER_MODE")
-	switch Mode(mode) {
-	case ZombieMode:
-		target := p.GetLowestRank(ctx)
-		p.Strategy = NewSemiBrutalChasing(target)
-	case GuardMode:
-		target := p.GetHighestRank(ctx)
-		p.Strategy = NewBrutalChasing(target)
-	case AggressiveMode:
-		rank := p.Game.LeaderBoard.GetRank(*p)
-		if rank == 0 {
-			p.Strategy = NewNormalStrategy()
-		} else {
-			target := p.GetPlayerOnNextPodium(ctx)
-			// TODO new safe chasing ini jangan pakai logic Attack state.
-			// tapi sebisa mungkin cari playernya sampai ketemu
-			p.Strategy = NewSafeChasing(target)
-		}
-	case BraveMode:
-		p.Strategy = NewBraveStrategy()
-	default:
-		p.Strategy = NewNormalStrategy()
-	}
+	// TODO Calculate priority whether to attack or to chase
 	return p.Strategy.Play(ctx, p)
 }
 
@@ -226,11 +197,27 @@ func (p Player) FindShooterOnDirection(ctx context.Context, direction Direction)
 	return shooter
 }
 
-// TODO butuh CanHitPoint where we ignore all players in attack range.
+type HitOption func(*HitOptions)
+
+type HitOptions struct {
+	IgnorePlayer bool
+}
+
+func WithIgnorePlayer() HitOption {
+	return func(options *HitOptions) {
+		options.IgnorePlayer = true
+	}
+}
+
 // CanHitPoint check whether can attack a player in pt
-func (p Player) CanHitPoint(ctx context.Context, pt Point) bool {
+func (p Player) CanHitPoint(ctx context.Context, pt Point, opts ...HitOption) bool {
 	ctx, span := tracer.Start(ctx, "Player.CanHitPoint")
 	defer span.End()
+
+	options := &HitOptions{}
+	for _, o := range opts {
+		o(options)
+	}
 
 	var ptA = p.GetPosition()
 	for i := 1; i < (attackRange + 1); i++ {
@@ -241,18 +228,22 @@ func (p Player) CanHitPoint(ctx context.Context, pt Point) bool {
 		if npt.X == pt.X && npt.Y == pt.Y {
 			return true
 		}
-		pl := p.Game.GetPlayerByPosition(npt)
-		if pl != nil {
-			return false
+
+		if !options.IgnorePlayer {
+			pl := p.Game.GetPlayerByPosition(npt)
+			if pl != nil {
+				return false
+			}
 		}
+
 	}
 	return false
 }
 
-func (p Player) CanHit(ctx context.Context, p2 Player) bool {
+func (p Player) CanHit(ctx context.Context, p2 Player, opts ...HitOption) bool {
 	ctx, span := tracer.Start(ctx, "Player.CanHit")
 	defer span.End()
-	return p.CanHitPoint(ctx, p2.GetPosition())
+	return p.CanHitPoint(ctx, p2.GetPosition(), opts...)
 }
 
 func (p Player) GetRank() int {
@@ -413,7 +404,7 @@ func (p Player) MoveToAdjacent(toPt Point) ([]Move, error) {
 }
 
 func (p Player) FindClosestPlayers2(ctx context.Context) []Player {
-	ctx, span := tracer.Start(ctx, "Player.FindClosestPlayers")
+	ctx, span := tracer.Start(ctx, "Player.FindClosestPlayers2")
 	defer span.End()
 
 	distanceCalculator := EuclideanDistance{}
@@ -446,32 +437,43 @@ func (p Player) FindClosestPlayers2(ctx context.Context) []Player {
 }
 
 func (p Player) FindClosestPlayers(ctx context.Context) []Player {
-	ctx, span := tracer.Start(ctx, "Player.FindClosestPlayers2")
+	ctx, span := tracer.Start(ctx, "Player.FindClosestPlayers")
 	defer span.End()
 
-	// distanceCalculator := EuclideanDistance{}
-	var dPairs []dPair
+	var wg sync.WaitGroup
+	pairChan := make(chan dPair, len(p.Game.LeaderBoard))
 
+	// TODO Instead of iterating over all players, use bfs??
 	for _, ps := range p.Game.LeaderBoard {
-		otherPlayerPt := Point{ps.X, ps.Y}
-		if p.GetPosition().Equal(otherPlayerPt) {
-			continue
-		}
+		wg.Add(1)
 
-		aStar := NewAStar(p.Game.Arena)
-		path, err := aStar.SearchPath(ctx, p.GetPosition(), otherPlayerPt)
-		if err != nil {
-			// TODO what to do when no path
-			continue
-		}
-		moves := p.RequiredMoves(ctx, path)
+		go func(ps PlayerState) {
+			defer wg.Done()
+			otherPlayerPt := Point{ps.X, ps.Y}
+			if p.GetPosition().Equal(otherPlayerPt) {
+				return
+			}
+			aStar := NewAStar(p.Game.Arena)
+			path, err := aStar.SearchPath(ctx, p.GetPosition(), otherPlayerPt)
+			if err != nil {
+				return
+			}
+			moves := p.RequiredMoves(ctx, path)
 
-		// d := distanceCalculator.Distance(p.GetPosition(), otherPlayerPt)
-		dPairs = append(dPairs, dPair{
-			distance: float64(len(moves)),
-			player:   ps,
-		})
+			pairChan <- dPair{
+				distance: float64(len(moves)),
+				player:   ps,
+			}
+		}(ps)
 	}
+	wg.Wait()
+	close(pairChan)
+
+	var dPairs []dPair
+	for elem := range pairChan {
+		dPairs = append(dPairs, elem)
+	}
+
 	if len(dPairs) == 0 {
 		return nil
 	}
@@ -484,6 +486,14 @@ func (p Player) FindClosestPlayers(ctx context.Context) []Player {
 		closestPlayers = append(closestPlayers, *cp)
 	}
 	return closestPlayers
+}
+
+func (p *Player) UpdateHitCount() {
+	if p.WasHit {
+		p.consecutiveHitCount++
+	} else {
+		p.consecutiveHitCount = 0
+	}
 }
 
 type dPair struct {

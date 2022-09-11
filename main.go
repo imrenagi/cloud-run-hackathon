@@ -93,7 +93,10 @@ func NewServer() *Server {
 }
 
 func (s *Server) routes() {
-	s.Router.Use(otelmux.Middleware(name))
+
+	if _, ok := os.LookupEnv("TRACING_MODE"); ok {
+		s.Router.Use(otelmux.Middleware(name))
+	}
 	s.Router.Handle("/", s.UpdateArena()).Methods("POST")
 	s.Router.Handle("/", s.Healthcheck()).Methods("GET")
 	s.Router.Handle("/reset", s.Reset())
@@ -107,7 +110,7 @@ func (s *Server) Run(ctx context.Context, port string) error {
 		Handler: s.Router,
 	}
 
-	log.Info().Msgf("server serving on port %s ", port)
+	log.Info().Msgf("server serving on port %s", port)
 
 	go func() {
 		if err := httpS.ListenAndServe(); err != nil && err != http.ErrServerClosed {
@@ -174,6 +177,7 @@ func (s Server) UpdateArena() http.HandlerFunc {
 			return
 		}
 
+		span.AddEvent("parsing json")
 		var v ArenaUpdate
 		defer r.Body.Close()
 		d := json.NewDecoder(r.Body)
@@ -183,13 +187,18 @@ func (s Server) UpdateArena() http.HandlerFunc {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
+		span.AddEvent("parsing json completed")
 		resp := s.Play(ctx, v)
 		fmt.Fprint(w, resp)
 	}
 }
 
 func (s *Server) Play(ctx context.Context, v ArenaUpdate) Move {
-	s.game = NewGame()
+	var opts []GameOption
+	if val, ok := os.LookupEnv("PLAYER_MODE"); ok {
+		opts = append(opts, WithGameMode(Mode(val)))
+	}
+	s.game = NewGame(opts...)
 	s.game.UpdateArena(ctx, v)
 	if s.player == nil {
 		s.player = s.game.Player(v.Links.Self.Href)
@@ -197,6 +206,9 @@ func (s *Server) Play(ctx context.Context, v ArenaUpdate) Move {
 		// TODO kalau URLnya ganti, ignore
 		s.game.Update(s.player)
 	}
+
+	s.player.UpdateHitCount()
+
 	return s.player.Play(ctx)
 }
 

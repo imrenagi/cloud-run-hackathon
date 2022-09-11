@@ -413,7 +413,7 @@ func Test_ppair_RequiredRotation(t *testing.T) {
 				Direction: tt.fields.Direction,
 			}
 			if got := p.requiredRotation(tt.args.pt); got != tt.want {
-				t.Errorf("requiredRotation() = %v, want %v", got, tt.want)
+				t.Errorf("requiredRotation() = %v, wantAnyOf %v", got, tt.want)
 			}
 		})
 	}

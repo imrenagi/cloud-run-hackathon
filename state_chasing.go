@@ -2,8 +2,6 @@ package main
 
 import (
 	"context"
-
-	"github.com/rs/zerolog/log"
 )
 
 func NewChasing(p *Player, target *Player) State {
@@ -25,7 +23,6 @@ func (c *Chasing) Play(ctx context.Context) Move {
 	defer span.End()
 
 	if c.Player.CanHitPoint(ctx, c.Target.GetPosition()) {
-		log.Debug().Msg("attack")
 		return Throw
 	}
 	return c.ExplorationStrategy.Explore(ctx, c.Player)

@@ -1,6 +1,8 @@
 package main
 
-import "context"
+import (
+	"context"
+)
 
 type ArenaUpdate struct {
 	Links struct {
@@ -36,18 +38,54 @@ func (p PlayerState) GetDirection() Direction {
 	}
 }
 
+type Mode string
+
+func (m Mode) NeedLeaderboard() bool {
+	return m == ZombieMode || m == AggressiveMode
+}
+
+const (
+	NormalMode Mode = "normal"
+	BraveMode  Mode = "brave"
+	// ZombieMode tries to attack player with lowest rank
+	ZombieMode Mode = "zombie"
+	// AggressiveMode tries to climbing up the leaderboard
+	AggressiveMode Mode = "aggressive"
+)
+
 type Game struct {
 	Arena            Arena
 	PlayerStateByURL map[string]PlayerState
 	LeaderBoard      LeaderBoard
+	Mode             Mode
 }
 
 const (
 	defaultAttackRange int = 3
 )
 
-func NewGame() Game {
+type GameOption func(*GameOptions)
+
+type GameOptions struct {
+	Mode Mode
+}
+
+func WithGameMode(m Mode) GameOption {
+	return func(options *GameOptions) {
+		options.Mode = m
+	}
+}
+
+func NewGame(opts ...GameOption) Game {
+	o := &GameOptions{
+		Mode: NormalMode,
+	}
+	for _, opt := range opts {
+		opt(o)
+	}
+
 	return Game{
+		Mode: o.Mode,
 	}
 }
 
@@ -59,7 +97,7 @@ func (g *Game) UpdateArena(ctx context.Context, a ArenaUpdate) {
 	height := a.Arena.Dimensions[1]
 	arena := NewArena(width, height)
 
-	g.LeaderBoard = nil
+	g.LeaderBoard = []PlayerState{}
 	for k, v := range a.Arena.State {
 		v.URL = k
 		arena.PutPlayer(v)
@@ -68,13 +106,22 @@ func (g *Game) UpdateArena(ctx context.Context, a ArenaUpdate) {
 
 	g.Arena = arena
 	g.PlayerStateByURL = a.Arena.State
-	g.UpdateLeaderBoard(ctx)
+	if g.Mode.NeedLeaderboard() {
+		g.UpdateLeaderBoard(ctx)
+	}
 }
 
 func (g Game) Player(url string) *Player {
 	pState := g.PlayerStateByURL[url]
 	player := NewPlayerWithUrl(url, pState)
 	player.Game = g
+
+	switch g.Mode {
+	case BraveMode:
+		player.Strategy = NewBraveStrategy()
+	default:
+		player.Strategy = NewNormalStrategy()
+	}
 	return player
 }
 

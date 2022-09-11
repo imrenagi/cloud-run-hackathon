@@ -9,6 +9,7 @@ func (a *ClosestEnemy) Explore(ctx context.Context, p *Player) Move {
 	ctx, span := tracer.Start(ctx, "ClosestEnemy.Explore")
 	defer span.End()
 
+	// TODO Udah dapet closest player, tapi pakai astar lagi??
 	targets := p.FindClosestPlayers(ctx)
 	if len(targets) == 0 {
 		return Throw
@@ -40,7 +41,6 @@ func (a *ClosestEnemy) Explore(ctx context.Context, p *Player) Move {
 		return p.Walk(ctx)
 	}
 }
-
 
 // CheckTargetSurroundingAttackRangeFn checks whether a target and its facing opponent can hit p
 func CheckTargetSurroundingAttackRangeFn(target Player) IsUnblockFn {

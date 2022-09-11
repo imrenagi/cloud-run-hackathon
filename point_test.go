@@ -66,9 +66,9 @@ func TestPoint_MoveWithDirection(t *testing.T) {
 				Y: tt.fields.Y,
 			}
 			got := p.TranslateToDirection(tt.args.distance, tt.args.direction)
-			// assert.Equal(t, tt.want, got)
-			assert.InDelta(t, tt.want.X, got.X, 0.01, "got %v want %v", got.X, tt.want.X)
-			assert.InDelta(t, tt.want.Y, got.Y, 0.01, "got %v want %v", got.Y, tt.want.Y)
+			// assert.Equal(t, tt.wantAnyOf, got)
+			assert.InDelta(t, tt.want.X, got.X, 0.01, "got %v wantAnyOf %v", got.X, tt.want.X)
+			assert.InDelta(t, tt.want.Y, got.Y, 0.01, "got %v wantAnyOf %v", got.Y, tt.want.Y)
 		})
 	}
 }

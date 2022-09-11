@@ -69,7 +69,7 @@ func TestLeaderBoard_GetPlayerByRank(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.l.GetPlayerByRank(tt.args.rank); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("GetPlayerByRank() = %v, want %v", got, tt.want)
+				t.Errorf("GetPlayerByRank() = %v, wantAnyOf %v", got, tt.want)
 			}
 		})
 	}
@@ -166,7 +166,7 @@ func TestLeaderBoard_GetRank(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.l.GetRank(tt.args.p); got != tt.want {
-				t.Errorf("GetRank() = %v, want %v", got, tt.want)
+				t.Errorf("GetRank() = %v, wantAnyOf %v", got, tt.want)
 			}
 		})
 	}

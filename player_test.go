@@ -95,13 +95,13 @@ func TestPlayerState_Walk(t *testing.T) {
 				Game:      tt.fields.Game,
 			}
 			if got := p.Walk(context.TODO()); got != tt.want {
-				t.Errorf("Walk() = %v, want %v", got, tt.want)
+				t.Errorf("Walk() = %v, wantAnyOf %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func TestPlayerState_GetPlayersInFront(t *testing.T) {
+func TestPlayer_GetPlayersInRange(t *testing.T) {
 	type fields struct {
 		X         int
 		Y         int
@@ -201,13 +201,13 @@ func TestPlayerState_GetPlayersInFront(t *testing.T) {
 				Game:      tt.fields.Game,
 			}
 			if got := p.GetPlayersInRange(context.TODO(), tt.args.direction, 3); len(got) != tt.want {
-				t.Errorf("GetPlayersInRange() = %v, want %v", got, tt.want)
+				t.Errorf("GetPlayersInRange() = %v, wantAnyOf %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func TestPlayerState_FindShooterFromDirection(t *testing.T) {
+func TestPlayer_FindShooterOnDirection(t *testing.T) {
 	type fields struct {
 		X         int
 		Y         int
@@ -410,7 +410,7 @@ func TestPlayerState_FindShooterFromDirection(t *testing.T) {
 	}
 }
 
-func TestPlayerState_GetShortestRotation(t *testing.T) {
+func TestPlayer_MoveToAdjacent(t *testing.T) {
 	type fields struct {
 		X         int
 		Y         int
@@ -597,7 +597,7 @@ func TestPlayer_NextMove(t *testing.T) {
 			}
 			got := p.RequiredMoves(context.TODO(), tt.args.forPath, tt.args.opts...)
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("RequiredMoves() got = %v, want %v", got, tt.want)
+				t.Errorf("RequiredMoves() got = %v, wantAnyOf %v", got, tt.want)
 			}
 		})
 	}
@@ -883,7 +883,7 @@ func TestPlayer_FindClosestPlayers(t *testing.T) {
 	}
 }
 
-func TestPlayer_CanAttackPoint(t *testing.T) {
+func TestPlayer_CanHitPoint(t *testing.T) {
 	type fields struct {
 		Name         string
 		X            int
@@ -897,6 +897,7 @@ func TestPlayer_CanAttackPoint(t *testing.T) {
 	}
 	type args struct {
 		pt Point
+		opts []HitOption
 	}
 	tests := []struct {
 		name   string
@@ -969,9 +970,8 @@ func TestPlayer_CanAttackPoint(t *testing.T) {
 		},
 		{
 			name: "can attack even if there is other player in attack range because we enable the option to ignore players",
-			skip: true,
 			args: args{
-				// TODO add options
+				opts: []HitOption{WithIgnorePlayer()},
 				pt: Point{3, 1},
 			},
 			fields: fields{
@@ -1050,8 +1050,8 @@ func TestPlayer_CanAttackPoint(t *testing.T) {
 				Strategy:     tt.fields.Strategy,
 				trappedCount: tt.fields.trappedCount,
 			}
-			if got := p.CanHitPoint(context.TODO(), tt.args.pt); got != tt.want {
-				t.Errorf("CanHitPoint() = %v, want %v", got, tt.want)
+			if got := p.CanHitPoint(context.TODO(), tt.args.pt, tt.args.opts...); got != tt.want {
+				t.Errorf("CanHitPoint() = %v, wantAnyOf %v", got, tt.want)
 			}
 		})
 	}
@@ -1115,7 +1115,7 @@ func TestPlayer_GetRank(t *testing.T) {
 				Game: tt.fields.Game,
 			}
 			if got := p.GetRank(); got != tt.want {
-				t.Errorf("GetRank() = %v, want %v", got, tt.want)
+				t.Errorf("GetRank() = %v, wantAnyOf %v", got, tt.want)
 			}
 		})
 	}
@@ -1393,7 +1393,6 @@ func TestPlayer_GetHighestRank(t *testing.T) {
 		})
 	}
 }
-
 
 func TestPlayer_GetLowestRank(t *testing.T) {
 	type fields struct {
