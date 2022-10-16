@@ -21,3 +21,9 @@ profiles:
   - name: cloudbuild
     build:
       googleCloudBuild: {}
+  - name: local
+    build:
+      local:
+        concurrency: 1
+        tryImportMissing: false
+        useDockerCLI: false
