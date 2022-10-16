@@ -1,0 +1,23 @@
+apiVersion: skaffold/v2beta29
+kind: Config
+metadata:
+  name: waterfight
+build:
+  artifacts:
+    - image: gcr.io/workstation-test-365315/waterfight-skaffold # must match in artifactOverrides
+      context: .
+deploy:
+  helm:
+    releases:
+      - name: waterfight-skaffold
+        chartPath: deployment/helm/app
+        artifactOverrides:
+          image: gcr.io/workstation-test-365315/waterfight-skaffold
+        imageStrategy:
+          helm: { }
+        wait: true
+        recreatePods: true
+profiles:
+  - name: cloudbuild
+    build:
+      googleCloudBuild: {}
