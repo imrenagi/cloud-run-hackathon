@@ -1,6 +1,9 @@
 package main
 
-import "context"
+import (
+	"context"
+	"math"
+)
 
 type Grid [][]Cell
 
@@ -47,6 +50,12 @@ func (a *Arena) GetPlayer(pt Point) *PlayerState {
 		return nil
 	}
 	return a.Grid[pt.Y][pt.X].Player
+}
+
+func (a Arena) Diagonal() float64 {
+	w := float64(a.Width)
+	h := float64(a.Height)
+	return math.Sqrt(w*w + h*h)
 }
 
 // Traverse with BFS

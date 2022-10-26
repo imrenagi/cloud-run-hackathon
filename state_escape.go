@@ -39,7 +39,7 @@ func (e *Escape) Play(ctx context.Context) Move {
 		e.Player.FindShooterOnDirection(ctx, e.Player.GetDirection()),
 		e.Player.FindShooterOnDirection(ctx, e.Player.GetDirection().Left()),
 		e.Player.FindShooterOnDirection(ctx, e.Player.GetDirection().Right()),
-		nil, //we are not using attacker from the back
+		e.Player.FindShooterOnDirection(ctx, e.Player.GetDirection().Backward()),
 	}
 
 	adjacents := e.Player.Game.Arena.GetAdjacent(ctx, e.Player.GetPosition(), WithDiagonalAdjacents(), WithEmptyAdjacent())

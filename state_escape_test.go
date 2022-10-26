@@ -182,6 +182,54 @@ func TestEscape_Play(t *testing.T) {
 			wantAnyOf: []Move{WalkForward},
 		},
 		{
+			name: "we are corner, tried to escape when we got attacked from 3 direction",
+			fields: fields{
+				Player: Player{
+					X:         2,
+					Y:         0,
+					Direction: "E",
+					Game: Game{
+						Arena: Arena{
+							Width:  7,
+							Height: 5,
+							Grid: [][]Cell{
+								{{Player: &PlayerState{X: 0, Y: 0, Direction: "E"}}, {}, {Player: &PlayerState{X: 2, Y: 0, Direction: "E"}}, {}, {Player: &PlayerState{X: 4, Y: 0, Direction: "W"}}, {}, {}},
+								{{}, {}, {Player: &PlayerState{X: 2, Y: 1, Direction: "N"}}, {}, {}, {}, {}},
+								{{}, {}, {}, {}, {}, {}, {}},
+								{{}, {}, {}, {}, {}, {}, {}},
+								{{}, {}, {}, {}, {}, {}, {}},
+							},
+						},
+					},
+				},
+			},
+			wantAnyOf: []Move{WalkForward},
+		},
+		{
+			name: "we are corner, tried to escape when we got attacked from 3 direction",
+			fields: fields{
+				Player: Player{
+					X:         2,
+					Y:         0,
+					Direction: "N",
+					Game: Game{
+						Arena: Arena{
+							Width:  7,
+							Height: 5,
+							Grid: [][]Cell{
+								{{Player: &PlayerState{X: 0, Y: 0, Direction: "E"}}, {}, {Player: &PlayerState{X: 2, Y: 0, Direction: "N"}}, {}, {Player: &PlayerState{X: 4, Y: 0, Direction: "W"}}, {}, {}},
+								{{}, {}, {Player: &PlayerState{X: 2, Y: 1, Direction: "N"}}, {}, {}, {}, {}},
+								{{}, {}, {}, {}, {}, {}, {}},
+								{{}, {}, {}, {}, {}, {}, {}},
+								{{}, {}, {}, {}, {}, {}, {}},
+							},
+						},
+					},
+				},
+			},
+			wantAnyOf: []Move{TurnRight, TurnLeft},
+		},
+		{
 			name: "opponent is attacking from the bottom left right and back, player heading north, should move forward",
 			fields: fields{
 				Player: Player{
@@ -782,7 +830,7 @@ func TestEscape_Play(t *testing.T) {
 			wantAnyOf: []Move{"F"},
 		},
 	}
-	for _, tt := range tests {
+		for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.skip {
 				t.Skip()

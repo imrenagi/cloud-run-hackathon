@@ -13,9 +13,9 @@ func NewChasing(p *Player, target *Player) State {
 }
 
 type Chasing struct {
-	Player *Player
-	Target *Player
-	ExplorationStrategy Exploration
+	Player              *Player
+	Target              *Player
+	ExplorationStrategy Explorer
 }
 
 func (c *Chasing) Play(ctx context.Context) Move {

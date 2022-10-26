@@ -4,9 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"sort"
 	"strings"
-	"sync"
 )
 
 func NewPlayerWithUrl(url string, state PlayerState) *Player {
@@ -145,7 +143,7 @@ func (p Player) GetLowestRank(ctx context.Context) *Player {
 }
 
 func (p Player) IsMe(ap *Player) bool {
-	return p.Name == ap.Name
+	return p.X == ap.X && p.Y == ap.Y
 }
 
 // GetHighestRank returned players that has highest rank, exclude whitelisted
@@ -403,91 +401,6 @@ func (p Player) MoveToAdjacent(toPt Point) ([]Move, error) {
 	}
 }
 
-func (p Player) FindClosestPlayers2(ctx context.Context) []Player {
-	ctx, span := tracer.Start(ctx, "Player.FindClosestPlayers2")
-	defer span.End()
-
-	distanceCalculator := EuclideanDistance{}
-	var dPairs []dPair
-
-	for _, ps := range p.Game.LeaderBoard {
-		otherPlayerPt := Point{ps.X, ps.Y}
-		if p.GetPosition().Equal(otherPlayerPt) {
-			continue
-		}
-
-		d := distanceCalculator.Distance(p.GetPosition(), otherPlayerPt)
-		dPairs = append(dPairs, dPair{
-			distance: d,
-			player:   ps,
-		})
-	}
-	if len(dPairs) == 0 {
-		return nil
-	}
-
-	sort.Sort(byDistance(dPairs))
-	var closestPlayers []Player
-	for _, dp := range dPairs {
-		closestPlayer := dp.player
-		cp := p.Game.GetPlayerByPosition(Point{X: closestPlayer.X, Y: closestPlayer.Y})
-		closestPlayers = append(closestPlayers, *cp)
-	}
-	return closestPlayers
-}
-
-func (p Player) FindClosestPlayers(ctx context.Context) []Player {
-	ctx, span := tracer.Start(ctx, "Player.FindClosestPlayers")
-	defer span.End()
-
-	var wg sync.WaitGroup
-	pairChan := make(chan dPair, len(p.Game.LeaderBoard))
-
-	// TODO Instead of iterating over all players, use bfs??
-	for _, ps := range p.Game.LeaderBoard {
-		wg.Add(1)
-
-		go func(ps PlayerState) {
-			defer wg.Done()
-			otherPlayerPt := Point{ps.X, ps.Y}
-			if p.GetPosition().Equal(otherPlayerPt) {
-				return
-			}
-			aStar := NewAStar(p.Game.Arena)
-			path, err := aStar.SearchPath(ctx, p.GetPosition(), otherPlayerPt)
-			if err != nil {
-				return
-			}
-			moves := p.RequiredMoves(ctx, path)
-
-			pairChan <- dPair{
-				distance: float64(len(moves)),
-				player:   ps,
-			}
-		}(ps)
-	}
-	wg.Wait()
-	close(pairChan)
-
-	var dPairs []dPair
-	for elem := range pairChan {
-		dPairs = append(dPairs, elem)
-	}
-
-	if len(dPairs) == 0 {
-		return nil
-	}
-
-	sort.Sort(byDistance(dPairs))
-	var closestPlayers []Player
-	for _, dp := range dPairs {
-		closestPlayer := dp.player
-		cp := p.Game.GetPlayerByPosition(Point{X: closestPlayer.X, Y: closestPlayer.Y})
-		closestPlayers = append(closestPlayers, *cp)
-	}
-	return closestPlayers
-}
-
 func (p *Player) UpdateHitCount() {
 	if p.WasHit {
 		p.consecutiveHitCount++
@@ -495,22 +408,3 @@ func (p *Player) UpdateHitCount() {
 		p.consecutiveHitCount = 0
 	}
 }
-
-type dPair struct {
-	distance float64
-	player   PlayerState
-}
-
-type byDistance []dPair
-
-func (a byDistance) Len() int { return len(a) }
-func (a byDistance) Less(i, j int) bool {
-	if a[i].distance != a[j].distance {
-		return a[i].distance < a[j].distance
-	}
-	if a[i].player.Y != a[j].player.Y {
-		return a[i].player.Y < a[j].player.Y
-	}
-	return a[i].player.X < a[j].player.X
-}
-func (a byDistance) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
