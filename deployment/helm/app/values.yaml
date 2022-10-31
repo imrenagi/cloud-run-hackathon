@@ -1,8 +1,8 @@
 replicaCount: 1
 
 image:
-  repository: gcr.io/workstation-test-365315/waterfight
-  tag: 4effc69b2072faa9035e5634ca4cd9283071dda5
+  repository: gcr.io/workstation-test-365315/waterfight-skaffold
+  tag: latest
   pullPolicy: IfNotPresent
 
 nameOverride: "waterfight"

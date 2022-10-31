@@ -1,0 +1,18 @@
+steps:
+   # Build the container image
+   - name: 'gcr.io/cloud-builders/docker'
+     args: ['build', '-t', 'gcr.io/$PROJECT_ID/waterfight:$COMMIT_SHA', '.']
+   # Push the container image to Container Registry
+   - name: 'gcr.io/cloud-builders/docker'
+     args: ['push', 'gcr.io/$PROJECT_ID/waterfight:$COMMIT_SHA']
+   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+     entrypoint: gcloud
+     args: [
+      'deploy', 'releases', 'create', 'test-release-001',
+      '--project=$PROJECT_ID',
+      '--region=us-central1',
+      '--delivery-pipeline=waterfight',
+      '--images=gcr.io/workstation-test-365315/waterfight-skaffold=gcr.io/$PROJECT_ID/waterfight:$COMMIT_SHA' ]
+
+#     args: [
+#       gcloud deploy releases create test-release-$date-$time --project=$PROJECT_ID --region=us-central1 --delivery-pipeline=waterfight --images=gcr.io/workstation-test-365315/waterfight-skaffold=gcr.io/$PROJECT_ID/waterfight:505a554

@@ -1,0 +1,33 @@
+apiVersion: skaffold/v3alpha1
+kind: Config
+metadata:
+  name: waterfight
+build:
+  artifacts:
+    - image: gcr.io/workstation-test-365315/waterfight-skaffold # must match in artifactOverrides
+      context: .
+  local: {}
+profiles:
+  - name: run-dev
+    manifests:
+      rawYaml:
+        - deployment/run/service-dev.yaml
+    deploy:
+      cloudrun:
+        projectid: workstation-test-365315
+        region: us-central1
+  - name: helm
+    deploy:
+      helm:
+        releases:
+          - name: waterfight-skaffold-k8s
+            chartPath: deployment/helm/app
+            wait: true
+            recreatePods: true
+            namespace: default
+  - name: k8s
+    deploy:
+      kubectl: {}
+    manifests:
+      rawYaml:
+        - deployment/k8s/*.yaml

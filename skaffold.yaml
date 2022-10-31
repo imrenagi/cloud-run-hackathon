@@ -6,24 +6,33 @@ build:
   artifacts:
     - image: gcr.io/workstation-test-365315/waterfight-skaffold # must match in artifactOverrides
       context: .
-deploy:
-  helm:
-    releases:
-      - name: waterfight-skaffold
-        chartPath: deployment/helm/app
-        artifactOverrides:
-          image: gcr.io/workstation-test-365315/waterfight-skaffold
-        imageStrategy:
-          helm: { }
-        wait: true
-        recreatePods: true
 profiles:
-  - name: cloudbuild
+  - name: helm
     build:
-      googleCloudBuild: {}
-  - name: local
+      artifacts:
+        - image: gcr.io/workstation-test-365315/waterfight-skaffold # must match in artifactOverrides
+          context: .
+      local: {}
+    deploy:
+      helm:
+        releases:
+          - name: waterfight-skaffold-k8s
+            chartPath: deployment/helm/app
+            artifactOverrides:
+              image: gcr.io/workstation-test-365315/waterfight-skaffold
+            imageStrategy:
+              helm: { }
+            wait: true
+            recreatePods: true
+            namespace: default
+  - name: k8s
     build:
+      artifacts:
+        - image: gcr.io/workstation-test-365315/waterfight-skaffold
       local:
-        concurrency: 1
-        tryImportMissing: false
         useDockerCLI: false
+        useBuildkit: false
+    deploy:
+      kubectl:
+        manifests:
+        - "deployment/k8s/*.yaml"

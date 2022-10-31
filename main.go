@@ -160,8 +160,8 @@ func (s Server) Reset() http.HandlerFunc {
 func (s Server) Healthcheck() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet {
-			log.Debug().Msg("Let the battle begin!")
-			fmt.Fprint(w, "Let the battle begin!")
+			log.Debug().Msg("Healthcheck done!")
+			fmt.Fprint(w, "Healthcheck done!")
 			return
 		}
 	}

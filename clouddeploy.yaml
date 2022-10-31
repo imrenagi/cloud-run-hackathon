@@ -1,0 +1,60 @@
+apiVersion: deploy.cloud.google.com/v1
+kind: DeliveryPipeline
+metadata:
+  name: waterfight-k8s
+description: main application pipeline
+serialPipeline:
+  stages:
+  - targetId: waterfight-k8s-dev
+    profiles:
+    - k8s
+  - targetId: waterfight-k8s-prod
+    profiles:
+    - helm
+---
+apiVersion: deploy.cloud.google.com/v1
+kind: DeliveryPipeline
+metadata:
+  name: waterfight-helm
+description: deployment with helm
+serialPipeline:
+  stages:
+    - targetId: waterfight-k8s-dev
+      profiles:
+        - helm
+---
+apiVersion: deploy.cloud.google.com/v1
+kind: Target
+metadata:
+ name: waterfight-k8s-dev
+description: development cluster
+gke:
+ cluster: projects/workstation-test-365315/locations/us-central1-c/clusters/cluster-1
+---
+apiVersion: deploy.cloud.google.com/v1
+kind: Target
+metadata:
+  name: waterfight-k8s-prod
+description: prod cluster
+gke:
+  cluster: projects/workstation-test-365315/locations/us-central1-c/clusters/cluster-1
+---
+apiVersion: deploy.cloud.google.com/v1
+kind: DeliveryPipeline
+metadata:
+  name: waterfight-run
+description: main application pipeline
+serialPipeline:
+  stages:
+    - targetId: waterfight-run-dev
+      profiles:
+        - run-dev
+---
+apiVersion: deploy.cloud.google.com/v1
+kind: Target
+metadata:
+  name: waterfight-run-dev
+description: development service
+run:
+  location: projects/workstation-test-365315/locations/us-central1
+
