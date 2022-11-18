@@ -12,13 +12,7 @@ steps:
         'run', 'deploy', '--image', 'gcr.io/$PROJECT_ID/waterfight:$COMMIT_SHA', '--region', 'us-central1',
         '--project=$PROJECT_ID', '--region=us-central1',
         '--set-env-vars=GOOGLE_CLOUD_PROJECT=$PROJECT_ID',
+        '--set-env-vars=PLAYER_MODE=normal',
         '--platform=managed', '--max-instances=1', '--allow-unauthenticated', 'waterfight-production-01']
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    entrypoint: gcloud
-    args: [
-        'run', 'deploy', '--image', 'gcr.io/$PROJECT_ID/waterfight:$COMMIT_SHA', '--region', 'us-central1',
-        '--project=$PROJECT_ID', '--region=us-central1',
-        '--set-env-vars=GOOGLE_CLOUD_PROJECT=$PROJECT_ID',
-        '--platform=managed', '--max-instances=1', '--allow-unauthenticated', 'waterfight-production-02']
 images:
   - gcr.io/$PROJECT_ID/waterfight:$COMMIT_SHA        
