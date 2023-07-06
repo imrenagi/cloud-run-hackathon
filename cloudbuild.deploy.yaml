@@ -12,7 +12,7 @@ steps:
       '--project=$PROJECT_ID',
       '--region=us-central1',
       '--delivery-pipeline=waterfight',
-      '--images=gcr.io/workstation-test-365315/waterfight-skaffold=gcr.io/$PROJECT_ID/waterfight:$COMMIT_SHA' ]
+      '--images=gcr.io/io-extended-2023-demo/waterfight-skaffold=gcr.io/$PROJECT_ID/waterfight:$COMMIT_SHA' ]
 
 #     args: [
-#       gcloud deploy releases create test-release-$date-$time --project=$PROJECT_ID --region=us-central1 --delivery-pipeline=waterfight --images=gcr.io/workstation-test-365315/waterfight-skaffold=gcr.io/$PROJECT_ID/waterfight:505a554
+#       gcloud deploy releases create test-release-$date-$time --project=$PROJECT_ID --region=us-central1 --delivery-pipeline=waterfight --images=gcr.io/io-extended-2023-demo/waterfight-skaffold=gcr.io/$PROJECT_ID/waterfight:505a554

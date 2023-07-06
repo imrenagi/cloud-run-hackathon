@@ -46,7 +46,7 @@ spec:
     spec:
       containers:
         - name: app
-          image: "gcr.io/workstation-test-365315/waterfight-skaffold"
+          image: "gcr.io/io-extended-2023-demo/waterfight-skaffold"
           imagePullPolicy: IfNotPresent
           ports:
             - name: http

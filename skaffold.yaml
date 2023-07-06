@@ -1,38 +1,26 @@
-apiVersion: skaffold/v2beta29
+apiVersion: skaffold/v4beta2
 kind: Config
 metadata:
   name: waterfight
 build:
   artifacts:
-    - image: gcr.io/workstation-test-365315/waterfight-skaffold # must match in artifactOverrides
+    - image: gcr.io/io-extended-2023-demo/waterfight-skaffold
       context: .
 profiles:
   - name: helm
     build:
       artifacts:
-        - image: gcr.io/workstation-test-365315/waterfight-skaffold # must match in artifactOverrides
+        - image: gcr.io/io-extended-2023-demo/waterfight-skaffold
           context: .
-      local: {}
+      googleCloudBuild: {}
     deploy:
       helm:
         releases:
           - name: waterfight-skaffold-k8s
             chartPath: deployment/helm/app
-            artifactOverrides:
-              image: gcr.io/workstation-test-365315/waterfight-skaffold
-            imageStrategy:
-              helm: { }
-            wait: true
-            recreatePods: true
             namespace: default
-  - name: k8s
-    build:
-      artifacts:
-        - image: gcr.io/workstation-test-365315/waterfight-skaffold
-      local:
-        useDockerCLI: false
-        useBuildkit: false
-    deploy:
-      kubectl:
-        manifests:
-        - "deployment/k8s/*.yaml"
+            recreatePods: true
+            skipTests: true
+            setValueTemplates:
+              global.image.name: "{{.IMAGE_REPO_gcr_io_io_extended_2023_demo_waterfight_skaffold}}"
+              global.image.tag: "{{.IMAGE_TAG_gcr_io_io_extended_2023_demo_waterfight_skaffold}}@{{.IMAGE_DIGEST_gcr_io_io_extended_2023_demo_waterfight_skaffold}}"
