@@ -89,6 +89,7 @@ func (p Player) GetDirection() Direction {
 	}
 }
 
+// TODO testing sonarqube
 func (p Player) GetPosition() Point {
 	return Point{
 		X: p.X,
