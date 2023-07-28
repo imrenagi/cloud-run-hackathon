@@ -4,7 +4,7 @@ metadata:
   name: waterfight
 build:
   artifacts:
-    - image: gcr.io/workstation-test-365315/waterfight-skaffold # must match in artifactOverrides
+    - image: gcr.io/io-extended-2023-demo/waterfight-skaffold # must match in artifactOverrides
       context: .
   local: {}
 profiles:
@@ -14,7 +14,7 @@ profiles:
         - deployment/run/service-dev.yaml
     deploy:
       cloudrun:
-        projectid: workstation-test-365315
+        projectid: io-extended-2023-demo
         region: us-central1
   - name: helm
     deploy:

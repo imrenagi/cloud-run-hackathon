@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: gcr.io/workstation-test-365315/waterfight-skaffold
+  repository: gcr.io/io-extended-2023-demo/waterfight-skaffold
   tag: latest
   pullPolicy: IfNotPresent
 
